@@ -1,0 +1,284 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Dock to Door</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a DC dock board. Five numbered dock doors (shifts, played in order), each opening into study cards and a quiz manifest. */
+:root{
+  --bg:#eef0ec; --panel:#fbfbf8; --ink:#1d2321; --muted:#5d6762; --line:#cfd4ce;
+  --accent:#d9480f; --accent-ink:#fff; --stripe:#f2b705;
+  --good:#2b8a3e; --good-bg:#e3f3e6; --bad:#c92a2a; --bad-bg:#fbe5e5; --lock:#9aa39e;
+  --display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141817; --panel:#1d2321; --ink:#e7ebe6; --muted:#9ba59f; --line:#323a37;
+  --accent:#ff6b2c; --accent-ink:#1a0d05; --stripe:#e0a800;
+  --good:#69db7c; --good-bg:#1b3022; --bad:#ff8787; --bad-bg:#3a1d1d; --lock:#5c6661; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141817; --panel:#1d2321; --ink:#e7ebe6; --muted:#9ba59f; --line:#323a37;
+  --accent:#ff6b2c; --accent-ink:#1a0d05; --stripe:#e0a800;
+  --good:#69db7c; --good-bg:#1b3022; --bad:#ff8787; --bad-bg:#3a1d1d; --lock:#5c6661; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:6px}
+.hazard{height:8px;background:repeating-linear-gradient(-45deg,var(--stripe) 0 12px,var(--ink) 12px 24px);border-radius:2px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2.4rem,9vw,3.6rem);line-height:.95;margin:6px 0 0;letter-spacing:.01em;text-transform:uppercase}
+h2{font-family:var(--display);font-weight:800;font-size:1.9rem;line-height:1;margin:0;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--muted);margin:0;max-width:60ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink)}
+.doors{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.door{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.door:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.door .num{font-family:var(--display);font-weight:800;font-size:2.4rem;line-height:1;color:var(--accent)}
+.door .name{font-weight:700;font-size:1.05rem}
+.door .desc{color:var(--muted);font-size:.9rem}
+.door .tag{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+.door.locked{cursor:not-allowed;opacity:.6}.door.locked .num{color:var(--lock)}
+.door.done .tag{color:var(--good)}
+.door:not(.locked):hover{border-color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 1rem var(--body);border-radius:4px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.card{border-top:3px solid var(--stripe);background:var(--bg);padding:12px;border-radius:0 0 4px 4px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card .t{font-weight:700}
+.card .d{font-size:.93rem}
+.card .ex{font-size:.85rem;color:var(--muted)}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--accent);transition:width .3s}
+.q{font-size:1.15rem;font-weight:600;margin:0;text-wrap:pretty}
+.kind{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border:1px solid var(--line);border-radius:999px;width:fit-content}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:10px 12px;background:var(--bg)}
+.opt:hover:not([disabled]){border-color:var(--accent)}
+.opt.right{background:var(--good-bg);border-color:var(--good)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.opt[disabled]{cursor:default}
+.num-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.num-in input{font:500 1.1rem var(--mono);padding:9px 10px;width:10ch;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink)}
+.fb{border-left:4px solid var(--good);background:var(--good-bg);padding:10px 12px;border-radius:0 4px 4px 0}
+.fb.bad{border-color:var(--bad);background:var(--bad-bg)}
+.fb strong{display:block}
+.big{font-family:var(--display);font-weight:800;font-size:4rem;line-height:1;font-variant-numeric:tabular-nums}
+.miss{font-size:.92rem;border-bottom:1px solid var(--line);padding-block:8px}
+.miss:last-child{border-bottom:0}
+.foot{color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="hazard"></div>
+    <h1>Dock to Door</h1>
+    <p class="sub">A retail logistics crash course. Study each dock's terms, then clear its quiz at 70% or better to open the next door. Scenarios are set in a Midwest grocery network: vendors, distribution centers, and 270 stores.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+  <main id="app"></main>
+  <p class="foot">Progress is saved in this browser. Numbers in the math questions are realistic but illustrative; real rates vary by lane, season and contract.</p>
+</div>
+
+<script>
+const SHIFTS=[
+{id:1,name:"Freight Basics",desc:"Modes, paperwork, and how a truck actually moves.",terms:[
+["FTL (Full Truckload)","One shipper's freight fills or claims a whole trailer, moving direct from origin to destination.","DC to a store, or a vendor shipping 26 pallets to a DC."],
+["LTL (Less-than-Truckload)","Several shippers share one trailer; freight moves through carrier terminals and is priced by weight, distance and freight class.","A vendor sending 4 pallets of seasonal goods."],
+["Parcel","Small packages (typically under 150 lb) carried by networks like UPS or FedEx.","E-commerce orders and store supplies."],
+["Bill of Lading (BOL)","The shipping document that serves as receipt, contract of carriage and title record for freight.","Signed at pickup; proof-of-delivery copy signed at the dock."],
+["Freight Class (NMFC)","LTL pricing category from 50 to 500 based on density, handling and liability. Lower class means denser and cheaper per pound.","Canned goods are a low class; pillows are a high class."],
+["Deadhead","Miles a truck drives empty, earning no revenue.","Driving back to the DC after the last store drop."],
+["Backhaul","Filling a truck's return trip with freight, often a vendor pickup near the last delivery.","A store truck picks up from a vendor on its way back to the DC."],
+["Live Load / Live Unload","The driver waits at the dock while the trailer is loaded or unloaded.","Typical at vendor docks with tight appointments."],
+["Drop Trailer","The carrier leaves a trailer at a facility and returns later, so the driver doesn't wait.","Pools of empty trailers at a busy DC."],
+["Detention","A fee charged when a driver is held at a facility past the free time, usually 2 hours.","Late dock appointments create detention invoices."]],
+extra:[
+{k:"Scenario",q:"A vendor needs to ship 22 pallets of paper towels to your DC. Which mode fits best?",o:["Parcel","LTL","FTL","Intermodal rail for a 40-mile move"],a:2,e:"At 22 pallets you're near a full 53' trailer (about 26 floor positions). FTL is cheaper per pallet and avoids LTL terminal handling."},
+{k:"Scenario",q:"Your store-delivery trucks return to the DC empty every day, passing near a vendor's plant. What's the opportunity?",o:["Raise detention fees","Set up a backhaul from that vendor","Switch the stores to LTL","Add drop trailers at stores"],a:1,e:"Backhauls turn deadhead into paid or cost-avoiding miles. The vendor's freight rides home on a truck you're paying for anyway."},
+{k:"Math",q:"A driver had 2 hours of free time, waited 5 hours total, and detention is $75/hour. What's the detention charge ($)?",n:225,tol:0,u:"$",e:"5 hours waited minus 2 free = 3 billable hours × $75 = $225."},
+{k:"Math",q:"How many standard 48×40 pallets fit on the floor of a 53' dry van, single-stacked?",n:26,tol:2,u:"pallets",e:"About 26 when loaded two across, end to end (some load patterns fit 28 or 30). It's the number planners use as a full-floor benchmark."},
+{k:"Scenario",q:"Under US federal limits, the maximum gross vehicle weight for a standard tractor-trailer is…",o:["40,000 lb","62,000 lb","80,000 lb","120,000 lb"],a:2,e:"80,000 lb gross. After the tractor and trailer, usable payload is roughly 42,000–45,000 lb."}]},
+{id:2,name:"The Network",desc:"How product flows from vendor to DC to store.",terms:[
+["Distribution Center (DC)","A facility that receives vendor freight, stores or sorts it, and ships mixed loads to stores.","Grocery, general merchandise and fresh often run from separate DCs."],
+["Cross-Dock","Inbound freight is sorted and moved straight to outbound trailers with little or no storage.","Pre-allocated vendor pallets that go straight to store trucks."],
+["Inbound","Freight moving from vendors into the retailer's DCs.","Often managed on routing guides and inbound collect programs."],
+["Outbound","Freight moving from DCs to stores or customers.","Usually a private or dedicated fleet in grocery."],
+["Lane","A specific origin-to-destination route that freight moves on repeatedly.","Grand Rapids DC to the Toledo-area stores."],
+["Hub-and-Spoke","Freight consolidates at a central hub before moving out to many destinations.","LTL carrier terminals; regional DCs serving clusters of stores."],
+["Multi-Stop Route","One truck delivers to several stops in sequence on a single trip.","A trailer loaded for three small stores in one region."],
+["Consolidation","Combining small shipments into fuller loads to cut cost per unit.","Pooling several vendors' LTL freight into one truckload."],
+["Network Modeling","Using data and optimization to decide where facilities sit, which DC serves which stores, and how freight should flow.","Center-of-gravity studies; tools like Supply Chain Guru."],
+["Replenishment","Restocking stores (or DC pick slots) based on sales and inventory targets.","Daily store orders generated from point-of-sale data."]],
+extra:[
+{k:"Scenario",q:"Which product is the best candidate for cross-docking?",o:["Slow-moving seasonal decor","High-volume, pre-allocated vendor pallets for specific stores","Items needing long-term storage","Returned goods awaiting inspection"],a:1,e:"Cross-docking works when freight arrives already destined for specific stores and moves fast. Storage is what it avoids."},
+{k:"Scenario",q:"A new DC opens. Some stores sit about equidistant from both DCs. What decides which DC should serve them?",o:["Whichever DC opened first","Total landed cost and service: miles, capacity, route density and inventory","Store manager preference","The DC with more dock doors"],a:1,e:"That's network modeling: re-drawing service areas by total cost and service level, not distance alone. Capacity and route density often matter as much as miles."},
+{k:"Math",q:"A truck runs 900 total miles in a week, 180 of them empty. What percentage are empty miles?",n:20,tol:.5,u:"%",e:"180 ÷ 900 = 20%. Backhauls and better route design push this down."},
+{k:"Scenario",q:"Three small stores each need about a third of a trailer every day. The cheapest approach is usually…",o:["Three separate LTL shipments","One multi-stop route serving all three","Parcel","Three full trucks, partly empty"],a:1,e:"A multi-stop route fills one trailer and pays per-stop costs instead of three trucks' worth of linehaul."},
+{k:"Scenario",q:"The center-of-gravity method in network modeling finds…",o:["The heaviest pallet position on a trailer","A facility location that minimizes weighted distance to demand","The DC with the best safety record","The optimal speed for fuel economy"],a:1,e:"It weights each destination by volume and finds the point minimizing total weighted distance. It's a starting point before real-world constraints."}]},
+{id:3,name:"Carriers & Contracts",desc:"Who hauls it and what you pay.",terms:[
+["Asset-Based Carrier","A trucking company that owns its trucks and employs drivers.","Large truckload carriers with their own fleets."],
+["Freight Broker","Arranges moves using other carriers' trucks and earns the spread between what the shipper pays and the carrier gets.","Common for spot freight and surge capacity."],
+["3PL (Third-Party Logistics)","An outside company that runs part of your logistics: transport, warehousing or both.","Running a seasonal overflow warehouse."],
+["Contract Rate","A negotiated rate on a lane, usually set for a year through a bid.","The rate in the routing guide."],
+["Spot Rate","A one-time market price for a load, set by current supply and demand.","Paid when contract carriers decline; often higher in tight markets."],
+["Tender","Formally offering a load to a carrier, who can accept or reject it.","Sent via EDI 204 from the TMS."],
+["Tender Acceptance Rate","The share of offered loads a carrier accepts. Falling acceptance signals a tightening market or a bad rate.","A carrier dropping from 95% to 70%."],
+["Routing Guide","The ranked list of carriers and rates for each lane; loads go down the list until accepted.","Primary, backup, then spot."],
+["Fuel Surcharge (FSC)","A variable charge tied to diesel prices (usually the weekly DOE average) on top of linehaul.","Billed per mile, recalculated weekly."],
+["Accessorials","Extra charges beyond linehaul: detention, lumper fees, liftgate, stop-offs, layovers.","A big hidden share of total freight spend."],
+["Dedicated Fleet","A carrier provides trucks and drivers exclusively to one shipper.","Common for store delivery where service matters."],
+["RFP / Freight Bid","A formal process where carriers bid on your lanes to set contract rates.","Annual bids, with mini-bids for problem lanes."]],
+extra:[
+{k:"Scenario",q:"Your primary carrier on a lane has started rejecting 40% of tenders. What usually happens to cost?",o:["It drops, since the backup is always cheaper","It rises, as loads fall to backups and the spot market","Nothing changes","Fuel surcharge disappears"],a:1,e:"Rejected loads cascade down the routing guide to pricier backups or spot. Low tender acceptance is one of the first things to check when lane cost jumps."},
+{k:"Math",q:"Linehaul is $2,850 for a 600-mile load. What's the linehaul cost per mile ($)?",n:4.75,tol:.01,u:"$/mi",e:"$2,850 ÷ 600 = $4.75 per mile."},
+{k:"Math",q:"Fuel surcharge this week is $0.62/mile. What's the FSC on that 600-mile load ($)?",n:372,tol:0,u:"$",e:"$0.62 × 600 = $372. Total cost = $2,850 + $372 = $3,222 before accessorials."},
+{k:"Scenario",q:"One lane keeps failing mid-year while the rest of your bid is fine. The standard fix is…",o:["Rerun the whole annual RFP","Run a mini-bid on that lane","Move all freight to parcel","Ignore it until next year"],a:1,e:"A mini-bid re-sources the problem lanes without disrupting the rest of the network."},
+{k:"Scenario",q:"Which is an accessorial charge?",o:["Linehaul","Lumper fee for unloading at the DC","Contract rate","Freight class"],a:1,e:"Lumpers are third-party unloaders paid per load. Detention, liftgate, stop-off and layover are other common accessorials."}]},
+{id:4,name:"Metrics",desc:"How logistics teams measure service and cost.",terms:[
+["OTIF (On-Time, In-Full)","The share of orders delivered both on time and complete. An order that misses either counts as a failure.","Retailers often fine vendors who fall below an OTIF target."],
+["On-Time Pickup / Delivery","Separate measures of whether the carrier hit its appointment windows.","Used in carrier scorecards."],
+["Cost per Mile","Total transport cost divided by miles driven.","Comparing lanes or carriers."],
+["Cost per Case","Transport cost divided by cases delivered; it shows efficiency to the store shelf.","A full truck lowers cost per case even at the same cost per mile."],
+["Cube Utilization","The percentage of the trailer's volume used.","A 53' trailer holds roughly 3,800–4,000 cubic feet."],
+["Cube-Out vs. Weight-Out","A trailer cubes out when volume fills before the weight limit, and weighs out when it hits the weight limit first.","Paper towels cube out; bottled water weighs out."],
+["Dwell Time","Time a truck or trailer sits at a facility.","Long dwell causes detention and wastes capacity."],
+["Fill Rate","The share of ordered units actually shipped.","Store orders 100 cases, DC ships 97 = 97% fill rate."],
+["Days of Supply","How many days current inventory will last at the current sales rate.","On-hand ÷ average daily usage."],
+["Carrier Scorecard","A periodic report rating carriers on on-time, tender acceptance, claims and cost.","Used in business reviews and bids."]],
+extra:[
+{k:"Math",q:"Of 100 orders: 92 were on time, 95 were complete, and 88 were both. What is OTIF (%)?",n:88,tol:0,u:"%",e:"OTIF counts only orders that are both on time and in full: 88 of 100 = 88%. You can't average or multiply the other two."},
+{k:"Math",q:"A load used 2,280 cubic feet of a 3,800 cu ft trailer. What's the cube utilization (%)?",n:60,tol:.5,u:"%",e:"2,280 ÷ 3,800 = 60%. Light, bulky freight rarely tops out on weight, so space is the constraint to watch."},
+{k:"Math",q:"A $1,800 load delivers 1,200 cases. What's the cost per case ($)?",n:1.5,tol:.01,u:"$/case",e:"$1,800 ÷ 1,200 = $1.50 per case."},
+{k:"Math",q:"A DC has 4,800 units on hand and ships 600 units a day. How many days of supply?",n:8,tol:0,u:"days",e:"4,800 ÷ 600 = 8 days."},
+{k:"Scenario",q:"A truck loaded with cases of bottled water is at 44,000 lb payload with half the floor empty. It has…",o:["Cubed out","Weighed out","Deadheaded","Cross-docked"],a:1,e:"Water is dense, so it hits the weight limit long before the trailer fills. The fix is mixing dense and light freight on the same load."}]},
+{id:5,name:"Systems & Practice",desc:"The tools and habits of a working analyst.",terms:[
+["TMS (Transportation Management System)","Software that plans loads, tenders to carriers, tracks shipments and audits freight bills.","Oracle OTM, Blue Yonder, e2open, Manhattan."],
+["WMS (Warehouse Management System)","Software that runs the DC: receiving, putaway, picking, loading.","Directs workers via scanners."],
+["EDI 204","Electronic load tender sent from shipper to carrier.","TMS offers a load to a carrier."],
+["EDI 214","Shipment status message from the carrier: picked up, in transit, delivered.","Feeds tracking and on-time metrics."],
+["EDI 210","Electronic freight invoice from the carrier.","Matched against the rate in freight audit."],
+["EDI 856 (ASN)","Advance Ship Notice: the vendor's electronic list of what's on the truck, before it arrives.","Lets the DC plan receiving and cross-docking."],
+["Freight Audit & Pay","Checking carrier invoices against contracted rates and paying them.","Catches duplicate bills and wrong accessorials."],
+["Prepaid vs. Collect","Prepaid: the shipper (vendor) pays freight. Collect: the receiver (retailer) pays and controls the carrier.","Retailers often move vendors to collect to control inbound cost."],
+["Reverse Logistics","Moving goods backward: returns, damages, recalls, pallets and totes back to DCs or vendors.","Often its own team and network."],
+["Lean / Muda","Lean thinking aims to remove waste (muda): waiting, excess transport, overprocessing, inventory, defects.","Dock waiting time is classic muda."],
+["Load Planning","Building loads to maximize cube and weight while respecting delivery order and product rules.","Heavy on the bottom; last stop loaded first."]],
+extra:[
+{k:"Scenario",q:"Transportation cost on one DC-to-store lane is up 15% this quarter. What's the best first step?",o:["Fire the carrier","Break cost into components: linehaul, fuel, accessorials, volume, tender rejections","Raise store prices","Switch the lane to parcel"],a:1,e:"Decompose before acting. Fuel may explain half of it, detention the rest, or tenders falling to spot. The fix depends on which component moved."},
+{k:"Scenario",q:"The DC wants to start cross-docking a vendor's freight but needs to know exactly what's arriving before the truck shows up. Which message gives that?",o:["EDI 204","EDI 210","EDI 214","EDI 856 (ASN)"],a:3,e:"The ASN lists what's on the truck ahead of arrival, so the DC can plan receiving and send pallets straight to outbound doors."},
+{k:"Scenario",q:"Why might a retailer move vendors from prepaid to collect freight?",o:["To pay less tax","To control carrier choice, consolidate volume and see the true freight cost","Because it shifts liability to the vendor","Collect freight requires no paperwork"],a:1,e:"With collect, the retailer runs the carrier relationship, can consolidate and backhaul, and sees freight costs that were hidden in vendor pricing."},
+{k:"Scenario",q:"For a multi-stop route, how should the trailer be loaded?",o:["First stop's freight in the nose of the trailer","Last stop's freight loaded first, at the nose; first stop's freight at the doors","Random order","Lightest freight on the bottom"],a:1,e:"Last in, first out. The first stop's freight sits by the doors so drivers don't dig through other stores' pallets."},
+{k:"Scenario",q:"Freight audit catches an invoice billing detention at a facility where the driver was only on site 90 minutes. What's the likely issue?",o:["Detention was valid","The charge breaks the free-time rule and should be disputed","Fuel surcharge error","Wrong freight class"],a:1,e:"With 2 hours of free time standard, 90 minutes shouldn't trigger detention. Check timestamps from EDI 214 or gate logs and dispute."}]}
+];
+
+const KEY="dock2door.v1";
+let S={best:{},xp:0};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const unlocked=id=>id===1||(S.best[id-1]||0)>=70;
+const allClear=()=>SHIFTS.every(s=>(S.best[s.id]||0)>=70);
+
+function stats(){
+  const cleared=SHIFTS.filter(s=>(S.best[s.id]||0)>=70).length;
+  document.getElementById("stats").innerHTML=`<span>Docks cleared <b>${cleared}/5</b></span><span>XP <b>${S.xp}</b></span>`;
+}
+
+function board(){
+  stats();
+  let h=`<div class="doors">`;
+  SHIFTS.forEach(s=>{
+    const u=unlocked(s.id),b=S.best[s.id];
+    const tag=!u?"Locked":b>=70?`Cleared · best ${b}%`:b!=null?`Best ${b}% · need 70`:"Open";
+    h+=`<button class="door ${u?"":"locked"} ${b>=70?"done":""}" ${u?`data-s="${s.id}"`:"disabled"}>
+      <span class="num">D${s.id}</span><span class="name">${s.name}</span><span class="desc">${s.desc}</span><span class="tag">${tag}</span></button>`;
+  });
+  const fin=allClear();
+  h+=`<button class="door ${fin?"":"locked"}" ${fin?'data-s="final"':"disabled"}>
+    <span class="num">YARD</span><span class="name">Final: Mixed Review</span><span class="desc">20 questions drawn from every dock. Clear all five to open.</span><span class="tag">${fin?(S.best.final!=null?`Best ${S.best.final}%`:"Open"):"Locked"}</span></button></div>`;
+  app.innerHTML=h;
+  app.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>b.dataset.s==="final"?startQuiz("final"):study(+b.dataset.s));
+}
+
+function study(id){
+  const s=SHIFTS.find(x=>x.id===id);
+  app.innerHTML=`<section class="panel">
+    <div class="eyebrow">Dock D${id} · Study</div><h2>${s.name}</h2>
+    <p class="sub">${s.terms.length} terms. Read them through, then run the quiz. It mixes these definitions with scenarios and freight math.</p>
+    <div class="cards">${s.terms.map(t=>`<div class="card"><span class="t">${esc(t[0])}</span><span class="d">${esc(t[1])}</span><span class="ex">e.g. ${esc(t[2])}</span></div>`).join("")}</div>
+    <div class="row"><button class="btn primary" id="go">Start quiz</button><button class="btn" id="back">Back to dock board</button></div></section>`;
+  document.getElementById("go").onclick=()=>startQuiz(id);
+  document.getElementById("back").onclick=board;
+  window.scrollTo(0,0);
+}
+
+function defQs(s,count){
+  return shuffle(s.terms).slice(0,count).map(t=>{
+    const wrong=shuffle(s.terms.filter(x=>x!==t)).slice(0,3).map(x=>x[0]);
+    const o=shuffle([t[0],...wrong]);
+    return {k:"Term",q:t[1],o,a:o.indexOf(t[0]),e:`${t[0]}. Example: ${t[2]}`};
+  });
+}
+function buildQs(id){
+  if(id==="final"){
+    let pool=[];SHIFTS.forEach(s=>{pool=pool.concat(defQs(s,2),shuffle(s.extra).slice(0,2))});
+    return shuffle(pool);
+  }
+  const s=SHIFTS.find(x=>x.id===id);
+  return shuffle(defQs(s,5).concat(s.extra));
+}
+
+let Q=null;
+function startQuiz(id){Q={id,qs:buildQs(id),i:0,right:0,streak:0,misses:[]};ask();}
+function ask(){
+  const q=Q.qs[Q.i],n=Q.qs.length,title=Q.id==="final"?"Mixed Review":`D${Q.id} · ${SHIFTS.find(s=>s.id===Q.id).name}`;
+  const prompt=q.k==="Term"?`Which term matches: “${esc(q.q)}”`:esc(q.q);
+  let body;
+  if(q.o) body=`<div class="opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div>`;
+  else body=`<form class="num-in" id="nf"><input id="ans" inputmode="decimal" autocomplete="off" aria-label="Your answer"><span class="eyebrow">${esc(q.u)}</span><button class="btn primary">Check</button></form>`;
+  app.innerHTML=`<section class="panel">
+    <div class="row" style="justify-content:space-between"><span class="eyebrow">${title}</span><span class="eyebrow">Q ${Q.i+1}/${n} · streak ${Q.streak}</span></div>
+    <div class="progress"><span style="width:${Q.i/n*100}%"></span></div>
+    <span class="kind">${q.k}</span><p class="q">${prompt}</p>${body}<div id="fb"></div></section>`;
+  if(q.o) app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>grade(+b.dataset.i===q.a,+b.dataset.i));
+  else{const f=document.getElementById("nf"),inp=document.getElementById("ans");inp.focus();
+    f.onsubmit=e=>{e.preventDefault();const v=parseFloat(inp.value.replace(/[$,%\s]/g,""));if(isNaN(v))return;inp.disabled=true;f.querySelector("button").disabled=true;grade(Math.abs(v-q.n)<=q.tol+1e-9,null)}}
+}
+function grade(ok,picked){
+  const q=Q.qs[Q.i];
+  if(q.o) app.querySelectorAll(".opt").forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add("right");else if(i===picked)b.classList.add("wrong")});
+  if(ok){Q.right++;Q.streak++;S.xp+=10+Math.min(Q.streak,5)*2}else{Q.streak=0;Q.misses.push(q)}
+  save();stats();
+  const ansTxt=q.o?q.o[q.a]:`${q.n} ${q.u}`;
+  document.getElementById("fb").innerHTML=`<div class="fb ${ok?"":"bad"}"><strong>${ok?"Correct":"Not quite. Answer: "+esc(ansTxt)}</strong>${esc(q.e)}</div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="nx">${Q.i+1<Q.qs.length?"Next question":"See results"}</button></div>`;
+  const nx=document.getElementById("nx");nx.focus();nx.onclick=()=>{Q.i++;Q.i<Q.qs.length?ask():results()};
+}
+function results(){
+  const pct=Math.round(Q.right/Q.qs.length*100),pass=pct>=70;
+  S.best[Q.id]=Math.max(S.best[Q.id]||0,pct);save();stats();
+  const next=typeof Q.id==="number"&&Q.id<5&&pass;
+  app.innerHTML=`<section class="panel">
+    <div class="eyebrow">${pass?"Dock cleared":"Below 70%: run it again"}</div>
+    <div class="big">${pct}%</div><p class="sub">${Q.right} of ${Q.qs.length} correct.${next?` Dock D${Q.id+1} is open.`:""}${Q.id===5&&pass?" The final mixed review is open.":""}</p>
+    ${Q.misses.length?`<div><div class="eyebrow">Review your misses</div>${Q.misses.map(m=>`<div class="miss"><b>${m.k==="Term"?esc(m.o[m.a]):esc(m.q)}</b><br>${esc(m.e)}</div>`).join("")}</div>`:""}
+    <div class="row">${next?`<button class="btn primary" id="nxt">Study D${Q.id+1}</button>`:""}
+    <button class="btn ${next?"":"primary"}" id="again">Retry quiz</button><button class="btn" id="home">Dock board</button></div></section>`;
+  if(next)document.getElementById("nxt").onclick=()=>study(Q.id+1);
+  document.getElementById("again").onclick=()=>startQuiz(Q.id);
+  document.getElementById("home").onclick=board;
+  window.scrollTo(0,0);
+}
+board();
+</script>
+
+</body></html>

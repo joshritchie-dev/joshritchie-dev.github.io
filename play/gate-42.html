@@ -1,0 +1,2532 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Gate 42</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=Overpass+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: airport wayfinding — signage-yellow on terminal charcoal; departure board above the gate, panels to the side. Single dark look by design. */
+:root {
+  --bg: #121418; --panel: #1b1f25; --panel2: #232830; --line: #2f363f; --line2: #3c444e;
+  --fg: #eef1f4; --mute: #95a0ad; --dim: #66707c;
+  --sign: #ffcc00; --sign-ink: #0d0f12; --board: #0b0d10; --flap: #f7c948;
+  --cash: #8bd66b; --rage: #ff5d4f; --calm: #4fd1c5; --scr: #b694ff; --rep: #4fd1c5; --warn: #ffab3d;
+  --f-sign: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, [tabindex]:focus-visible, input:focus-visible { outline: 2px solid var(--sign); outline-offset: 2px; }
+button:disabled { cursor: not-allowed; }
+#app { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- header ---------- */
+.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
+.logo { display: flex; align-items: center; gap: 9px; margin-right: auto; }
+.logo-sq { background: var(--sign); color: var(--sign-ink); font: 800 22px/1 var(--f-sign); padding: 6px 7px 4px; border-radius: 3px; letter-spacing: .5px; }
+.logo-tx { display: flex; flex-direction: column; line-height: 1.05; }
+.logo-tx b { font: 800 20px/1 var(--f-sign); letter-spacing: 2px; }
+.logo-tx small { color: var(--mute); font: 600 11px/1.2 var(--f-sign); letter-spacing: 1.4px; text-transform: uppercase; margin-top: 2px; }
+.clock { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.05; }
+.clock b { font: 700 20px/1 var(--f-mono); color: var(--flap); }
+.clock span { font: 600 11px/1.3 var(--f-sign); color: var(--mute); letter-spacing: 1.2px; text-transform: uppercase; }
+.wx { font: 700 12px/1 var(--f-sign); letter-spacing: 1.2px; text-transform: uppercase; color: var(--mute); border: 1px solid var(--line2); padding: 5px 7px; border-radius: 3px; }
+.wx.bad { color: var(--warn); border-color: var(--warn); }
+.hstat { display: flex; flex-direction: column; line-height: 1.1; min-width: 70px; }
+.hstat small { font: 600 10px/1.2 var(--f-sign); letter-spacing: 1.3px; text-transform: uppercase; color: var(--mute); }
+.hstat b { font: 700 17px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.hstat b.neg { color: var(--rage); }
+.speed { display: flex; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; }
+.speed button { background: transparent; border: 0; border-right: 1px solid var(--line2); padding: 6px 9px; font: 700 13px/1 var(--f-mono); color: var(--mute); }
+.speed button:last-child { border-right: 0; }
+.speed button.on { background: var(--sign); color: var(--sign-ink); }
+.ghost { background: transparent; border: 1px solid var(--line2); border-radius: 4px; padding: 6px 10px; font: 600 13px/1 var(--f-sign); letter-spacing: 1px; text-transform: uppercase; color: var(--mute); }
+.ghost:hover { color: var(--fg); border-color: var(--mute); }
+
+/* ---------- meters ---------- */
+.meters { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.meter { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px 8px; min-width: 0; }
+.meter .mh { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.meter .ml { font: 700 11px/1.2 var(--f-sign); letter-spacing: 1.3px; text-transform: uppercase; color: var(--mute); white-space: nowrap; }
+.meter .mv { font: 700 15px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meter .ms { font-size: 11.5px; color: var(--dim); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; margin-top: 5px; position: relative; }
+.bar i { display: block; height: 100%; border-radius: 3px; background: var(--calm); transition: width .3s; }
+.bar.rep i { background: var(--rep); } .bar.scr i { background: var(--scr); } .bar.rage i { background: var(--rage); } .bar.cash i { background: var(--cash); }
+.bar .tick { position: absolute; top: -1px; bottom: -1px; width: 2px; background: var(--fg); opacity: .6; }
+.meter.alert { border-color: var(--rage); }
+.meter.alert .mv { color: var(--rage); }
+
+/* ---------- main grid ---------- */
+.grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(330px, 1fr); grid-template-areas: "board side" "scene side" "pa side" "feed side"; grid-template-rows: auto auto auto 1fr; gap: 10px; align-items: start; }
+.maincol { display: contents; }
+.board { grid-area: board; } .scene { grid-area: scene; } .pa { grid-area: pa; } .feed { grid-area: feed; } .side { grid-area: side; }
+
+/* departure board */
+.board { background: var(--board); border: 1px solid #000; border-radius: 6px; padding: 8px 10px 9px; box-shadow: inset 0 0 0 1px #1d2128; overflow-x: auto; }
+.bd-h, .bd-r { display: grid; grid-template-columns: 52px 72px minmax(96px, 1.3fr) minmax(130px, 1.4fr) 64px; gap: 8px; align-items: center; min-width: 470px; }
+.bd-h { font: 700 10.5px/1 var(--f-sign); letter-spacing: 1.6px; color: var(--sign); text-transform: uppercase; padding: 0 2px 6px; border-bottom: 1px solid #1d2128; }
+.bd-r { font: 600 13.5px/1 var(--f-mono); color: #f2f2f2; padding: 5px 2px; border-bottom: 1px solid #15181d; }
+.bd-r:last-child { border-bottom: 0; }
+.bd-r .fl { display: inline-flex; gap: 1px; }
+.fl i { font-style: normal; background: #171a1f; padding: 2px 1px; min-width: .72em; text-align: center; border-radius: 1px; box-shadow: inset 0 -1px 0 #000, inset 0 1px 0 #252a31; }
+.fl i.f { animation: flap .32s steps(3) both; }
+@keyframes flap { 0% { transform: scaleY(1); color: transparent; } 40% { transform: scaleY(.1); } 100% { transform: scaleY(1); } }
+.st-ok { color: #9fe870; } .st-board { color: var(--sign); } .st-late { color: var(--warn); } .st-bad { color: var(--rage); } .st-gone { color: var(--dim); } .st-final { color: #ff8a3d; }
+.bd-r.gone { opacity: .55; }
+.bd-load { font: 600 11.5px/1 var(--f-mono); color: var(--mute); text-align: right; }
+
+/* scene */
+.scene { position: relative; border-radius: 6px; overflow: hidden; border: 1px solid #000; background: #000; }
+#cv { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; image-rendering: pixelated; image-rendering: crisp-edges; cursor: pointer; }
+.scene-tag { position: absolute; left: 8px; top: 8px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; }
+.scene-tag span { background: rgba(10, 12, 15, .82); border: 1px solid #000; border-radius: 3px; padding: 3px 6px; font: 700 11px/1 var(--f-sign); letter-spacing: 1px; text-transform: uppercase; }
+.scene-tag .paused { color: var(--sign); }
+.scene-tag .r { color: var(--rage); }
+
+/* PA bar */
+.pa { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.pa-b { position: relative; overflow: hidden; background: var(--panel); border: 1px solid var(--line2); border-radius: 5px; padding: 7px 9px 6px; text-align: left; min-height: 48px; }
+.pa-b b { display: block; font: 700 14px/1.1 var(--f-sign); letter-spacing: .6px; text-transform: uppercase; }
+.pa-b small { display: block; font-size: 11.5px; color: var(--mute); margin-top: 2px; }
+.pa-b .k { position: absolute; right: 6px; top: 5px; font: 700 10px/1 var(--f-mono); color: var(--dim); }
+.pa-b .cd { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--sign); opacity: .8; }
+.pa-b:not(:disabled):hover { border-color: var(--sign); background: var(--panel2); }
+.pa-b:disabled { opacity: .5; }
+.pa-b.ready b { color: var(--sign); }
+.pa-lbl { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; font: 700 11px/1.2 var(--f-sign); letter-spacing: 1.3px; text-transform: uppercase; color: var(--mute); }
+.pa-lbl span:last-child { color: var(--dim); letter-spacing: .5px; text-transform: none; font: 500 11.5px/1.2 var(--f-body); }
+
+/* feed */
+.feed { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.fd { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; padding: 5px 0; border-bottom: 1px solid #222830; font-size: 13.5px; line-height: 1.4; }
+.fd:last-child { border-bottom: 0; }
+.fd-t { font: 600 11px/1.6 var(--f-mono); color: var(--dim); }
+.fd-x { min-width: 0; overflow-wrap: anywhere; }
+.fd-u { color: #8ab4ff; font-weight: 600; margin-right: 5px; }
+.k-pa .fd-x { color: #ffe9a3; font-style: italic; }
+.k-pa .fd-x::before { content: "PA · "; font-style: normal; font: 700 11px/1 var(--f-sign); letter-spacing: 1px; color: var(--sign); }
+.k-flight .fd-x b { color: var(--cash); font-weight: 600; }
+.k-flight .fd-x b.neg { color: var(--rage); }
+.k-viral .fd-x { color: #ff8ad8; font-weight: 600; }
+.k-sys .fd-x { color: var(--mute); }
+.k-event .fd-x { color: #cfd8e3; }
+.k-tip .fd-x { color: var(--calm); }
+.fd-h { display: flex; justify-content: space-between; align-items: center; font: 700 11px/1.2 var(--f-sign); letter-spacing: 1.3px; text-transform: uppercase; color: var(--mute); padding-bottom: 4px; }
+
+/* ---------- side panel ---------- */
+.side { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-width: 0; position: sticky; top: 8px; max-height: calc(100vh - 16px); display: flex; flex-direction: column; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); overflow-x: auto; flex: none; }
+.tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 11px 8px; font: 700 13.5px/1 var(--f-sign); letter-spacing: 1.1px; text-transform: uppercase; color: var(--mute); white-space: nowrap; }
+.tabs button.on { color: var(--fg); border-bottom-color: var(--sign); }
+.tabs button small { color: var(--dim); font-weight: 600; margin-left: 3px; }
+.tabs button .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--sign); margin-left: 4px; vertical-align: 2px; }
+.pane { padding: 12px; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+.ph { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ph h2 { font: 800 19px/1.1 var(--f-sign); letter-spacing: .8px; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.ph span { font-size: 12.5px; color: var(--mute); text-align: right; }
+.note { font-size: 13px; color: var(--mute); margin: 0; }
+.sec { font: 700 11.5px/1.2 var(--f-sign); letter-spacing: 1.5px; text-transform: uppercase; color: var(--sign); display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.sec small { color: var(--dim); letter-spacing: .6px; text-transform: none; font: 500 12px/1.2 var(--f-body); }
+.card { background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; padding: 9px 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.card.on { border-color: #5a4f1c; }
+.card.locked { opacity: .55; }
+.card h3 { margin: 0; font: 700 15px/1.15 var(--f-sign); letter-spacing: .4px; }
+.card h3 small { display: block; font: 500 12px/1.3 var(--f-body); color: var(--mute); letter-spacing: 0; margin-top: 1px; }
+.card p { margin: 0; grid-column: 1 / -1; font-size: 12.8px; color: #c3cad3; }
+.card .tags { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font: 600 11px/1 var(--f-mono); padding: 3px 5px; border-radius: 3px; background: #2a3039; color: var(--mute); white-space: nowrap; }
+.tag.c { color: var(--cash); } .tag.r { color: var(--rage); } .tag.s { color: var(--scr); } .tag.y { color: var(--sign); }
+.btn { background: var(--sign); color: var(--sign-ink); border: 0; border-radius: 4px; padding: 7px 11px; font: 800 13px/1 var(--f-sign); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:disabled { background: #3a4049; color: #8b939c; }
+.btn.alt { background: transparent; color: var(--fg); border: 1px solid var(--line2); }
+.btn.alt:hover:not(:disabled) { border-color: var(--sign); }
+.btn.red { background: var(--rage); color: #fff; }
+.sw { width: 44px; height: 24px; border-radius: 12px; border: 1px solid var(--line2); background: #2a3039; position: relative; padding: 0; flex: none; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #8b939c; transition: left .15s; }
+.sw.on { background: var(--sign); border-color: var(--sign); }
+.sw.on::after { left: 22px; background: var(--sign-ink); }
+.sumbox { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.sumbox div { background: var(--panel2); border-radius: 4px; padding: 6px 8px; font-size: 11.5px; color: var(--mute); min-width: 0; }
+.sumbox b { display: block; font: 700 15px/1.2 var(--f-mono); color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ladder { display: flex; gap: 3px; margin-top: 2px; grid-column: 1 / -1; }
+.ladder i { flex: 1; height: 4px; border-radius: 2px; background: #333a44; }
+.ladder i.on { background: var(--sign); }
+.rng { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+.rng input { flex: 1; accent-color: var(--sign); min-width: 0; }
+.rng b { font: 700 14px/1 var(--f-mono); min-width: 44px; text-align: right; }
+.seg { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.seg button { background: #2a3039; border: 1px solid var(--line2); border-radius: 4px; padding: 6px 4px; font: 700 12.5px/1.1 var(--f-sign); letter-spacing: .6px; text-transform: uppercase; color: var(--mute); }
+.seg button.on { background: var(--sign); color: var(--sign-ink); border-color: var(--sign); }
+.dem { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.dem .row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--mute); }
+.dem .row b { color: var(--fg); font-family: var(--f-mono); font-weight: 600; }
+.dbar { position: relative; height: 12px; background: #2a3039; border-radius: 3px; overflow: hidden; }
+.dbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--calm); opacity: .85; }
+.dbar u { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--sign); }
+.spark { width: 100%; height: 64px; display: block; flex: none; }
+.pane > * { flex-shrink: 0; }
+.dec-l { display: flex; flex-direction: column; gap: 6px; }
+.dec { background: var(--panel2); border-radius: 4px; padding: 7px 9px; font-size: 13px; }
+.dec b { display: block; font: 700 14px/1.2 var(--f-sign); letter-spacing: .4px; color: var(--sign); }
+.dec.no b { color: var(--dim); }
+.dec.no span { color: var(--dim); }
+.srch { background: #12151a; border: 1px solid var(--line2); border-radius: 4px; padding: 7px 9px; color: var(--fg); font: inherit; width: 100%; }
+.ach { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ach div { background: var(--panel2); border-radius: 4px; padding: 6px 8px; font-size: 12px; color: var(--dim); min-width: 0; }
+.ach div b { display: block; font: 700 13px/1.2 var(--f-sign); color: var(--mute); letter-spacing: .4px; }
+.ach div.got { color: #c3cad3; } .ach div.got b { color: var(--sign); }
+
+/* jargon */
+mark.jg { background: transparent; color: inherit; border-bottom: 1px dotted var(--sign); cursor: help; padding: 0; }
+#jtip { position: fixed; z-index: 90; max-width: 260px; background: #0b0d10; border: 1px solid var(--sign); border-radius: 5px; padding: 8px 10px; font-size: 13px; color: var(--fg); pointer-events: none; box-shadow: 0 6px 20px rgba(0, 0, 0, .5); }
+#jtip b { display: block; font: 700 12px/1.2 var(--f-sign); letter-spacing: 1.2px; text-transform: uppercase; color: var(--sign); margin-bottom: 3px; }
+
+/* ---------- overlays ---------- */
+.ov { position: fixed; inset: 0; z-index: 50; background: rgba(5, 6, 8, .72); display: flex; align-items: center; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.mo { background: var(--panel); border: 1px solid var(--line2); border-top: 4px solid var(--sign); border-radius: 6px; width: min(560px, 100%); max-height: 100%; overflow-y: auto; padding: 18px 20px 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6); }
+.mo.wide { width: min(680px, 100%); }
+.mo .kicker { font: 700 12px/1 var(--f-sign); letter-spacing: 2px; text-transform: uppercase; color: var(--sign); }
+.mo h2 { font: 800 28px/1.05 var(--f-sign); letter-spacing: .5px; margin: 0; text-wrap: balance; }
+.mo p { margin: 0; color: #cfd6de; }
+.mo .from { font-size: 12.5px; color: var(--mute); }
+.mo .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.mo ul { margin: 0; padding-left: 18px; color: #cfd6de; display: flex; flex-direction: column; gap: 5px; }
+.choice { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; background: var(--panel2); border: 1px solid var(--line2); border-radius: 5px; padding: 10px 12px; font-size: 14px; }
+.choice:hover:not(:disabled) { border-color: var(--sign); }
+.choice:disabled { opacity: .5; }
+.choice small { color: var(--mute); font: 600 12px/1.2 var(--f-mono); white-space: nowrap; }
+.big-num { font: 800 34px/1 var(--f-mono); }
+.res { background: var(--panel2); border-radius: 5px; padding: 10px 12px; }
+.res.good { border-left: 3px solid var(--cash); } .res.bad { border-left: 3px solid var(--rage); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stats div { background: var(--panel2); border-radius: 4px; padding: 7px 9px; font-size: 12px; color: var(--mute); min-width: 0; }
+.stats b { display: block; font: 700 17px/1.2 var(--f-mono); color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.title-sign { display: flex; align-items: center; gap: 14px; }
+.title-sign .logo-sq { font-size: 44px; padding: 10px 12px 7px; }
+.title-sign h2 { font-size: 40px; letter-spacing: 3px; }
+.senator { font: 700 15px/1.35 var(--f-body); color: #fff; background: #191c22; border-left: 3px solid var(--scr); padding: 9px 12px; border-radius: 4px; }
+
+#toasts { position: fixed; z-index: 70; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 6px; align-items: flex-end; pointer-events: none; }
+.toast { background: #0b0d10; border: 1px solid var(--line2); border-left: 3px solid var(--sign); border-radius: 5px; padding: 8px 12px; font-size: 13.5px; max-width: 340px; box-shadow: 0 6px 20px rgba(0, 0, 0, .5); animation: tin .25s ease-out; }
+.toast.tip { border-left-color: var(--calm); }
+.toast b { color: var(--sign); }
+@keyframes tin { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 1100px) { .meters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "board" "scene" "pa" "side" "feed"; grid-template-rows: none; }
+  .side { position: static; max-height: none; }
+  .pane { overflow: visible; }
+  .feed { max-height: 360px; }
+}
+@media (max-width: 560px) {
+  body { font-size: 14px; }
+  .top { gap: 8px 10px; padding: 8px; }
+  .logo { flex: 1 1 100%; }
+  .hstat { min-width: 0; }
+  .speed button { padding: 6px 7px; }
+  .meters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sumbox div { padding: 5px 6px; font-size: 10.5px; }
+  .board { padding: 6px 6px 7px; overflow: hidden; }
+  .bd-h, .bd-r { grid-template-columns: 38px 58px minmax(0, 1fr) minmax(0, 1.15fr); gap: 5px; min-width: 0; }
+  .bd-h span:nth-child(5), .bd-load { display: none; }
+  .bd-r { font-size: 10.5px; padding: 4px 0; }
+  .bd-r .fl { overflow: hidden; }
+  .fl i { padding: 2px 0; min-width: .66em; }
+  .tabs button { padding: 10px 8px 8px; font-size: 12.5px; letter-spacing: .8px; }
+  .toast { font-size: 12.5px; max-width: 290px; padding: 7px 10px; }
+  .mo { padding: 16px 14px; }
+  .mo h2 { font-size: 24px; }
+  .title-sign h2 { font-size: 30px; }
+  .ach { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .fl i.f, .toast { animation: none; } .bar i { transition: none; } }
+</style>
+<div id="app">
+  <header class="top">
+    <div class="logo" aria-label="Gate 42"><span class="logo-sq">42</span><span class="logo-tx"><b>GATE 42</b><small>Albatross Airways</small></span></div>
+    <div class="clock"><b id="hClock">05:30</b><span id="hDay">Day 1 · Q1</span></div>
+    <div class="wx" id="hWx" title="Weather">Clear</div>
+    <div class="hstat"><small>Cash</small><b id="hCash">$0</b></div>
+    <div class="hstat"><small>AQ stock</small><b id="hStock">$12.00</b></div>
+    <div class="speed" id="speed" role="group" aria-label="Game speed">
+      <button type="button" data-speed="0" title="Pause (Space)">❚❚</button>
+      <button type="button" data-speed="1">1×</button>
+      <button type="button" data-speed="2">2×</button>
+      <button type="button" data-speed="4">4×</button>
+      <button type="button" data-speed="8">8×</button>
+    </div>
+    <button type="button" class="ghost" id="bSound">Sound on</button>
+    <button type="button" class="ghost" id="bMenu">Menu</button>
+  </header>
+  <section class="meters" id="meters" aria-label="Airline status"></section>
+  <main class="grid">
+    <div class="maincol">
+      <div class="board" id="board" aria-label="Departures"></div>
+      <div class="scene"><canvas id="cv" aria-label="Gate 42. Passengers wait, get charged, and board."></canvas><div class="scene-tag" id="sceneTag"></div></div>
+      <div class="pa" id="pa" aria-label="PA announcements"></div>
+      <section class="feed" id="feed" aria-live="polite" aria-label="Gate 42 feed"></section>
+    </div>
+    <aside class="side">
+      <nav class="tabs" id="tabs" aria-label="Panels"></nav>
+      <div class="pane" id="pane"></div>
+    </aside>
+  </main>
+</div>
+<div id="ovWrap"></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="jtip" hidden></div>
+<script>
+"use strict";
+// =====================================================================
+// GATE 42 — CONTENT
+// Albatross Airways operates exactly one gate. You run it.
+// Every phrase in JARGON is detected in on-screen text, highlighted,
+// decoded on hover, and added to the Decoder when first seen.
+// [canonical phrase, plain-English translation, optional regex source]
+// =====================================================================
+const JARGON = [
+  ['ancillary revenue', 'Fees. All the money that isn\'t the ticket.'],
+  ['unbundling', 'Removing things from the price, then selling them back to you.', 'unbundl(?:e|ed|ing)'],
+  ['à la carte', 'Each thing costs extra, including the things that used to be free.', '(?:à|a) la carte'],
+  ['customer journey', 'The ordered list of places you will be charged.', 'customer journeys?'],
+  ['personalized', 'Optional, but you\'ll regret not paying.', 'personali[sz]ed'],
+  ['travel experience', 'The trip, now with a brand manager.', 'travel experiences?'],
+  ['basic economy', 'Economy, minus the economy.'],
+  ['load factor', 'How full the plane is. The only number anyone upstairs reads.', 'load factors?'],
+  ['yield management', 'Charging you more because you need it.'],
+  ['dynamic pricing', 'The price is whatever you tolerated yesterday, plus a bit.'],
+  ['overbooking', 'Selling the same seat twice and hoping.', 'overbook(?:ing|ed)?'],
+  ['oversold', 'We sold more seats than exist. Your problem now.'],
+  ['involuntary denied boarding', 'We keep your money and you stay here.'],
+  ['re-accommodate', 'Remove a paying passenger, by force if needed.', 're-?accommodat(?:e|ed|ion|ing)'],
+  ['travel voucher', 'Money that expires before you can use it.', 'travel vouchers?'],
+  ['irregular operations', 'Everything went wrong at once.', 'irregular operations|IROPS'],
+  ['equipment change', 'We swapped your plane for a smaller one.', 'equipment changes?'],
+  ['operational requirements', 'Something we would rather not explain.', 'operational (?:requirements|reasons)'],
+  ['at this time', 'Indefinitely.'],
+  ['in the unlikely event', 'In the event.'],
+  ['we apologize for any inconvenience', 'We are not sorry.', 'we apologi[sz]e for any inconvenience'],
+  ['thank you for your patience', 'You have no other choice.', 'thank you for your patience'],
+  ['shortly', 'Eventually. Maybe.'],
+  ['final boarding call', 'The second of four final boarding calls.', 'final boarding calls?|final call'],
+  ['gate agent', 'The only human here, and they also don\'t know.', 'gate agents?'],
+  ['carrier-imposed surcharge', 'A fee we invented and named after ourselves.', 'carrier-imposed (?:surcharges?|fees?)'],
+  ['fuel surcharge', 'Like the fare, but non-negotiable.', 'fuel surcharges?'],
+  ['convenience fee', 'A fee for the inconvenience of paying.', 'convenience fees?'],
+  ['boarding group', 'Your rank in society, printed on paper.', 'boarding groups?'],
+  ['priority boarding', 'Standing in a shorter line to sit down sooner.'],
+  ['elite status', 'Loyalty, monetized and then devalued.'],
+  ['loyalty program', 'A points system worth less every year.', 'loyalty programs?'],
+  ['devaluation', 'Your miles are worth less. Thank you for your loyalty.', 'devalu(?:e|ed|ation|ing)'],
+  ['blackout dates', 'Every date you wanted.'],
+  ['award availability', 'There is no award availability.'],
+  ['seat pitch', 'How much your knees are worth.'],
+  ['space optimization', 'Smaller seats.', 'space optimi[sz]ation'],
+  ['densification', 'More seats in the same plane. Same plane. More seats.', 'densif(?:y|ied|ication)'],
+  ['cabin experience', 'The inside of the plane, with fees.'],
+  ['touchpoint', 'A place where we can charge you.', 'touchpoints?'],
+  ['monetize', 'Charge for.', 'monetiz(?:e|ed|ing|ation)'],
+  ['revenue opportunity', 'A thing people need.', 'revenue opportunit(?:y|ies)'],
+  ['headwinds', 'Reasons it is not our fault.'],
+  ['tailwinds', 'Reasons it is because of us.'],
+  ['capacity discipline', 'Fewer flights and higher prices, in step with our competitors.'],
+  ['consolidation', 'Fewer airlines. Eventually one.'],
+  ['synergies', 'Layoffs.', 'synerg(?:y|ies|istic)'],
+  ['market rationalization', 'A monopoly, said slowly.', 'market rationali[sz]ation'],
+  ['shareholder value', 'The only value.'],
+  ['adjusted EBITDA', 'Profit, if you ignore everything that costs money.'],
+  ['guidance', 'A forecast we promise to miss politely.'],
+  ['beat expectations', 'Lowered expectations, then cleared them.', 'beat (?:expectations|estimates|consensus)'],
+  ['one-time charge', 'A charge we have every quarter.', 'one-time charges?'],
+  ['we take this seriously', 'As seriously as legally required.', 'we take (?:this|these matters|security|your privacy|safety) (?:very )?seriously'],
+  ['reviewing internally', 'Waiting for you to forget.', 'review(?:ing)? (?:the matter |this )?internally'],
+  ['third-party vendor', 'Someone to blame.', 'third-party vendors?'],
+  ['isolated incident', 'The fourth one this week.', 'isolated incidents?'],
+  ['out of an abundance of caution', 'We got caught.'],
+  ['regulatory environment', 'The people who might stop us.'],
+  ['stakeholder', 'Anyone who might sue.', 'stakeholders?'],
+  ['trade association', 'Lobbyists with a logo.', 'trade associations?'],
+  ['regulatory capture', 'When the referee is on the payroll.'],
+  ['no admission of wrongdoing', 'We did it.'],
+  ['customer-centric', 'Centered on the customer\'s wallet.'],
+  ['value proposition', 'The part where we explain why it\'s still a deal.', 'value propositions?'],
+  ['low-cost carrier', 'Same fees, worse snacks.', 'low-cost carriers?'],
+  ['legacy carrier', 'An old airline with old planes and new fees.', 'legacy carriers?'],
+  ['turnaround time', 'How fast we can make the plane leave again.', 'turnaround times?'],
+  ['on-time performance', 'On time, if we get to define "on time."'],
+  ['schedule padding', 'Adding 40 minutes so "early" sounds impressive.'],
+  ['late inbound aircraft', 'The plane is somewhere else.', 'late[- ]inbound(?: aircraft)?'],
+  ['air traffic control', 'Someone else to blame. Real people, though.'],
+  ['ground stop', 'Nobody is going anywhere.', 'ground stops?'],
+  ['tarmac delay', 'Stuck on the plane, but legally.', 'tarmac delays?'],
+  ['deplaning', 'Leaving the plane, eventually.', 'deplan(?:e|ing|ed)'],
+  ['cross-check', 'Making sure the doors work. Also a great word.', 'cross[- ]check(?:ed)?'],
+  ['lavatory', 'The bathroom, at altitude, now a subscription.', 'lavator(?:y|ies)'],
+  ['complimentary', 'Free. For now.'],
+  ['buy-on-board', 'Snacks for sale at 35,000 feet.', 'buy[- ]on[- ]board'],
+  ['upsell', 'Selling you something you used to get for free.', 'upsell(?:s|ing)?'],
+  ['fare class', 'The letter that decides how you\'ll be treated.', 'fare class(?:es)?'],
+  ['revenue management', 'The department that decided your seat is worth $412 now.'],
+  ['demand signal', 'People want it, so it costs more.', 'demand signals?'],
+  ['passenger experience', 'Everything that happens to you, on purpose.'],
+  ['brand promise', 'A slogan.', 'brand promises?'],
+  ['world-class', 'Exists.'],
+  ['best-in-class', 'Fourth out of four.'],
+  ['move the needle', 'Change a number on a slide.', 'mov(?:e|ed|ing) the needle'],
+  ['circle back', 'Never mention this again.', 'circl(?:e|ed|ing) back'],
+  ['key learnings', 'Mistakes, presented as growth.', 'key learnings?'],
+  ['operational excellence', 'Leaving roughly when we said we would.'],
+  ['right-sizing', 'Firing people.', 'right[- ]siz(?:e|ed|ing)'],
+  ['drip pricing', 'Revealing the real price one fee at a time.'],
+  ['hidden fees', 'The fees. Just honest about where they were.', 'hidden fees?'],
+  ['all-in pricing', 'The real price, which regulators keep asking for.'],
+  ['vertical seating', 'Standing. You are standing.'],
+  ['carbon offset', 'A tree, eventually, somewhere.', 'carbon offsets?'],
+  ['greenwashing', 'Putting a leaf on it.'],
+  ['sustainability', 'A slide with a leaf on it.'],
+  ['contract of carriage', 'The 80 pages that say you agreed to this.'],
+  ['passenger bill of rights', 'A document, mostly.'],
+  ['force majeure', 'An act of God, and we get to decide which God.'],
+  ['weather-related', 'Related to the sky, which is everything.'],
+  ['too big to fail', 'Too big to be allowed to fail, so failure becomes your problem.'],
+  ['bailout', 'Your taxes, our runway.', 'bail(?:out|ed out)'],
+  ['mission statement', 'A paragraph nobody follows.'],
+  ['key performance indicator', 'A number we can make go up.', 'key performance indicators?|KPIs?'],
+  ['headcount', 'People, as a cost.'],
+  ['streamline', 'Remove the part you liked.', 'streamlin(?:e|ed|ing)'],
+  ['pain point', 'A complaint we plan to charge for.', 'pain points?'],
+  ['leverage', 'Use. With more syllables.', 'leverag(?:e|ed|ing)'],
+  ['best practice', 'What a competitor got away with.', 'best practices?'],
+  ['transparency', 'Telling you about the fee after you\'ve paid it.'],
+  ['proactive', 'Before anyone complained.', 'proactive(?:ly)?'],
+  ['value-added', 'Extra, and extra money.', 'value[- ]add(?:ed|s)?'],
+  ['frictionless', 'Too fast for you to notice the fee.']
+];
+
+// ---------------------------------------------------------------------
+// PASSENGER TYPES
+// takeM: multiplier on optional-fee take rate; feeRage: multiplier on fee rage
+// waitM: multiplier on delay rage
+// ---------------------------------------------------------------------
+const PTYPES = {
+  leisure:    { name:'Leisure traveler', w:58, takeM:1.0, feeRage:1.0, waitM:1.0 },
+  business:   { name:'Business traveler', w:20, takeM:1.5, feeRage:0.7, waitM:1.5 },
+  family:     { name:'Family', w:13, takeM:1.0, feeRage:1.15, waitM:1.3 },
+  influencer: { name:'Influencer', w:5, takeM:1.1, feeRage:1.25, waitM:1.2 },
+  elite:      { name:'Diamond Elite member', w:4, takeM:1.2, feeRage:1.5, waitM:1.6 }
+};
+
+// ---------------------------------------------------------------------
+// REVENUE INNOVATIONS (fees)
+// price: $ per payer; take: share who pay (1 = mandatory)
+// rp: rage for payers; rr: rage for refusers; stage: book | gate | air
+// scr: regulator scrutiny per flight while active; cost: R&D to unlock
+// =====================================================================
+const FEES = [
+  // ---- Tier 1: Classics
+  { id:'bag', tier:1, name:'Checked Bag Fee', brand:'Baggage Unbundling Program', price:35, take:0.55, rp:5, rr:2, stage:'book', scr:0, cost:0, fam:1.6, eliteExempt:1,
+    desc:'Bags used to be included. Now they\'re à la carte.',
+    post:['$35 to check a bag. The bag is clothes. I need the clothes.', 'Albatross made me wear four sweaters to avoid the bag fee. I am sweating at Gate 42.'] },
+  { id:'yield', tier:1, name:'Yield Management', brand:'Dynamic Pricing Engine', kind:'yield', cost:9000,
+    desc:'Fares rise 8% through dynamic pricing. Also unlocks overbooking in Ops.',
+    post:['The same seat cost $89 yesterday and $96 today. The plane did not get nicer.'] },
+  { id:'seat', tier:1, name:'Seat Selection Fee', brand:'Personalized Seating', price:25, take:0.4, rp:2, rr:7, stage:'book', scr:0, cost:7000, famRR:2.2, eliteExempt:1,
+    desc:'Pay $25 to choose a seat. Everyone else gets a middle seat, randomly, far from their family.',
+    post:['My 6-year-old is in 31E. I am in 8B. Albatross says it\'s "personalized seating."', 'Declined the $25 seat fee. Got a middle seat between two men eating tuna.'] },
+  { id:'prio', tier:1, name:'Priority Boarding', brand:'Early Access Boarding Experience', price:29, take:0.25, rp:1, rr:4, stage:'gate', scr:0, cost:8000, eliteExempt:1,
+    desc:'Adds boarding groups. Payers board first. Non-payers watch.',
+    post:['Paid $29 for priority boarding. Boarding group 2. There are 9 boarding groups.', 'I am in boarding group 7. Group 7 boards after the luggage.'] },
+  { id:'print', tier:1, name:'Boarding Pass Printing Fee', brand:'Physical Credential Convenience Fee', price:15, take:0.25, rp:12, rr:0, stage:'gate', scr:0.05, cost:4000,
+    desc:'A $15 convenience fee for anyone who wants their boarding pass on paper.',
+    post:['$15 to PRINT a boarding pass. It\'s a receipt for a seat I already paid for.'] },
+  { id:'snack', tier:1, name:'Snack Box', brand:'Curated Buy-on-Board Bistro', price:12, take:0.35, rp:1, rr:3, stage:'air', scr:0, cost:5000, fam:1.4,
+    desc:'Retires the complimentary pretzels. Introduces a $12 box of six pretzels.',
+    post:['The $12 "bistro box" is a single cheese stick and a mint.'] },
+  { id:'fuel', tier:1, name:'Fuel Surcharge', brand:'Carrier-Imposed Surcharge', price:25, take:1, rp:4, rr:0, stage:'book', scr:0.05, cost:14000,
+    desc:'Charges everyone $25 for fuel, which is already in the fare.',
+    post:['A $25 "carrier-imposed surcharge." Imposed by the carrier. On me.'] },
+  // ---- Tier 2: Innovation
+  { id:'carry', tier:2, name:'Carry-On Fee', brand:'Cabin Bag Allowance', price:45, take:0.5, rp:9, rr:4, stage:'gate', scr:0.1, cost:40000, eliteExempt:1,
+    desc:'The overhead bin is a revenue opportunity. Measured with a sizer from 1994.',
+    post:['$45 for a carry-on. The sizer at Gate 42 is the size of a sandwich.', 'Gate agent made me pay $45 for a backpack containing one (1) banana.'] },
+  { id:'pay', tier:2, name:'Payment Processing Fee', brand:'Convenience Fee', price:12, take:1, rp:6, rr:0, stage:'book', scr:0.1, cost:22000,
+    desc:'A $12 convenience fee for paying. Cash not accepted. Card not exempt.',
+    post:['$12 convenience fee for the convenience of giving them money.'] },
+  { id:'basic', tier:2, name:'Basic Economy', brand:'Basic Economy (Fewer Choices, More Value)', kind:'basic', rp:7, stage:'book', scr:0.05, cost:30000,
+    desc:'A cheaper fare (−10%) that pulls in 22% more passengers, all of them in boarding group 9. A new fare class with a compelling value proposition.',
+    post:['Booked basic economy. Apparently that means no seat, no bag, no dignity.'] },
+  { id:'comfort', tier:2, name:'Legroom by the Inch', brand:'Comfort+ Spatial Upgrade', price:49, take:0.18, rp:2, rr:4, stage:'book', scr:0, cost:25000,
+    desc:'Three inches of legroom, sold back to you one inch at a time. A classic upsell.',
+    post:['Paid $49 for "Comfort+." My knees still touch the seat. They touch it less.'] },
+  { id:'water', tier:2, name:'Hydration Fee', brand:'Premium Hydration Moment', price:12, take:0.5, rp:3, rr:5, stage:'air', scr:0.1, cost:16000,
+    desc:'Water is now $12 a flight, billed per cup. Ice is the premium tier.',
+    post:['Albatross charged me $12 for water. The cup was 40% ice. I paid for the ice.'] },
+  { id:'carbon', tier:2, name:'Carbon Offset Contribution', brand:'Sky Forest Commitment', price:12, take:0.3, rp:0, rr:1, stage:'book', scr:0, cost:12000, green:1,
+    desc:'Passengers pay $12 to plant a tree. Sustainability is now a line item.',
+    post:['I paid for a carbon offset. Where is my tree, Albatross?'] },
+  { id:'recline', tier:2, name:'Recline Subscription', brand:'Recline+', price:18, take:0.35, rp:2, rr:8, stage:'air', scr:0.1, cost:30000,
+    desc:'Seats recline only for subscribers. Non-subscribers sit at a perfect 90 degrees.',
+    post:['The guy in front of me paid for Recline+. I am now inside my tray table.'] },
+  // ---- Tier 3: Disruption
+  { id:'shade', tier:3, name:'Window Shade License', brand:'Natural Light Package', price:12, take:0.4, rp:4, rr:3, stage:'air', scr:0.1, cost:30000,
+    desc:'The shade is locked open. $12 unlocks it.',
+    post:['Paid $12 to close my window shade. They called it a "Natural Light Package."'] },
+  { id:'arm', tier:3, name:'Armrest Auction', brand:'Shared Space Bidding', price:19, take:0.5, rp:6, rr:9, stage:'air', scr:0.15, cost:60000,
+    desc:'The middle armrest goes to the highest bidder. Bidding opens at pushback.',
+    post:['I lost the armrest auction to a man in a Patagonia vest. He bid $40.'] },
+  { id:'complaint', tier:3, name:'Complaint Processing Fee', brand:'Feedback Monetization', kind:'complaint', price:60, rp:4, stage:'book', scr:0.3, cost:50000,
+    desc:'Passengers who melt down are charged $60 to process the complaint. Their pain point becomes revenue.',
+    post:['I complained about the fees and they charged me a fee to complain about the fees.'] },
+  { id:'status', tier:3, name:'Status Maintenance Fee', brand:'Elite Status Preservation Plan', price:99, take:1, rp:20, rr:0, stage:'book', scr:0.15, cost:40000, eliteOnly:1,
+    desc:'Diamond Elite members now pay $99 per flight to remain Diamond Elite members.',
+    post:['After 2 million miles of loyalty, Albatross now charges me to stay loyal. DIAMOND ELITE, everyone.'] },
+  { id:'lav', tier:3, name:'Lavatory Access Pass', brand:'Restroom Reservation Experience', price:15, take:0.55, rp:13, rr:10, stage:'air', scr:0.35, cost:70000,
+    desc:'The lavatory now requires a pass. You can tap to pay. You cannot tap to leave.',
+    post:['$15 to use the LAVATORY. I held it for 3 hours out of principle.', 'Albatross put a tap-to-pay reader on the lavatory door. The future is here and it is a bathroom fee.'] },
+  { id:'density', tier:3, name:'Dynamic Seat Pitch', brand:'Space Optimization Program', kind:'density', cap:1.18, rp:9, stage:'air', scr:0.15, cost:100000,
+    desc:'Densification: 18% more seats in the same plane. The seat pitch is now theoretical. The cabin experience is now intimate.',
+    post:['The seat pitch on Albatross is so small my knees boarded before I did.'] },
+  { id:'mask', tier:3, name:'Oxygen Mask Deposit', brand:'Safety Equipment Readiness Deposit', price:25, take:1, rp:15, rr:0, stage:'book', scr:0.5, cost:110000,
+    desc:'A refundable* $25 deposit on the oxygen mask. *In the unlikely event that it\'s refunded.',
+    post:['A $25 deposit on the OXYGEN MASK. "Refundable." I have been waiting since March.'] },
+  { id:'feefee', tier:3, name:'Fee Administration Fee', brand:'Ancillary Revenue Administration Charge', kind:'feefee', price:3, rp:7, stage:'book', scr:0.2, cost:90000,
+    desc:'Every passenger pays $3 per fee currently active, to cover the cost of the fees.',
+    post:['There is a fee for the fees. I want that sentence on my tombstone.'] },
+  // ---- Tier 4: Vision
+  { id:'land', tier:4, name:'Landing Assurance Plan', brand:'Arrival Confidence Protection', price:49, take:0.45, rp:8, rr:12, stage:'book', scr:0.6, cost:300000,
+    desc:'Optional protection that "prioritizes" your landing. No one says what happens without it.',
+    post:['I asked what happens if I DON\'T buy the Landing Assurance Plan. The gate agent just smiled.'] },
+  { id:'stand', tier:4, name:'VertiSeat Standing Class', brand:'Vertical Seating Experience', kind:'stand', cap:1.3, rp:22, stage:'air', scr:0.6, cost:450000,
+    desc:'Vertical seating: 30% more capacity. Passengers lean on a padded board. The board is optional.',
+    post:['I stood from Cleveland to Phoenix. Albatross calls it "vertical seating."', 'They strapped me to a padded board. A board. I paid $280 to be a surfboard.'] },
+  { id:'breath', tier:4, name:'Cabin Air Experience', brand:'Breathing Surcharge', price:30, take:1, rp:18, rr:0, stage:'air', scr:1.0, cost:350000,
+    desc:'A $30 per-flight contribution toward cabin air ($10 an hour). The air was already there. Now it\'s monetized.',
+    post:['Albatross charged me $30 to BREATHE. The air smelled like pretzels I couldn\'t afford.'] },
+  { id:'gravity', tier:4, name:'Seatbelt Rental', brand:'Restraint-as-a-Service', price:20, take:1, rp:14, rr:0, stage:'air', scr:0.7, cost:280000,
+    desc:'Seatbelts are now a subscription. The flight attendants cross-check them at the door.',
+    post:['Seatbelt rental is $20. The seatbelt sign was on. I had to pay to obey it.'] }
+];
+
+// ---------------------------------------------------------------------
+// PA ANNOUNCEMENTS — the only tool for passenger rage that costs nothing
+// calm: rage removed from waiting passengers; cd: cooldown (game minutes)
+// =====================================================================
+const PAS = [
+  { id:'sorry', label:'Apologize', text:'We apologize for any inconvenience this may cause.', calm:7, cd:25 },
+  { id:'patience', label:'Thank them', text:'We thank you for your patience at this time.', calm:5, cd:15 },
+  { id:'shortly', label:'"Shortly"', text:'Boarding will begin shortly.', calm:12, cd:45, promise:1,
+    note:'If boarding hasn\'t started 25 minutes later, they remember.' },
+  { id:'paper', label:'Paperwork', text:'We\'re just finalizing some paperwork for operational requirements.', calm:10, cd:40, needs:'comms' },
+  { id:'safety', label:'"Safety"', text:'Out of an abundance of caution, this delay is for your safety.', calm:13, cd:60, needs:'comms', delayOnly:1,
+    note:'Only works while a flight is delayed.' },
+  { id:'weather', label:'Blame weather', text:'Due to weather-related irregular operations in the area, we are experiencing a slight delay.', calm:17, cd:80, needs:'meteo', lie:1,
+    note:'Works great. On a clear day, people look out the window.' },
+  { id:'pretzel', label:'Pretzels', text:'Complimentary pretzels are now being distributed at the gate.', calm:15, cd:60, needs:'catering', cost:2,
+    note:'Costs $2 per waiting passenger.' },
+  { id:'captain', label:'Captain', text:'Folks, this is your Captain speaking. We\'ll have you on your way shortly.', calm:22, cd:150, needs:'captain' },
+  { id:'rebrand', label:'Rebrand gate', text:'Attention: Gate 42 is now Gate 42 Signature. Same gate. Elevated travel experience.', calm:4, cd:240, needs:'brand', reset:1,
+    note:'Resets announcement fatigue. People forget everything you said.' }
+];
+
+// ---------------------------------------------------------------------
+// GATE EXPERIENCE (amenities). One-time buys with daily upkeep.
+// =====================================================================
+const AMENITIES = [
+  { id:'outlets', name:'Charging Stations', brand:'Device Wellness Hub (4 of 40 functional)', cost:9000, upkeep:150, eff:{ bore:0.55 },
+    desc:'Boredom rage −45%. Most outlets are decorative.' },
+  { id:'comms', name:'Crisis Comms Training', brand:'Proactive Messaging Certification', cost:12000, upkeep:0, eff:{},
+    desc:'Unlocks the "Paperwork" and "Safety" announcements.' },
+  { id:'muzak', name:'Lo-fi Muzak', brand:'Ambient Calm Soundscape', cost:16000, upkeep:100, eff:{ pa:1.25 },
+    desc:'Announcements calm 25% more. Also mutes your thoughts.' },
+  { id:'meteo', name:'Meteorology Consultant', brand:'Weather Attribution Partner', cost:22000, upkeep:300, eff:{},
+    desc:'Unlocks "Blame weather." He looks out the window for you.' },
+  { id:'catering', name:'Snack Logistics Deal', brand:'Complimentary Pretzel Distribution Framework', cost:26000, upkeep:200, eff:{},
+    desc:'Unlocks "Pretzels." The pretzels are complimentary. The deal was not.' },
+  { id:'wifi', name:'Gate Wi-Fi', brand:'Frictionless Connectivity (Gate 42 only)', cost:30000, upkeep:400, eff:{ wait:0.82 },
+    desc:'Delay rage −18%. Speeds comparable to 1998.' },
+  { id:'dog', name:'Therapy Dog', brand:'Chief Comfort Officer "Captain Biscuit"', cost:45000, upkeep:350, eff:{ decay:0.035 },
+    desc:'Waiting passengers lose rage over time. The only employee with a 5-star rating.' },
+  { id:'captain', name:'Captain-on-Call', brand:'Flight Deck Reassurance Program', cost:70000, upkeep:600, eff:{},
+    desc:'Unlocks "Captain." Nobody argues with the hat.' },
+  { id:'brand', name:'Rebranding Agency', brand:'Brand Promise Partners (on retainer)', cost:110000, upkeep:900, eff:{},
+    desc:'Unlocks "Rebrand gate," which resets announcement fatigue.' },
+  { id:'albie', name:'AI Gate Agent "Albie"', brand:'Customer-Centric Conversational Agent', cost:180000, upkeep:1200, eff:{ auto:1 },
+    desc:'Albie makes announcements automatically whenever the gate gets tense. Albie does not sleep.' },
+  { id:'pods', name:'Wellness Pods', brand:'Elevated Respite Capsules', cost:260000, upkeep:2200, eff:{ decay:0.05, wait:0.85 },
+    desc:'Delay rage −15% and steady calming. The pods are $35/hour, but the brochures are free.' }
+];
+
+// gate seating (pax who can sit while waiting; the rest stand and get angry)
+const SEATING = [
+  { cap:70, cost:0, name:'1987 Vinyl Benches' },
+  { cap:130, cost:12000, name:'Additional Seating Solutions' },
+  { cap:230, cost:40000, name:'Modular Waiting Arrays' },
+  { cap:420, cost:110000, name:'Gate 42 Mezzanine' },
+  { cap:750, cost:280000, name:'Premium Waiting Ecosystem' }
+];
+
+// ---------------------------------------------------------------------
+// OPERATIONS
+// =====================================================================
+const PLANES = [
+  { name:'Puddle Jumper', model:'AQ-50 Regional', seats:50, op:3200, oh:3000, cost:0, len:58, decks:1 },
+  { name:'The Sardine', model:'AQ-76 Commuter', seats:76, op:4500, oh:4200, cost:30000, len:70, decks:1 },
+  { name:'Albatross 120', model:'AQ-120 Narrowbody', seats:120, op:6600, oh:6000, cost:70000, len:84, decks:1 },
+  { name:'SkyHerder 190', model:'AQ-190 Stretch', seats:190, op:9800, oh:9000, cost:150000, len:104, decks:1 },
+  { name:'Widebody 330', model:'AQ-330 Widebody', seats:330, op:16000, oh:14000, cost:350000, len:126, decks:1 },
+  { name:'Double Decker 560', model:'AQ-560 Superjumbo', seats:560, op:26000, oh:22000, cost:800000, len:148, decks:2 }
+];
+const TURNS = [
+  { gap:150, cost:0, name:'Leisurely Turnarounds' },
+  { gap:125, cost:15000, name:'Quick Turn Program' },
+  { gap:105, cost:45000, name:'Cleaning Optional' },
+  { gap:90, cost:110000, name:'Rapid Turn Initiative' },
+  { gap:75, cost:260000, name:'Hot Seat Rotation' },
+  { gap:62, cost:600000, name:'Continuous Departure Model' }
+];
+const ROUTES = [
+  { mkt:62, fare:1.0, cost:0, name:'Regional Puddle-Hops', dest:['CLEVELAND', 'AKRON', 'BOISE', 'FRESNO', 'TOLEDO', 'SPOKANE'] },
+  { mkt:95, fare:1.05, cost:15000, name:'Midwest Essentials', dest:['DES MOINES', 'OMAHA', 'TULSA', 'DAYTON'] },
+  { mkt:150, fare:1.1, cost:40000, name:'Sunbelt Shuttle', dest:['ORLANDO', 'NEWARK', 'TAMPA', 'MEMPHIS'] },
+  { mkt:240, fare:1.17, cost:90000, name:'Hub-and-Spoke Expansion', dest:['LAS VEGAS', 'PHOENIX', 'DENVER', 'CHARLOTTE'] },
+  { mkt:390, fare:1.25, cost:200000, name:'Coast-to-Coast', dest:['CANCUN', 'SEATTLE', 'MIAMI', 'BOSTON'] },
+  { mkt:620, fare:1.35, cost:450000, name:'Transatlantic', dest:['LONDON', 'REYKJAVIK', 'LISBON', 'DUBLIN'] },
+  { mkt:950, fare:1.48, cost:1000000, name:'Global Network', dest:['TOKYO', 'SYDNEY', 'DUBAI', 'HONOLULU'] }
+];
+const MAINT = [
+  { m:1, cost:0, name:'Duct Tape & Prayer' },
+  { m:0.8, cost:20000, name:'Scheduled Maintenance' },
+  { m:0.62, cost:60000, name:'Predictive Maintenance' },
+  { m:0.46, cost:150000, name:'Spare Parts on Site' },
+  { m:0.33, cost:400000, name:'Operational Excellence Program' }
+];
+const BRIDGES = [
+  { m:1, cost:0, name:'Single Jet Bridge' },
+  { m:0.78, cost:35000, name:'Zone Boarding Algorithm' },
+  { m:0.6, cost:130000, name:'Dual-Door Boarding' }
+];
+const BUMP = {
+  generous: { name:'Generous', voucher:800, vol:1.0, desc:'Offer an $800 travel voucher until enough people volunteer.' },
+  standard: { name:'Standard', voucher:300, vol:0.55, desc:'Offer $300. If too few volunteer, re-accommodate the rest.' },
+  firm:     { name:'Firm', voucher:0, vol:0, desc:'No vouchers. Involuntary denied boarding for whoever is in the last boarding group.' }
+};
+
+// ---------------------------------------------------------------------
+// BOARDROOM
+// =====================================================================
+const LOBBY = [
+  { cost:0, gain:1, decay:4, bonus:0, upkeep:0, name:'No Lobbying' },
+  { cost:30000, gain:0.8, decay:5, bonus:0, upkeep:500, name:'Trade Association Membership' },
+  { cost:100000, gain:0.65, decay:6, bonus:1, upkeep:1500, name:'Former Regulator on Payroll' },
+  { cost:280000, gain:0.5, decay:8, bonus:1, upkeep:4000, name:'Bipartisan Steakhouse Dinners' },
+  { cost:700000, gain:0.3, decay:12, bonus:2, upkeep:9000, name:'Regulatory Capture' }
+];
+const RIVALS = [
+  { id:'budgetbird', name:'BudgetBird', kind:'low-cost carrier', cost:100000, color:'#f28c28',
+    perk:'Their "Bring Your Own Seat" expertise: +6% seats on every plane.', pk:{ cap:1.06 },
+    blurb:'A low-cost carrier with a cartoon bird and 31 fees. You admire them.' },
+  { id:'pelican', name:'Pelican Pacific', kind:'regional carrier', cost:250000, color:'#5bb4d8',
+    perk:'With no price competition left and strict capacity discipline on the coast, fares rise 10%.', pk:{ fare:1.1 },
+    blurb:'Friendly, on time, and complimentary snacks. A threat to the entire industry.' },
+  { id:'jetset', name:'JetSet Express', kind:'hub carrier', cost:600000, color:'#b48ce6',
+    perk:'Their hub slots and spare planes: delays −15%.', pk:{ delay:0.85 },
+    blurb:'Owns every good slot at the hub. Their mission statement is just "Yes." Best-in-class, allegedly.' },
+  { id:'heritage', name:'Heritage Air', kind:'legacy carrier', cost:1300000, color:'#d9534f',
+    perk:'Market rationalization complete. Passengers have nowhere else to go.', pk:{},
+    blurb:'A legacy carrier founded in 1931. Their planes are also from 1931.' }
+];
+const QUARTER_DAYS = 3;
+const TARGETS = [24000, 45000, 85000, 150000, 260000, 440000, 720000, 1150000, 1800000, 2800000, 4200000, 6200000];
+const GUIDANCE = [
+  { id:'reaffirm', label:'Reaffirm guidance', t:'"We reaffirm our full-year guidance and remain customer-centric."', tgt:1, stock:0 },
+  { id:'raise', label:'Raise guidance', t:'"Given strong demand signals and tailwinds in ancillary revenue, we are raising guidance."', tgt:1.15, stock:0.08 },
+  { id:'lower', label:'Cite headwinds', t:'"Due to macro headwinds and a challenging regulatory environment, we are lowering guidance."', tgt:0.85, stock:-0.1 }
+];
+
+// ---------------------------------------------------------------------
+// DELAYS + WEATHER
+// =====================================================================
+const DELAYS = [
+  { r:'Late inbound aircraft', kind:'in' }, { r:'Crew en route from another gate', kind:'in' },
+  { r:'Air traffic control flow program', kind:'in' }, { r:'Maintenance: cup holder', kind:'ops' },
+  { r:'Final paperwork', kind:'ops' }, { r:'Catering forgot the pretzels', kind:'ops' },
+  { r:'Fueling (we forgot)', kind:'ops' }, { r:'Bird on the wing', kind:'ops' },
+  { r:'Lavatory audit', kind:'ops' }, { r:'Equipment change', kind:'ops' }
+];
+const DELAY_MINS = [10, 10, 15, 15, 20, 25, 30, 40, 50, 65, 80, 100, 130];
+const WEATHER = [
+  { id:'clear', name:'Clear', w:58, dm:1 }, { id:'cloudy', name:'Cloudy', w:24, dm:1.15 },
+  { id:'rain', name:'Rain', w:12, dm:1.6 }, { id:'storm', name:'Thunderstorms', w:6, dm:2.6 }
+];
+
+// ---------------------------------------------------------------------
+// FEED — passenger posts and handles
+// =====================================================================
+const HANDLE_A = ['frequent', 'tired', 'gate42', 'middle_seat', 'just', 'angry', 'mom_of', 'sky', 'delayed', 'basic', 'window', 'aisle', 'not_a', 'carry_on', 'road', 'jet'];
+const HANDLE_B = ['flyer', 'dan', 'karen', 'traveler', 'kevin', 'pilot', 'nomad', 'priya', 'boomer', 'marcus', 'wanderer', 'bex', 'grandpa', 'tom', 'diaz', 'lin'];
+const POSTS_DELAY = [
+  'Flight {f} to {dest} delayed {mins} min. Gate agent says "shortly." Third time.',
+  'Day 2 at Gate 42. We have formed a government.',
+  'The departure board just changed from DELAYED to DELAYED. Progress.',
+  'Heard the "final boarding call" for {f} four times. It was not final.',
+  '{mins} minutes late. They blamed a "late inbound aircraft." The plane is RIGHT THERE.',
+  'Albatross keeps thanking me for my patience. I don\'t have any. They used it up.'
+];
+const POSTS_GOOD = [
+  'Albatross {f} left on time?? Is that allowed?',
+  'Shockingly okay flight. Only paid for 3 things that used to be free.',
+  'Gate 42 had a therapy dog. 5 stars for the dog. 2 for the airline.',
+  'The fees were annoying but the pilot did a funny voice. 6/10.',
+  'Deplaning took 40 minutes, but the pilot waved. Small wins.'
+];
+const POSTS_MELT = [
+  'Someone at Gate 42 is screaming "DO YOU KNOW WHO I AM." Nobody does.',
+  'A man at Gate 42 just tried to fight the departure board.',
+  'Live from Gate 42: a woman is reading the contract of carriage out loud to the gate agent.',
+  'Gate 42 meltdown in progress. The therapy dog has left.',
+  'A grown man at Gate 42 is crying into a $12 snack box.'
+];
+const POSTS_BUMP = [
+  'Got re-accommodated off {f}. I didn\'t need accommodating. I had a seat.',
+  'They oversold {f} and picked me. Boarding group 9 strikes again.',
+  'Albatross gave me a $300 travel voucher. It expires before my next birthday.'
+];
+const POSTS_WEATHER = [
+  'Albatross is blaming WEATHER. I am looking at the sun. It\'s looking back.',
+  'Gate 42 says "weather-related." There isn\'t a cloud in the sky. Photo attached.'
+];
+const VIRAL = [
+  '"Albatross Charged Me To Cry" — {v}M views',
+  '"Man Argues With Gate 42 Sizer For 40 Minutes" — {v}M views',
+  '"I Got Re-accommodated (Gone Wrong)" — {v}M views',
+  '"Unboxing a $12 Albatross Snack Box (It\'s Empty)" — {v}M views',
+  '"Gate 42 Has Its Own Weather System Apparently" — {v}M views',
+  '"POV: You\'re in Boarding Group 9" — {v}M views'
+];
+
+// ---------------------------------------------------------------------
+// HEARINGS — Senate Subcommittee on Aviation. Answers: [text, score]
+// 2 = say nothing, beautifully. 1 = vague. 0 = honest (fatal).
+// =====================================================================
+const HEARING_Q = [
+  { q:'Senator Hollis: "Why does Albatross charge passengers for water?"', a:[['"We offer a premium hydration moment. Tap water remains available in the lavatory."', 2], ['"I\'d have to circle back with the team on that, Senator."', 1], ['"Because they\'re thirsty and can\'t leave."', 0]], fee:'water' },
+  { q:'Senator Okafor: "Explain the oxygen mask deposit."', a:[['"In the unlikely event of a refund, the deposit is fully refundable."', 2], ['"Safety is our top priority, and we take this seriously."', 1], ['"We noticed nobody had ever monetized it."', 0]], fee:'mask' },
+  { q:'Senator Brandt: "Are you charging people to breathe?"', a:[['"No. We offer a Cabin Air Experience. Breathing remains complimentary in the terminal."', 2], ['"I\'m not familiar with the specifics of that program."', 1], ['"Yes. Ten dollars. They pay it every time."', 0]], fee:'breath' },
+  { q:'Senator Vasquez: "A family of four was seated in four different rows. Why?"', a:[['"Our personalized seating gives every customer a choice. They chose not to choose."', 2], ['"That sounds like an isolated incident."', 1], ['"So they\'d pay us $72 not to be."', 0]], fee:'seat' },
+  { q:'Senator Pike: "Your passengers are standing. For four hours."', a:[['"Vertical seating is a world-class innovation in passenger experience. Leaning is supported."', 2], ['"We\'re reviewing this internally."', 1], ['"Standing people take up less room. We did the math."', 0]], fee:'stand' },
+  { q:'Senator Hollis: "What exactly is a Lavatory Access Pass?"', a:[['"It\'s a restroom reservation experience that reduces lines. Lines are a pain point."', 2], ['"I\'ll have my office send you a brochure."', 1], ['"A tollbooth. On a toilet."', 0]], fee:'lav' },
+  { q:'Senator Okafor: "Why did you drag a passenger off flight 4207?"', a:[['"The passenger was re-accommodated according to our contract of carriage."', 2], ['"We regret that the situation escalated."', 1], ['"We sold his seat twice and he lost."', 0]], tag:'bump' },
+  { q:'Senator Brandt: "You blamed weather on a cloudless day. Explain."', a:[['"Weather-related means related to weather. All flights are related to weather."', 2], ['"We\'ll look into the specific circumstances."', 1], ['"It works. People stop yelling."', 0]], tag:'weather' },
+  { q:'Senator Vasquez: "How many fees does Albatross charge, in total?"', a:[['"Our à la carte model gives passengers transparency and choice at every touchpoint."', 2], ['"I don\'t have that number in front of me."', 1], ['"All of them. We are still counting."', 0]] },
+  { q:'Senator Pike: "Will you support all-in pricing?"', a:[['"We support transparency and look forward to engaging with all stakeholders."', 2], ['"We have concerns about the regulatory environment."', 1], ['"No. Hidden fees are the entire business."', 0]] },
+  { q:'Senator Hollis: "Your planes left late 40% of the time. Why?"', a:[['"Our on-time performance reflects schedule padding consistent with best practice."', 2], ['"Air traffic control is a major factor."', 1], ['"We don\'t really try."', 0]] },
+  { q:'Senator Okafor: "Is it true you charge a fee to complain about fees?"', a:[['"Our feedback monetization program ensures every complaint is taken seriously."', 2], ['"That\'s a mischaracterization."', 1], ['"Yes, and it\'s our fastest-growing revenue line."', 0]], fee:'complaint' },
+  { q:'Senator Brandt: "Your loyalty program devalued miles four times this year."', a:[['"We continually refresh our loyalty program to deliver value-added rewards."', 2], ['"Miles are not currency, Senator."', 1], ['"Loyal customers don\'t leave. That\'s the point."', 0]] },
+  { q:'Senator Vasquez: "Where are the trees from your carbon offset program?"', a:[['"Our sustainability commitment is a long-term journey. The trees are on their way."', 2], ['"Our third-party vendor manages the forestry."', 1], ['"There are no trees."', 0]], fee:'carbon' },
+  { q:'Senator Pike: "Do you believe Albatross is too big to fail?"', a:[['"We are proud to be a critical stakeholder in the national transportation network."', 2], ['"That\'s not for me to say."', 1], ['"We took the bailout, so, yes."', 0]] }
+];
+
+// ---------------------------------------------------------------------
+// OPS ALERTS (events). fx: cash, rep, scr, mod {k, v, days}, unlock (fee id)
+// cond(S) optional. Choices may have chance:{p, win:{fx,t}, lose:{fx,t}}.
+// =====================================================================
+const EVENTS = [
+  { id:'consult', from:'McKinsley & Partners', subj:'Fee Discovery Workshop',
+    body:'Our consultants have identified seventeen untapped touchpoints in your customer journey. A two-day workshop will leverage their findings to surface your next revenue opportunity.',
+    cond:S => nextLockedFee(S),
+    choices:[
+      { label:'Book the workshop', costPct:0.12, fx:{ unlockNext:1 }, t:'The consultants leave behind a slide deck and a new fee concept, fully researched.' },
+      { label:'Circle back next quarter', fx:{}, t:'They circle back the next morning. You decline again.' }] },
+  { id:'viral_snack', from:'Social Media Team', subj:'We are trending (bad)',
+    body:'A video titled "Albatross Snack Box Unboxing (It\'s A Mint)" has 3.1M views. The comments are not customer-centric.',
+    choices:[
+      { label:'"We\'re reviewing this internally."', fx:{ rep:-1, scr:3 }, t:'People forget within 48 hours. Most of them.' },
+      { label:'Offer the creator 500 loyalty miles', fx:{ rep:2 }, chance:{ p:0.6, win:{ fx:{ rep:2 }, t:'She posts a follow-up: "Albatross apologized!!" Engagement soars.' }, lose:{ fx:{ rep:-3, scr:2 }, t:'She checks the award availability. There is none. Part 2 drops.' } } },
+      { label:'Blame a third-party vendor', fx:{ scr:4 }, t:'The vendor, a company you own, accepts responsibility.' }] },
+  { id:'pilots', from:'Pilots\' Union', subj:'Request: bathroom breaks',
+    body:'The pilots would like to use the lavatory without purchasing a Lavatory Access Pass.',
+    cond:S => S.on.lav,
+    choices:[
+      { label:'Approve (crew exemption)', fx:{ cash:-6000 }, t:'The pilots are delighted. The flight attendants want to know why they weren\'t included.' },
+      { label:'Deny. Fees apply to all stakeholders.', fx:{ mod:{ k:'delay', v:1.35, days:3 } }, t:'Pilots begin "working to rule." Departures slow down for three days.' }] },
+  { id:'fuelspike', from:'Treasury', subj:'Jet fuel up 30%',
+    body:'Fuel prices spiked overnight. Analysts expect it to cost us. Wall Street expects it not to.',
+    choices:[
+      { label:'Pass it on with a fuel surcharge', fx:{ unlock:'fuel', mod:{ k:'op', v:1.12, days:3 } }, t:'Costs rise, but now we have a carrier-imposed surcharge for it. Guidance unaffected.' },
+      { label:'Absorb it ("headwinds")', fx:{ mod:{ k:'op', v:1.2, days:3 } }, t:'Operating costs rise 20% for three days. The earnings call will mention headwinds.' }] },
+  { id:'engine', from:'Maintenance', subj:'Left engine sounds like a blender',
+    body:'The mechanic says the noise is "probably fine" but wants two hours to look at it.',
+    choices:[
+      { label:'Ground it for an inspection', fx:{ delayNext:110 }, t:'Two-hour delay. The engine was in fact a blender somebody left in the cowling.' },
+      { label:'Rebrand it as "Acoustic Experience"', fx:{ scr:6, rep:-1 }, t:'A passenger records it. The FAA records the passenger.' }] },
+  { id:'survey', from:'Customer Insights', subj:'Survey scores are in',
+    body:'Our customer satisfaction score, a key performance indicator, is 2.1 out of 10. Marketing proposes changing the scale so 2 is "Excellent."',
+    choices:[
+      { label:'Change the scale', fx:{ rep:4, scr:4 }, t:'Albatross is now rated "Excellent" by 97% of respondents. A journalist asks to see the scale.' },
+      { label:'Publish the real score', fx:{ rep:-2, mod:{ k:'calm', v:1.2, days:2 } }, t:'Passengers appreciate the honesty, briefly. Key learnings are shared in a meeting. Announcements land better for two days.' }] },
+  { id:'devalue', from:'Loyalty Team', subj:'Mileage devaluation proposal',
+    body:'Raising award prices by 40% would free up the liability on our balance sheet. Members will be notified via a "program enhancement" email, along with new blackout dates.',
+    choices:[
+      { label:'Devalue the miles', cashFn:S => 18000 + S.qProfit * 0.08, fx:{ rep:-4 }, t:'The "program enhancement" email goes out. Elite members begin composing posts.' },
+      { label:'Leave miles alone', fx:{ rep:1 }, t:'The loyalty team is visibly disappointed.' }] },
+  { id:'ai_cs', from:'Digital Transformation', subj:'Replace customer service with a chatbot?',
+    body:'A vendor offers a chatbot that answers every question with "I understand your frustration." It would streamline the customer journey and save $4,000 a day.',
+    cond:S => S.day >= 3,
+    choices:[
+      { label:'Deploy the chatbot', fx:{ mod:{ k:'cash', v:4000, days:5 }, mod2:{ k:'wait', v:1.15, days:5 } }, t:'Customer service is now frictionless. Also useless. Delay rage +15% for five days.' },
+      { label:'Keep the humans', fx:{ rep:1 }, t:'Your three remaining customer service agents send a cake.' }] },
+  { id:'celeb', from:'Gate 42', subj:'A celebrity is in boarding group 9',
+    body:'A reality TV star is in basic economy and filming everything. She has 14 million followers.',
+    choices:[
+      { label:'Upgrade her quietly', fx:{ cash:-1500, rep:3 }, t:'She posts a selfie in Comfort+: "Albatross is actually cute??"' },
+      { label:'Treat her like everyone else', chance:{ p:0.5, win:{ fx:{ rep:2 }, t:'She posts that Albatross "doesn\'t play favorites." Oddly, it works.' }, lose:{ fx:{ rep:-5, scr:4 }, t:'"I Flew BASIC ECONOMY (Albatross Nightmare)" hits 9M views.' } } }] },
+  { id:'carpet', from:'Airport Authority', subj:'Gate 42 carpet is from 1987',
+    body:'The carpet has a stain shaped like Ohio. Passengers have started taking photos of it.',
+    choices:[
+      { label:'Replace it ($14,000)', fx:{ cash:-14000, mod:{ k:'bore', v:0.7, days:4 } }, t:'New carpet. Passengers seem calmer, possibly just from the smell.' },
+      { label:'Brand it "Heritage Carpet"', fx:{ rep:1 }, t:'The stain gets its own fan account. Engagement is up.' }] },
+  { id:'competitor_free', from:'Market Intelligence', subj:'A rival launched "Bags Fly Free"',
+    body:'A competitor is advertising free checked bags. Some of our passengers have seen the billboard.',
+    cond:S => S.on.bag && rivalsLeft(S) > 0,
+    choices:[
+      { label:'Pause our bag fee for 2 days', fx:{ suspend:{ id:'bag', days:2 } }, t:'Bag fee paused. Demand holds steady.' },
+      { label:'Run attack ads: "Free Bags Are Socialism"', fx:{ cash:-8000, mod:{ k:'demand', v:1.08, days:3 } }, t:'The ads work on exactly the people who were already flying with us.' },
+      { label:'Do nothing', fx:{ mod:{ k:'demand', v:0.85, days:3 } }, t:'Demand dips 15% for three days.' }] },
+  { id:'fa_pay', from:'Flight Attendants', subj:'Paid boarding time',
+    body:'Flight attendants note that they are not paid during boarding, which takes 40 minutes.',
+    choices:[
+      { label:'Pay them ($3,000/day)', fx:{ mod:{ k:'cash', v:-3000, days:6 }, mod2:{ k:'calm', v:1.15, days:6 } }, t:'Morale is up. Cabin announcements are suddenly warmer.' },
+      { label:'Issue a thank-you memo', fx:{ mod:{ k:'calm', v:0.85, days:3 } }, t:'The memo is laminated and posted in the galley. Announcements get noticeably flatter.' }] },
+  { id:'breach', from:'IT Security', subj:'Loyalty database exposed',
+    body:'Three million loyalty program accounts were briefly public. Including 400 people who have never flown with us.',
+    cond:S => S.day >= 4,
+    choices:[
+      { label:'"We take your privacy very seriously."', fx:{ scr:5 }, t:'The statement is posted at 4:58 PM on a Friday.' },
+      { label:'Offer free credit monitoring', fx:{ cash:-12000, scr:2 }, t:'The credit monitoring is provided by a third-party vendor that was also breached.' }] },
+  { id:'lostbags', from:'Baggage Operations', subj:'We misplaced 400 bags',
+    body:'They were last seen on a belt in Memphis. Baggage Ops proposes calling them "Bags on an Adventure."',
+    choices:[
+      { label:'Rebrand: "Bag Adventure Program"', fx:{ rep:-2, scr:3 }, t:'A bag is spotted in Portugal. Its owner is in Akron.' },
+      { label:'Courier them ($11,000)', fx:{ cash:-11000, rep:1 }, t:'All 400 bags are delivered. Three contain bees, for unrelated reasons.' }] },
+  { id:'activist', from:'Activist Investor', subj:'Letter to the Board',
+    body:'"Albatross has not fully monetized its passenger base. We demand more fees and fewer snacks. Snacks don\'t move the needle." They own 9% of the stock.',
+    cond:S => S.day >= 4,
+    choices:[
+      { label:'Commit to "fee discipline"', fx:{ stockPct:0.06, tgtMul:1.08 }, t:'The stock rises 6%. Next quarter\'s target rises 8%.' },
+      { label:'Ignore the letter', fx:{ stockPct:-0.05 }, t:'They publish the letter. The stock dips 5%.' }] },
+  { id:'greenwash', from:'Press Inquiry', subj:'Where are the trees?',
+    body:'A journalist has asked to see the forest funded by our carbon offset program.',
+    cond:S => S.on.carbon,
+    choices:[
+      { label:'Send a photo of a houseplant', fx:{ scr:5, rep:-1 }, t:'The houseplant photo is identified within the hour. "Greenwashing" trends.' },
+      { label:'Plant actual trees ($15,000)', fx:{ cash:-15000, rep:3 }, t:'There are now 40 trees in a parking lot in Toledo. It\'s a start.' }] },
+  { id:'gatelice', from:'Airport Authority', subj:'Gate rent increase',
+    body:'The airport is raising rent on Gate 42 by 20%. They describe Gate 42 as "a premium touchpoint."',
+    cond:S => S.day >= 5,
+    choices:[
+      { label:'Pay it', fx:{ mod:{ k:'cash', v:-2500, days:6 } }, t:'Rent is up $2,500 a day for six days.' },
+      { label:'Pass it on: "Gate Facility Fee"', fx:{ mod:{ k:'cash', v:2000, days:6 }, mod2:{ k:'rage', v:4, days:6 } }, t:'Passengers now pay rent on the gate they are waiting at. +4 rage each.' }] },
+  { id:'sizer', from:'Gate 42', subj:'The bag sizer is too small',
+    body:'Nothing fits. Not even the sizer\'s own warranty card. Customers have started trying to fold their bags.',
+    cond:S => S.on.carry,
+    choices:[
+      { label:'Replace it with a fair sizer', fx:{ cash:-2000, mod:{ k:'take_carry', v:0.7, days:4 } }, t:'Fewer bags fail. Carry-on revenue drops 30% for four days.' },
+      { label:'Shrink it further', fx:{ scr:3, mod:{ k:'take_carry', v:1.3, days:4 } }, t:'The new sizer could hold a wallet. Carry-on revenue up 30%.' }] },
+  { id:'kid', from:'Gate 42', subj:'Unaccompanied minor with opinions',
+    body:'A nine-year-old flying alone has produced a 14-slide presentation on our fees. It is very good.',
+    choices:[
+      { label:'Hire her as a consultant', fx:{ cash:-500, unlockNext:1 }, t:'She identifies a new revenue opportunity in eleven minutes. Her fee is a juice box and $500.' },
+      { label:'Give her a pilot wings pin', fx:{ rep:1 }, t:'She accepts the pin and says she\'ll "be in touch."' }] },
+  { id:'storm', from:'Operations Control', subj:'Ground stop at the hub',
+    body:'Air traffic control has issued a ground stop. Our next departure is going nowhere for a while. Legal says we can call it force majeure.',
+    choices:[
+      { label:'Hold passengers at the gate', fx:{ delayNext:90 }, t:'A 90-minute delay. Gate 42 settles in.' },
+      { label:'Board them anyway (tarmac delay)', fx:{ delayNext:60, scr:5 }, t:'Passengers board and sit on the tarmac for an hour. Technically, they\'re "on their way."' }] },
+  { id:'influ', from:'Marketing', subj:'Influencer partnership offer',
+    body:'A travel influencer (2.3M followers) will post about Albatross in exchange for "comped Comfort+ for life."',
+    choices:[
+      { label:'Accept', fx:{ cash:-4000, mod:{ k:'demand', v:1.12, days:3 } }, t:'She posts "Albatross is lowkey the move." Demand up 12% for three days.' },
+      { label:'Decline', fx:{}, t:'She posts about BudgetBird instead.' }] },
+  { id:'safety_card', from:'Legal', subj:'Safety card update',
+    body:'Legal proposes adding "This card is the property of Albatross. Removal incurs a fee." to the safety card.',
+    choices:[
+      { label:'Add the fee', fx:{ cash:3000, scr:2 }, t:'It brings in $3,000 before anyone notices. Then someone notices.' },
+      { label:'Leave the card alone', fx:{}, t:'The safety card remains one of our only free products.' }] },
+  { id:'senator_flight', from:'Gate 42', subj:'A senator is on today\'s flight',
+    body:'Senator Hollis, who chairs the aviation subcommittee, is in seat 31E. She was charged for the seat.',
+    cond:S => S.scr > 30,
+    choices:[
+      { label:'Upgrade her to the front', fx:{ cash:-800, scr:-8 }, t:'The senator enjoys a complimentary pretzel. Scrutiny eases.' },
+      { label:'Let the fees speak for themselves', chance:{ p:0.3, win:{ fx:{}, t:'She falls asleep immediately. Nothing happens.' }, lose:{ fx:{ scr:15 }, t:'She tweets a photo of her Lavatory Access receipt. Scrutiny spikes.' } } }] },
+  { id:'mission', from:'Brand Team', subj:'New mission statement draft',
+    body:'Draft: "Albatross: Connecting People to Places, à la carte." Alternative: "Albatross: We Get You There. Eventually."',
+    choices:[
+      { label:'"Connecting People to Places, à la carte."', fx:{ mod:{ k:'take', v:1.05, days:3 } }, t:'Optional-fee take rates up 5% for three days.' },
+      { label:'"We Get You There. Eventually."', fx:{ rep:2 }, t:'Weirdly beloved. Somebody gets it tattooed.' }] },
+  { id:'overbook_ad', from:'Revenue Management', subj:'Overbooking audit',
+    body:'Revenue management notes that our overbooking model assumes 11% of passengers will "simply not exist."',
+    cond:S => S.ob > 0.1,
+    choices:[
+      { label:'Trust the model', fx:{ scr:2 }, t:'The model is trusted. The model is wrong 11% of the time.' },
+      { label:'Lower overbooking to 10%', fx:{ setOb:0.1 }, t:'Overbooking is set to 10%.' }] },
+  { id:'wedding', from:'Gate 42', subj:'A wedding party is stranded',
+    body:'Twelve bridesmaids, a groom, and an officiant are booked on a delayed flight. The bride is on a different, on-time flight.',
+    choices:[
+      { label:'Hold the bride\'s flight', fx:{ rep:3, delayNext:30 }, t:'They are married in Boarding Group 4. The gate agent cries.' },
+      { label:'Offer a travel voucher', fx:{ rep:-2, cash:-600 }, t:'The groom does not want a travel voucher.' }] },
+  { id:'paris', from:'Strategy', subj:'Pivot to "Premium"?',
+    body:'Strategy asks whether we should pivot to premium. Same planes. New font. 30% higher fares.',
+    cond:S => S.day >= 6,
+    choices:[
+      { label:'Pivot to premium (3 days)', fx:{ mod:{ k:'fare', v:1.3, days:3 }, mod2:{ k:'demand', v:0.8, days:3 } }, t:'Fares up 30%, demand down 20%. The font is very nice.' },
+      { label:'Stay the course', fx:{}, t:'Strategy files the deck in the shared drive with the other 41 pivots.' }] },
+  { id:'rightsize', from:'HR', subj:'Right-sizing the ground crew',
+    body:'HR proposes right-sizing the ground crew from 30 people to 12. "Synergies," HR adds. Turnaround time may suffer.',
+    cond:S => S.day >= 3,
+    choices:[
+      { label:'Approve the right-sizing', fx:{ mod:{ k:'cash', v:3500, days:6 }, mod2:{ k:'delay', v:1.3, days:6 } }, t:'Costs fall $3,500 a day. Delays are 30% more likely for six days.' },
+      { label:'Keep the crew', fx:{}, t:'The ground crew remains at full headcount and slightly suspicious.' }] },
+  { id:'ceo_bonus', from:'Board of Directors', subj:'Your retention bonus',
+    body:'The Board would like to award you a retention bonus. It comes from the company\'s cash.',
+    cond:S => S.day >= 5,
+    choices:[
+      { label:'Accept, gracefully', cashFn:S => -Math.min(60000, Math.max(5000, S.cash * 0.05)), fx:{ stockPct:-0.02, flag:'bonus' }, t:'You accept. A press release calls it "shareholder value alignment."' },
+      { label:'Decline (very publicly)', fx:{ rep:2, stockPct:0.03 }, t:'You decline on LinkedIn. 41,000 reactions. You are now a thought leader.' }] },
+  { id:'dot_rule', from:'Government Affairs', subj:'Proposed all-in pricing rule',
+    body:'Regulators propose all-in pricing and a passenger bill of rights: the advertised fare must include mandatory fees. This is a threat to drip pricing.',
+    cond:S => S.day >= 4,
+    choices:[
+      { label:'Lobby against it ($25,000)', fx:{ cash:-25000, scr:-6 }, t:'The rule is "paused for further stakeholder engagement."' },
+      { label:'Comply', fx:{ mod:{ k:'demand', v:0.9, days:4 } }, t:'Advertised fares rise, and demand dips 10% for four days.' }] },
+  { id:'emotional', from:'Gate 42', subj:'Emotional support peacock',
+    body:'A passenger is attempting to board with an emotional support peacock. The peacock has paid for priority boarding.',
+    choices:[
+      { label:'Let the peacock board', fx:{ rep:1, delayNext:15 }, t:'The peacock behaves better than most passengers.' },
+      { label:'Charge it as a carry-on', fx:{ cash:45, scr:1 }, t:'$45 collected. The peacock is furious.' }] },
+  { id:'charger', from:'Facilities', subj:'All the outlets died',
+    body:'A man plugged in a space heater. Gate 42 is dark. The departure board now reads "DELAYED DELAYED DELAYED."',
+    cond:S => S.amen.outlets,
+    choices:[
+      { label:'Fix it now ($4,000)', fx:{ cash:-4000 }, t:'Power is back. The man and his space heater are on their way to Akron.' },
+      { label:'Fix it tomorrow', fx:{ mod:{ k:'bore', v:1.8, days:1 } }, t:'Boredom rage nearly doubles for the rest of the day.' }] },
+  { id:'equip', from:'Fleet Planning', subj:'Equipment change opportunity',
+    body:'Fleet planning can swap tomorrow\'s plane for one with no galley. "Galley-free" flights save on catering.',
+    cond:S => S.day >= 3,
+    choices:[
+      { label:'Go galley-free (2 days)', fx:{ mod:{ k:'op', v:0.9, days:2 }, mod2:{ k:'rage', v:5, days:2 } }, t:'Costs −10%. No snacks, no water, +5 rage each.' },
+      { label:'Keep the galley', fx:{}, t:'The galley stays. So does the one working coffee maker.' }] }
+];
+
+// first-day memo + contextual tips (shown once each)
+const TIPS = {
+  welcome: 'Passengers arrive, wait, board, and leave. Every fee they pay adds rage. Angry passengers wreck your reputation, and reputation sets how many tickets you sell.',
+  pa: 'Passengers are getting restless. Use the PA buttons under the gate to calm them. Repeating the same line wears off.',
+  melt: 'A passenger hit 100 rage and melted down. Meltdowns hurt reputation and attract regulators.',
+  delay: 'Delays make waiting passengers angrier by the minute. Announcements help. Maintenance upgrades help more.',
+  oversold: 'This flight is oversold. Your bump policy (Ops) decides who stays behind and what it costs.',
+  quarter: 'Every 3 days Wall Street compares your adjusted EBITDA (profit before capital spending) to its target. Three misses and the Board replaces you.',
+  scr: 'Regulator scrutiny is climbing. At 100% you go to a Senate hearing. Lobbying slows it down.',
+  rival: 'Each rival you buy grows the market and makes reputation matter less. Buy all four to win.'
+};
+
+const ACHIEVEMENTS = [
+  { id:'firstfee', name:'Innovator', d:'Unlock your first revenue innovation.' },
+  { id:'fees8', name:'Unbundled', d:'Have 8 fees active at once.' },
+  { id:'fees16', name:'À La Carte', d:'Have 16 fees active at once.' },
+  { id:'melt', name:'First Meltdown', d:'A passenger reaches 100 rage.' },
+  { id:'viral', name:'Going Viral', d:'Get a viral video.' },
+  { id:'ontime', name:'Operational Excellence', d:'Ten on-time departures in a row.' },
+  { id:'full', name:'Load Factor 100%', d:'Depart with every seat filled.' },
+  { id:'zen', name:'Zen Gate', d:'Depart a full-ish flight (40+ pax) with average rage under 10.' },
+  { id:'inferno', name:'Rage Against the Airline', d:'Depart a flight with average rage over 90.' },
+  { id:'liar', name:'Partly Cloudy', d:'Blame weather on a clear day 5 times.' },
+  { id:'bumped', name:'Re-accommodated', d:'Involuntarily bump 50 passengers.' },
+  { id:'hearing', name:'No Admission of Wrongdoing', d:'Pass a Senate hearing.' },
+  { id:'bailout', name:'Too Big To Fail', d:'Receive a government bailout.' },
+  { id:'breathe', name:'Breathe Easy', d:'Charge passengers for cabin air.' },
+  { id:'million', name:'Unicorn', d:'Hold $1,000,000 in cash.' },
+  { id:'decoder', name:'Fluent in Airline', d:'Decode 100 jargon phrases.' },
+  { id:'monopoly', name:'Market Rationalization', d:'Become the only airline.' }
+];
+// =====================================================================
+// GATE 42 — SIMULATION (no DOM; runs headless for tests)
+// Time unit: game minutes. S.t = minute of day (330 = 05:30).
+// =====================================================================
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const wpick = (arr, w = x => x.w) => { let s = 0; for (const x of arr) s += w(x); let r = Math.random() * s; for (const x of arr) { r -= w(x); if (r <= 0) return x; } return arr[arr.length - 1]; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const fmt$ = v => { const a = Math.abs(v), s = v < 0 ? '−$' : '$'; if (a >= 1e9) return s + (a / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return s + (a / 1e6).toFixed(a >= 1e7 ? 1 : 2) + 'M'; if (a >= 1e4) return s + Math.round(a / 1e3) + 'K'; return s + Math.round(a).toLocaleString('en-US'); };
+const hhmm = m => { m = Math.round(m); const h = Math.floor(m / 60) % 24, mm = m % 60; return String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0'); };
+const DAY_START = 330, LAST_DEP = 1380, HARD_END = 1530;
+const FX = [];                       // visual events for the renderer (not saved)
+const fxPush = e => { FX.push(e); if (FX.length > 300) FX.splice(0, FX.length - 300); };
+
+// ---------------------------------------------------------------------
+// JARGON detection
+// ---------------------------------------------------------------------
+const J = (() => {
+  const e = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const items = JARGON.map(([p, m, re], i) => ({ i, p, m, src:re || e(p), test:new RegExp('^(?:' + (re || e(p)) + ')$', 'i') }));
+  const sorted = items.slice().sort((a, b) => b.src.length - a.src.length);
+  const all = new RegExp('(?<![\\w-])(?:' + sorted.map(x => x.src).join('|') + ')(?![\\w-])', 'gi');
+  const which = str => { for (const it of sorted) if (it.test.test(str)) return it.i; return -1; };
+  return { items, all, which };
+})();
+function findJargon(text) { const out = []; J.all.lastIndex = 0; let m; while ((m = J.all.exec(text))) { const i = J.which(m[0]); if (i >= 0) out.push(i); } return out; }
+function hear(text) { if (!S) return; for (const i of findJargon(text)) if (!S.heard[i]) { S.heard[i] = 1; S.newHeard = (S.newHeard || 0) + 1; } }
+
+// ---------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------
+let S = null;
+function newGame() {
+  S = {
+    v:1, day:1, t:DAY_START, cash:45000, stock:12, rep:62, scr:6,
+    own:{ bag:1 }, on:{ bag:1 }, susp:{}, amen:{},
+    seat:0, plane:0, turn:0, route:0, maint:0, bridge:0, lobby:0, ob:0, bump:'standard',
+    rivals:{}, flights:[], groups:[], gid:1, weather:'clear', pa:{}, promise:null, delayNext:0,
+    q:1, qProfit:0, tgtMul:1, strikes:0, hearFail:0, hearPass:0, bailouts:0,
+    day$:null, inbox:[], evDone:{}, evNext:[], mods:[], heard:{}, feed:[], ach:{}, tips:{}, pending:[],
+    over:null, won:0, dayOver:0, hearing:null, history:[],
+    stats:{ pax:0, flights:0, melt:0, viral:0, invol:0, vol:0, lies:0, pa:0, feeRev:{}, fareRev:0, ontimeRun:0, cancelled:0, maxRage:0, days:0 }
+  };
+  startDay();
+  return S;
+}
+const nRivals = () => Object.keys(S.rivals).length;
+const rivalsLeft = s => RIVALS.length - Object.keys(s.rivals).length;
+const lobby = () => LOBBY[S.lobby];
+const weather = () => WEATHER.find(w => w.id === S.weather);
+const feeById = id => FEES.find(f => f.id === id);
+const paById = id => PAS.find(p => p.id === id);
+const active = id => !!(S.own[id] && S.on[id] && !(S.susp[id] >= S.day));
+const ownedCount = () => FEES.filter(f => S.own[f.id]).length;
+const activeFees = () => FEES.filter(f => active(f.id));
+function tierOpen(t) { const n = ownedCount(); return t === 1 || (t === 2 && n >= 4) || (t === 3 && n >= 9) || (t === 4 && n >= 15 && nRivals() >= 1); }
+const tierNeed = t => ({ 2:'Own 4 innovations', 3:'Own 9 innovations', 4:'Own 15 innovations and 1 rival' }[t] || '');
+function nextLockedFee(s) { s = s || S; const save = S; S = s; const f = FEES.find(x => !S.own[x.id] && tierOpen(x.tier)); S = save; return f || null; }
+function modMul(k) { let m = 1; for (const x of S.mods) if (x.k === k) m *= x.v; return m; }
+function modSum(k) { let m = 0; for (const x of S.mods) if (x.k === k) m += x.v; return m; }
+function amenEff(k, base) { let v = base; for (const a of AMENITIES) if (S.amen[a.id] && a.eff[k] !== undefined) v = k === 'decay' ? v + a.eff[k] : v * a.eff[k]; return v; }
+function rivalPk(k) { let v = 1; for (const r of RIVALS) if (S.rivals[r.id] && r.pk[k]) v *= r.pk[k]; return v; }
+function capacity() { let c = PLANES[S.plane].seats; if (active('density')) c *= 1.18; if (active('stand')) c *= 1.3; c *= rivalPk('cap'); return Math.round(c); }
+function fare() { let f = 89 * ROUTES[S.route].fare; if (active('yield')) f *= 1.08; if (active('basic')) f *= 0.9; f *= rivalPk('fare') * modMul('fare'); return f; }
+function shareFloor() { return Math.min(1, 0.1 + 0.225 * nRivals()); }
+function share() { const fl = shareFloor(); return fl + (1 - fl) * Math.pow(clamp(S.rep, 0, 100) / 100, 1.5); }
+// below 25 reputation people actively avoid you, unless there is nowhere else to go
+function boycott() { return S.rep >= 25 || shareFloor() >= 1 ? 1 : 0.6 + 0.4 * S.rep / 25; }
+function marketBase() { return ROUTES[S.route].mkt * Math.pow(1.25, nRivals()) * modMul('demand') * (active('basic') ? 1.22 : 1); }
+function delayChance() { return Math.min(0.9, 0.26 * MAINT[S.maint].m * weather().dm * modMul('delay') * rivalPk('delay')); }
+function boardTime(cap) { return (14 + 0.035 * cap) * BRIDGES[S.bridge].m; }
+function opCost() { return PLANES[S.plane].op * modMul('op'); }
+function overheadBase() { return PLANES[S.plane].oh; }
+function upkeep() { let u = 0; for (const a of AMENITIES) if (S.amen[a.id]) u += a.upkeep; return u + lobby().upkeep; }
+function dailyOverhead() { return overheadBase() + upkeep() - modSum('cash'); }
+function targetBase() { const i = S.q - 1; return i < TARGETS.length ? TARGETS[i] : TARGETS[TARGETS.length - 1] * Math.pow(1.5, i - TARGETS.length + 1); }
+// Wall Street expects at least the schedule, or last quarter plus 10%, whichever is more
+function target() { return Math.round(Math.max(targetBase(), (S.lastQP || 0) * 1.1) * S.tgtMul / 1000) * 1000; }
+function gainScr(v) { const was = S.scr; S.scr = clamp(S.scr + (v > 0 ? v * lobby().gain : v), 0, 100); if (was < 60 && S.scr >= 60) tip('scr'); if (S.scr >= 100 && !S.hearing && !S.over) openHearing(); }
+function addRep(v) { const was = S.rep; S.rep = clamp(S.rep + v, 0, 100); if (was >= 25 && S.rep < 25 && shareFloor() < 1 && S.day$) feed('viral', '#BoycottAlbatross is trending. Bookings are down until reputation recovers above 25.'); }
+function earn(v, kind) { S.cash += v; S.day$.rev += v; S.qProfit += v; if (kind) S.day$[kind] = (S.day$[kind] || 0) + v; }
+function spendOp(v) { S.cash -= v; S.day$.cost += v; S.qProfit -= v; }
+function fill(t, o = {}) { return t.replace(/\{(\w+)\}/g, (_, k) => o[k] !== undefined ? o[k] : '{' + k + '}'); }
+function handle() { return '@' + pick(HANDLE_A) + '_' + pick(HANDLE_B) + (Math.random() < 0.4 ? Math.floor(rnd(2, 99)) : ''); }
+function feed(kind, text, extra = {}) { hear(text); S.feed.unshift(Object.assign({ day:S.day, t:S.t, kind, text }, extra)); if (S.feed.length > 70) S.feed.length = 70; }
+function post(text, o) { feed('post', fill(text, o), { user:handle() }); }
+function award(id) { if (S.ach[id]) return; S.ach[id] = S.day; S.pending.push({ type:'ach', id }); }
+function tip(id) { if (S.tips[id]) return; S.tips[id] = 1; S.pending.push({ type:'tip', id }); }
+
+// ---------------------------------------------------------------------
+// DAY + FLIGHT SCHEDULE
+// ---------------------------------------------------------------------
+function startDay() {
+  S.t = DAY_START; S.dayOver = 0; S.weather = wpick(WEATHER).id; S.groups = []; S.promise = null;
+  S.day$ = { rev:0, cost:0, fare:0, fees:0, air:0, pax:0, flights:0, melt:0, bumped:0, late:0, ontime:0, cancelled:0, repStart:S.rep };
+  const gap = TURNS[S.turn].gap, dests = ROUTES.slice(0, S.route + 1).flatMap(r => r.dest);
+  S.flights = []; let k = 0;
+  for (let T = 420; T <= LAST_DEP; T += gap, k++) {
+    const fl = { id:S.day * 100 + k, k, no:'AQ ' + (4201 + k), dest:pick(dests), T, phase:'sched', booked:0, revealed:0,
+      dMin:0, dKind:'', dReason:'', extra:0, A:null, bs:null, B:null, dep:null, sold:0, shows:0, cap:0, fare:0,
+      fees:0, air:0, bumped:0, invol:0, melt:0, boarded:0, queue:[], spawn:[], rage:0 };
+    if (Math.random() < delayChance()) { const d = pick(DELAYS); fl.dMin = pick(DELAY_MINS); fl.dKind = d.kind; fl.dReason = d.r; }
+    S.flights.push(fl);
+  }
+  if (S.flights.length) setArrival(S.flights[0], -999);
+  // ops alerts: usually one a day, sometimes two
+  S.evNext = [];
+  if (S.day === 1) S.evNext = [700];
+  else { if (Math.random() < 0.9) S.evNext.push(Math.round(rnd(480, 1250))); if (Math.random() < 0.3 && S.day > 2) S.evNext.push(Math.round(rnd(600, 1300))); }
+  S.evNext.sort((a, b) => a - b);
+  for (const f of S.flights) if (S.t >= f.T - 130) book(f);
+  hear(TURNS[S.turn].name + ' ' + ROUTES[S.route].name);
+}
+function setArrival(fl, prevDep) {
+  fl.A = Math.max(fl.T - 62 + (fl.dKind === 'in' ? fl.dMin : 0), prevDep + 8);
+  if (S.delayNext) { fl.extra += S.delayNext; S.delayNext = 0; fl.revealed = 1; }
+}
+function computeBoarding(fl) {
+  if (!fl.booked) book(fl);
+  fl.B = boardTime(fl.cap);
+  fl.bs = Math.max(fl.T - fl.B - 3, fl.A + 22) + (fl.dKind === 'ops' ? fl.dMin : 0) + fl.extra;
+}
+const schedBoard = fl => fl.T - boardTime(fl.cap || capacity()) - 3;
+function projDep(fl) {
+  if (fl.dep !== null) return fl.dep;
+  if (fl.bs !== null) return Math.max(fl.T, fl.bs + fl.B);
+  if (!fl.revealed) return fl.T;
+  // estimate before the plane is assigned
+  const i = S.flights.indexOf(fl), prev = S.flights[i - 1];
+  const pd = prev ? projDep(prev) : -999, A = Math.max(fl.T - 62 + (fl.dKind === 'in' ? fl.dMin : 0), pd + 8);
+  const B = boardTime(fl.cap || capacity());
+  return Math.max(fl.T, Math.max(fl.T - B - 3, A + 22) + (fl.dKind === 'ops' ? fl.dMin : 0) + fl.extra + B);
+}
+const lateBy = fl => Math.max(0, Math.round(projDep(fl) - fl.T));
+function book(fl) {
+  if (fl.booked) return; fl.booked = 1;
+  const T = fl.T, tod = T < 600 ? 1.15 : T < 900 ? 0.85 : T < 1140 ? 1.1 : 0.8;
+  fl.cap = capacity(); fl.fare = fare(); fl.pl = S.plane;
+  const mkt = marketBase() * tod * rnd(0.88, 1.12);
+  const ob = active('yield') ? S.ob : 0;
+  fl.sold = Math.max(1, Math.min(Math.round(mkt * share() * boycott()), Math.floor(fl.cap * (1 + ob))));
+  let shows = 0; for (let i = 0; i < fl.sold; i++) if (Math.random() < 0.9) shows++;
+  fl.shows = Math.max(1, shows);
+  const gs = Math.max(1, Math.ceil(fl.shows / 32)), n = Math.ceil(fl.shows / gs);
+  const types = Object.keys(PTYPES);
+  for (let i = 0; i < n; i++) {
+    const cnt = i === n - 1 ? fl.shows - gs * (n - 1) : gs;
+    const type = wpick(types.map(t => ({ t, w:PTYPES[t].w })), x => x.w).t;
+    fl.spawn.push({ id:S.gid++, fid:fl.id, type, n:cnt, rage:rnd(0, 10), arr:Math.round(rnd(T - 112, T - 22)), state:'pending',
+      melted:0, paid:0, prio:0, kid:type === 'family' && Math.random() < 0.8 ? 1 : 0, look:Math.floor(Math.random() * 64), air:0, bump:'' });
+  }
+  fl.spawn.sort((a, b) => a.arr - b.arr);
+}
+
+// ---------------------------------------------------------------------
+// FEES
+// ---------------------------------------------------------------------
+function applyFees(g, stage, fl) {
+  const T = PTYPES[g.type]; let rage = 0, rev = 0;
+  const nActive = feeCountForFeeFee();
+  for (const f of FEES) {
+    if (f.stage !== stage || !active(f.id)) continue;
+    if (f.eliteExempt && g.type === 'elite') continue;
+    if (f.eliteOnly && g.type !== 'elite') continue;
+    let r = 0, v = 0;
+    if (f.kind === 'basic' || f.kind === 'density' || f.kind === 'stand' || f.kind === 'complaint') r = f.rp;
+    else if (f.kind === 'feefee') { v = f.price * nActive * g.n; r = f.rp; }
+    else if (!f.kind) {
+      const take = f.take >= 1 ? 1 : clamp(f.take * T.takeM * (g.type === 'family' && f.fam ? f.fam : 1) * modMul('take') * modMul('take_' + f.id), 0, 0.95);
+      const rr = f.rr * (g.type === 'family' && f.famRR ? f.famRR : 1);
+      v = f.price * g.n * take; r = take * f.rp + (1 - take) * rr;
+      if (f.id === 'prio' && Math.random() < take) g.prio = 1;
+    }
+    r *= T.feeRage;
+    if (v) { S.stats.feeRev[f.id] = (S.stats.feeRev[f.id] || 0) + v; rev += v; g.paid = (g.paid || 0) + v / g.n; }
+    if (stage === 'air') g.air += r; else rage += r;
+  }
+  if (stage === 'book') rage += modSum('rage');
+  if (rev) { earn(rev, stage === 'air' ? 'air' : 'fees'); fl.fees += rev; if (stage !== 'air') fxPush({ type:'coin', gid:g.id, v:rev }); }
+  if (rage) { g.rage += rage; fxPush({ type:'fume', gid:g.id, v:rage }); }
+  return rev;
+}
+
+function feeCountForFeeFee() { return activeFees().filter(f => f.id !== 'feefee' && f.id !== 'yield').length; }
+// expected $ and rage per passenger (weighted over the passenger mix), for the UI and bots
+function feeEstimate(f) {
+  let w = 0, rev = 0, rage = 0;
+  for (const k in PTYPES) {
+    const T = PTYPES[k]; w += T.w;
+    if ((f.eliteExempt && k === 'elite') || (f.eliteOnly && k !== 'elite')) continue;
+    let r = 0, v = 0;
+    if (f.kind === 'basic' || f.kind === 'density' || f.kind === 'stand' || f.kind === 'complaint') r = f.rp;
+    else if (f.kind === 'feefee') { v = f.price * Math.max(1, feeCountForFeeFee() - (active('feefee') ? 0 : 0)); r = f.rp; }
+    else if (!f.kind) {
+      const take = f.take >= 1 ? 1 : clamp(f.take * T.takeM * (k === 'family' && f.fam ? f.fam : 1), 0, 0.95);
+      v = f.price * take; r = take * f.rp + (1 - take) * f.rr * (k === 'family' && f.famRR ? f.famRR : 1);
+    }
+    rev += v * T.w; rage += r * T.feeRage * T.w;
+  }
+  return { rev:rev / w, rage:rage / w };
+}
+
+// ---------------------------------------------------------------------
+// MAIN TICK (one game minute)
+// ---------------------------------------------------------------------
+function waiting() { return S.groups.filter(g => g.state === 'wait' || g.state === 'queue'); }
+function waitingPax() { let n = 0; for (const g of S.groups) if (g.state === 'wait' || g.state === 'queue') n += g.n; return n; }
+function avgRage() { let r = 0, n = 0; for (const g of waiting()) { r += g.rage * g.n; n += g.n; } return n ? r / n : 0; }
+function tick() {
+  if (S.over || S.dayOver || S.hearing || S.inbox.length) return false;
+  S.t++;
+  const fls = S.flights;
+  for (let i = 0; i < fls.length; i++) {
+    const fl = fls[i];
+    if (fl.phase === 'gone' || fl.phase === 'cancelled') continue;
+    if (!fl.booked && S.t >= fl.T - 130) book(fl);
+    if (!fl.revealed && S.t >= fl.T - 85) { fl.revealed = 1; if (fl.dMin && fl.dMin + fl.extra >= 15) { tip('delay'); feed('sys', `${fl.no} to ${fl.dest}: ${fl.dReason}. New departure ${hhmm(projDep(fl))}.`); } }
+    // passengers arrive
+    while (fl.spawn.length && fl.spawn[0].arr <= S.t) {
+      const g = fl.spawn.shift(); g.state = 'wait'; S.groups.push(g);
+      applyFees(g, 'book', fl);
+      if (fl.phase === 'boarding') { applyFees(g, 'gate', fl); g.state = 'queue'; fl.queue.push(g); }
+    }
+    // plane + boarding
+    if (fl.A !== null && fl.phase === 'sched' && S.t >= fl.A) { fl.phase = 'arriving'; computeBoarding(fl); }
+    if (fl.phase === 'arriving' && S.t >= fl.A + 7) fl.phase = 'gate';
+    if (fl.phase === 'gate' && S.t >= fl.bs) startBoarding(fl);
+    if (fl.phase === 'boarding') {
+      const left = Math.max(1, fl.bs + fl.B - S.t), k = Math.ceil(fl.queue.length / left);
+      for (let j = 0; j < k && fl.queue.length; j++) { const g = fl.queue.shift(); g.state = 'board'; g.tb = S.t; fl.boarded += g.n; }
+      if (!fl.queue.length && !fl.spawn.length && S.t >= Math.max(fl.T, fl.bs + fl.B)) depart(fl, i);
+    }
+    if (fl.phase === 'push' && S.t >= fl.dep + 7) fl.phase = 'gone';
+  }
+  // passengers waiting
+  const wpax = waitingPax(), seats = SEATING[S.seat].cap, standF = wpax > seats ? 1 - seats / wpax : 0;
+  const bore = 0.025 * amenEff('bore', 1) * modMul('bore'), decay = amenEff('decay', 0), waitM = amenEff('wait', 1) * modMul('wait');
+  for (const g of S.groups) {
+    if (g.state !== 'wait' && g.state !== 'queue') continue;
+    const fl = fls.find(f => f.id === g.fid); if (!fl) continue;
+    let d = bore + standF * 0.07 - decay;
+    const late = fl.phase !== 'boarding' && S.t > schedBoard(fl);
+    if (late) d += 0.3 * PTYPES[g.type].waitM * waitM;
+    g.rage = Math.max(0, g.rage + d);
+    if (g.rage >= 100 && !g.melted) meltdown(g, fl);
+    if (g.rage > 110) g.rage = 110;
+  }
+  if (standF > 0.25 || avgRage() > 35) tip('pa');
+  S.groups = S.groups.filter(g => g.state !== 'leave' || S.t - g.tl < 25);
+  // broken promises
+  if (S.promise && S.t >= S.promise.until) {
+    const fl = fls.find(f => f.id === S.promise.fid);
+    if (fl && (fl.phase === 'sched' || fl.phase === 'arriving' || fl.phase === 'gate')) {
+      for (const g of S.groups) if (g.fid === fl.id && g.state === 'wait') { g.rage += 9; fxPush({ type:'fume', gid:g.id, v:9 }); }
+      post('"Boarding will begin shortly," they said, 25 minutes ago. {f} still isn\'t boarding.', { f:fl.no });
+    }
+    S.promise = null;
+  }
+  // AI gate agent
+  if (S.amen.albie && S.t % 5 === 0 && avgRage() > 30) albie();
+  // ops alerts
+  if (S.evNext.length && S.t >= S.evNext[0]) { S.evNext.shift(); queueEvent(); }
+  // end of day
+  const done = fls.every(f => f.phase === 'gone' || f.phase === 'cancelled');
+  if (S.t >= HARD_END && !done) for (const f of fls) if (f.phase !== 'gone' && f.phase !== 'cancelled' && f.phase !== 'push') cancel(f);
+  if ((done && S.t >= LAST_DEP) || S.t >= HARD_END + 10) endDay();
+  return true;
+}
+function startBoarding(fl) {
+  fl.phase = 'boarding';
+  if (S.promise && S.promise.fid === fl.id) S.promise = null;
+  // overbooking resolution
+  const over = fl.shows - fl.cap;
+  if (over > 0) bump(fl, over);
+  const mine = S.groups.filter(g => g.fid === fl.id && g.state === 'wait');
+  for (const g of mine) applyFees(g, 'gate', fl);
+  const rank = g => (g.prio ? 0 : g.type === 'elite' ? 1 : g.type === 'business' ? 2 : active('basic') ? 3 + (g.id % 3) : 3);
+  mine.sort((a, b) => rank(a) - rank(b) || a.arr - b.arr);
+  for (const g of mine) { g.state = 'queue'; fl.queue.push(g); }
+}
+function bump(fl, over) {
+  tip('oversold');
+  const pol = BUMP[S.bump], vol = Math.round(over * pol.vol), inv = over - vol;
+  let need = over;
+  // remove from the latest check-ins first
+  const pool = fl.spawn.slice().reverse().concat(S.groups.filter(g => g.fid === fl.id && g.state === 'wait').sort((a, b) => b.arr - a.arr));
+  let invLeft = inv;
+  for (const g of pool) {
+    if (need <= 0) break;
+    const take = Math.min(g.n, need); need -= take;
+    if (take === g.n) {
+      g.bump = invLeft > 0 ? 'inv' : 'vol'; invLeft -= take;
+      if (g.state === 'pending') fl.spawn.splice(fl.spawn.indexOf(g), 1); else { g.state = 'leave'; g.tl = S.t; fxPush({ type:g.bump === 'inv' ? 'drag' : 'voucher', gid:g.id }); }
+    } else { g.n -= take; invLeft -= take; }
+  }
+  fl.bumped = over; fl.invol = inv;
+  const vcost = vol * pol.voucher * 0.5, icost = inv * fl.fare * 2;
+  spendOp(vcost + icost);
+  S.day$.bumped += over; S.stats.vol += vol; S.stats.invol += inv;
+  if (inv > 0) {
+    addRep(-Math.min(6, 0.12 * inv)); gainScr(Math.min(12, 0.4 * inv));
+    if (Math.random() < 1 - Math.pow(0.97, inv)) viral(2);
+    post(pick(POSTS_BUMP), { f:fl.no });
+    if (S.stats.invol >= 50) award('bumped');
+  }
+  feed('sys', `${fl.no} oversold by ${over}. ${vol ? vol + ' took a travel voucher' : ''}${vol && inv ? ', ' : ''}${inv ? inv + ' involuntary denied boarding' : ''}. Cost ${fmt$(vcost + icost)}.`);
+}
+function meltdown(g, fl) {
+  g.melted = 1; fl.melt++; S.day$.melt++; S.stats.melt++; award('melt'); tip('melt');
+  const w = Math.pow(g.n, 0.6);
+  addRep(-0.25 * w); gainScr(0.5 * Math.sqrt(g.n));
+  fxPush({ type:'melt', gid:g.id });
+  if (active('complaint')) { const v = feeById('complaint').price * g.n; g.paid = (g.paid || 0) + v / g.n; earn(v, 'fees'); fl.fees += v; S.stats.feeRev.complaint = (S.stats.feeRev.complaint || 0) + v; gainScr(0.1); fxPush({ type:'coin', gid:g.id, v }); }
+  if (g.type === 'influencer' || Math.random() < 0.04) viral(1);
+  else if (Math.random() < 0.35) post(pick(POSTS_MELT));
+}
+function viral(sev) {
+  S.stats.viral++; award('viral');
+  addRep(-3.5 * sev); gainScr(5 * sev); S.stock *= 0.99;
+  const v = (rnd(0.8, 4) * sev).toFixed(1);
+  feed('viral', 'VIRAL: ' + fill(pick(VIRAL), { v }));
+  fxPush({ type:'viral' });
+}
+function depart(fl, i) {
+  fl.phase = 'push'; fl.dep = S.t;
+  const on = S.groups.filter(g => g.fid === fl.id && g.state === 'board');
+  let rs = 0, n = 0;
+  for (const g of on) { applyFees(g, 'air', fl); const r = Math.min(130, g.rage + g.air); rs += r * g.n; n += g.n; g.state = 'gone'; }
+  fl.rage = n ? rs / n : 0; fl.air = 0;
+  const fareRev = fl.sold * fl.fare;
+  earn(fareRev, 'fare'); S.stats.fareRev += fareRev;
+  const op = opCost(); spendOp(op);
+  // reviews move reputation
+  const sentiment = 100 - fl.rage;
+  addRep((sentiment - S.rep) * (n >= 20 ? 0.08 : 0.04));
+  S.day$.pax += n; S.day$.flights++; S.stats.pax += n; S.stats.flights++;
+  const late = fl.dep - fl.T;
+  if (late <= 15) { S.day$.ontime++; S.stats.ontimeRun++; if (S.stats.ontimeRun >= 10) award('ontime'); } else { S.day$.late++; S.stats.ontimeRun = 0; }
+  S.stats.maxRage = Math.max(S.stats.maxRage, fl.rage);
+  if (n >= fl.cap && fl.cap > 0) award('full');
+  if (n >= 40 && fl.rage < 10) award('zen');
+  if (fl.rage > 90) award('inferno');
+  fl.profit = fareRev + fl.fees - op;
+  feed('flight', `${fl.no} → ${fl.dest} departed${late > 15 ? ' ' + late + ' min late' : ' on time'} · ${n}/${fl.cap} seats · rage ${Math.round(fl.rage)}`, { profit:fl.profit, rage:fl.rage, fid:fl.id });
+  // a review
+  if (Math.random() < 0.55) {
+    if (late > 40 && Math.random() < 0.6) post(pick(POSTS_DELAY), { f:fl.no, dest:fl.dest, mins:late });
+    else if (fl.rage < 25) post(pick(POSTS_GOOD), { f:fl.no });
+    else { const pool = activeFees().filter(f => f.post); if (pool.length) post(pick(pick(pool).post), { f:fl.no }); }
+  }
+  // per-flight regulator attention for aggressive fees
+  let sc = 0; for (const f of activeFees()) sc += f.scr || 0;
+  if (late > 120) sc += 1.5;
+  if (sc) gainScr(sc);
+  S.groups = S.groups.filter(g => g.state !== 'gone');
+  const next = S.flights[i + 1]; if (next) setArrival(next, fl.dep);
+}
+function cancel(fl) {
+  fl.phase = 'cancelled'; S.day$.cancelled++; S.stats.cancelled++;
+  for (const g of S.groups) if (g.fid === fl.id && g.state !== 'gone') { g.state = 'leave'; g.tl = S.t; }
+  fl.spawn = [];
+  addRep(-3); gainScr(3);
+  feed('sys', `${fl.no} to ${fl.dest} is cancelled due to irregular operations. Passengers receive a travel voucher and our sincere thanks for their patience.`);
+}
+
+// ---------------------------------------------------------------------
+// PA ANNOUNCEMENTS
+// ---------------------------------------------------------------------
+function paState(id) { return S.pa[id] || (S.pa[id] = { last:-9999, hist:[] }); }
+function anyDelayed() { return S.flights.some(f => f.revealed && (f.phase === 'sched' || f.phase === 'arriving' || f.phase === 'gate') && lateBy(f) >= 10); }
+function paCost(p) { return p.cost ? Math.round(p.cost * waitingPax()) : 0; }
+function paStatus(id) {
+  const p = paById(id); if (!p) return { ok:false, why:'?' };
+  if (p.needs && !S.amen[p.needs]) return { ok:false, locked:1, why:'Needs ' + AMENITIES.find(a => a.id === p.needs).name };
+  const st = paState(id), absT = S.day * 2000 + S.t, cd = p.cd - (absT - st.last);
+  if (cd > 0) return { ok:false, cd, why:Math.ceil(cd) + ' min' };
+  if (!waiting().length) return { ok:false, why:'Gate is empty' };
+  if (p.delayOnly && !anyDelayed()) return { ok:false, why:'No delay' };
+  if (p.cost && S.cash < paCost(p)) return { ok:false, why:'Can\'t afford' };
+  return { ok:true };
+}
+function paMult(id) {
+  const st = paState(id), absT = S.day * 2000 + S.t;
+  const n = st.hist.filter(x => absT - x < 240).length;
+  let m = Math.pow(0.6, n);
+  for (const k in S.pa) if (absT - S.pa[k].last < 8) { m *= 0.75; break; }
+  return m;
+}
+function announce(id, auto) {
+  const p = paById(id), s = paStatus(id); if (!s.ok) return false;
+  const st = paState(id), absT = S.day * 2000 + S.t;
+  const calm = p.calm * paMult(id) * amenEff('pa', 1) * modMul('calm');
+  if (p.cost) spendOp(paCost(p));
+  st.last = absT; st.hist.push(absT); st.hist = st.hist.filter(x => absT - x < 400);
+  if (p.reset) for (const k in S.pa) if (k !== id) S.pa[k].hist = [];
+  for (const g of waiting()) g.rage = Math.max(0, g.rage - calm);
+  S.stats.pa++;
+  feed('pa', (auto ? 'Albie: ' : '') + p.text, { calm:Math.round(calm) });
+  fxPush({ type:'pa', id, calm });
+  if (p.promise) {
+    const fl = S.flights.find(f => f.phase === 'sched' || f.phase === 'arriving' || f.phase === 'gate');
+    if (fl && !S.promise) S.promise = { fid:fl.id, until:S.t + 25 };
+  }
+  if (p.lie && S.weather === 'clear') {
+    S.stats.lies++; gainScr(5); addRep(-1.5); post(pick(POSTS_WEATHER));
+    if (S.stats.lies >= 5) award('liar');
+  }
+  return true;
+}
+function albie() {
+  const order = ['captain', 'safety', 'paper', 'sorry', 'shortly', 'patience', 'pretzel'];
+  let best = null, bv = 0;
+  for (const id of order) { const p = paById(id); if (!paStatus(id).ok) continue; const v = p.calm * paMult(id); if (v > bv) { bv = v; best = id; } }
+  if (best && bv >= 3) announce(best, true);
+}
+
+// ---------------------------------------------------------------------
+// SHOPPING
+// ---------------------------------------------------------------------
+function canBuy(cost) { return S.cash >= cost; }
+function buyFee(id) {
+  const f = feeById(id); if (!f || S.own[id] || !tierOpen(f.tier) || !canBuy(f.cost)) return false;
+  S.cash -= f.cost; S.own[id] = 1; S.on[id] = 1; award('firstfee');
+  feed('sys', `New revenue innovation: ${f.brand}. Passengers will love it.`);
+  if (id === 'breath') award('breathe');
+  checkFeeAch(); return true;
+}
+function toggleFee(id) { if (!S.own[id]) return false; S.on[id] = S.on[id] ? 0 : 1; if (S.on[id] && id === 'breath') award('breathe'); checkFeeAch(); return true; }
+function checkFeeAch() { const n = activeFees().length; if (n >= 8) award('fees8'); if (n >= 16) award('fees16'); }
+function buyAmen(id) { const a = AMENITIES.find(x => x.id === id); if (!a || S.amen[id] || !canBuy(a.cost)) return false; S.cash -= a.cost; S.amen[id] = 1; feed('sys', `Gate 42 upgrade: ${a.brand}.`); return true; }
+const LADDERS = { plane:PLANES, turn:TURNS, route:ROUTES, maint:MAINT, bridge:BRIDGES, seat:SEATING, lobby:LOBBY };
+function upgradeCost(k) { const L = LADDERS[k], n = S[k] + 1; if (n >= L.length) return null; let c = L[n].cost; if (k === 'plane') c -= Math.round(PLANES[S.plane].cost * 0.5); return c; }
+function upgrade(k) {
+  const c = upgradeCost(k); if (c === null || !canBuy(c)) return false;
+  S.cash -= c; S[k]++;
+  const L = LADDERS[k][S[k]];
+  feed('sys', k === 'plane' ? `New aircraft: ${L.name} (${L.seats} seats). Flies from the next flight that opens for booking.` : `Upgrade: ${L.name}.`);
+  return true;
+}
+function setOverbook(v) { if (!active('yield')) return false; S.ob = clamp(Math.round(v * 20) / 20, 0, 0.4); return true; }
+function setBump(id) { if (!BUMP[id]) return false; S.bump = id; return true; }
+function buyRival(id) {
+  const r = RIVALS.find(x => x.id === id); if (!r || S.rivals[id] || !canBuy(r.cost)) return false;
+  const idx = RIVALS.indexOf(r); if (idx > 0 && !S.rivals[RIVALS[idx - 1].id]) return false;
+  S.cash -= r.cost; S.rivals[id] = S.day; S.stock *= 1.08;
+  feed('sys', `Albatross acquires ${r.name}. "The synergies are significant," says everyone. ${r.perk}`);
+  tip('rival');
+  if (nRivals() === RIVALS.length && !S.won) { S.won = S.day; award('monopoly'); S.pending.push({ type:'win' }); }
+  return true;
+}
+
+// ---------------------------------------------------------------------
+// OPS ALERTS
+// ---------------------------------------------------------------------
+function queueEvent() {
+  const pool = EVENTS.filter(e => !S.evDone[e.id] && (!e.cond || e.cond(S)));
+  if (!pool.length) return;
+  const e = pick(pool); S.evDone[e.id] = S.day; S.inbox.push(e.id);
+}
+function eventById(id) { return EVENTS.find(e => e.id === id); }
+function choiceCost(c) { let v = 0; if (c.fx && c.fx.cash < 0) v -= c.fx.cash; if (c.costPct) v += Math.max(8000, Math.round(S.cash * c.costPct)); if (c.cashFn) { const x = c.cashFn(S); if (x < 0) v -= x; } return Math.round(v); }
+function choiceBlocked(c) { const cost = choiceCost(c); return cost > 0 && S.cash < cost; }
+function answerEvent(ci) {
+  const e = eventById(S.inbox[0]); if (!e) { S.inbox.shift(); return null; }
+  const c = e.choices[ci]; if (!c || choiceBlocked(c)) return null;
+  S.inbox.shift();
+  let fx = c.fx || {}, t = c.t;
+  if (c.costPct) S.cash -= Math.max(8000, Math.round(S.cash * c.costPct));
+  if (c.cashFn) { const v = Math.round(c.cashFn(S)); S.cash += v; S.day$.rev += v; S.qProfit += v; }
+  if (c.chance) { const o = Math.random() < c.chance.p ? c.chance.win : c.chance.lose; applyFx(fx); fx = o.fx; t = o.t; }
+  const res = applyFx(fx);
+  feed('event', `${e.subj}: ${t}`);
+  return { t, res };
+}
+function applyFx(fx) {
+  const out = {};
+  if (fx.cash) { S.cash += fx.cash; S.qProfit += fx.cash; if (fx.cash > 0) S.day$.rev += fx.cash; else S.day$.cost -= fx.cash; }
+  if (fx.rep) addRep(fx.rep);
+  if (fx.scr) gainScr(fx.scr);
+  for (const m of [fx.mod, fx.mod2]) if (m) S.mods.push({ k:m.k, v:m.v, until:S.day + m.days - 1 });
+  if (fx.unlock && !S.own[fx.unlock]) { S.own[fx.unlock] = 1; S.on[fx.unlock] = 1; out.unlocked = fx.unlock; }
+  if (fx.unlockNext) { const f = nextLockedFee(S); if (f) { S.own[f.id] = 1; S.on[f.id] = 0; out.unlocked = f.id; feed('sys', `Unlocked: ${f.name}. It's off until you switch it on.`); } }
+  if (fx.delayNext) {
+    const fl = S.flights.find(f => f.phase === 'sched' || f.phase === 'arriving' || f.phase === 'gate');
+    if (fl) { fl.extra += fx.delayNext; fl.revealed = 1; if (fl.bs !== null) fl.bs += fx.delayNext; } else S.delayNext += fx.delayNext;
+  }
+  if (fx.suspend) S.susp[fx.suspend.id] = S.day + fx.suspend.days - 1;
+  if (fx.stockPct) S.stock *= 1 + fx.stockPct;
+  if (fx.tgtMul) S.tgtMul *= fx.tgtMul;
+  if (fx.setOb !== undefined) S.ob = fx.setOb;
+  if (fx.flag) S['f_' + fx.flag] = 1;
+  checkFeeAch();
+  return out;
+}
+
+// ---------------------------------------------------------------------
+// HEARINGS
+// ---------------------------------------------------------------------
+function openHearing() {
+  const rel = HEARING_Q.filter(q => (q.fee && active(q.fee)) || (q.tag === 'bump' && S.stats.invol > 0) || (q.tag === 'weather' && S.stats.lies > 0));
+  const gen = HEARING_Q.filter(q => !q.fee && !q.tag);
+  const qs = [];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  for (const q of shuffle(rel)) if (qs.length < 2) qs.push(HEARING_Q.indexOf(q));
+  for (const q of shuffle(gen)) if (qs.length < 3) qs.push(HEARING_Q.indexOf(q));
+  // answers are shown in a random order
+  S.hearing = { qs, order:qs.map(() => shuffle([0, 1, 2])), ans:[] };
+  S.pending.push({ type:'hearing' });
+}
+// senators lose patience: every hearing you survive raises the bar for the next one
+function hearingNeed() { return Math.min(6, 4 + Math.floor(S.hearPass / 2)); }
+function hearingAnswer(qi, ai) { if (!S.hearing || S.hearing.ans.length !== qi) return false; S.hearing.ans.push(ai); return true; }
+function hearingResolve() {
+  const h = S.hearing; if (!h || h.ans.length < h.qs.length) return null;
+  const score = h.ans.reduce((s, a, i) => s + HEARING_Q[h.qs[i]].a[a][1], 0) + lobby().bonus;
+  const pass = score >= hearingNeed();
+  let fine, banned = null;
+  if (pass) { fine = Math.max(10000, Math.round(S.cash * Math.min(0.25, 0.08 + 0.03 * S.hearPass))); S.scr = 45; S.hearPass++; award('hearing'); }
+  else {
+    fine = Math.max(30000, Math.round(S.cash * 0.2)); S.scr = 60; S.hearFail++;
+    const worst = activeFees().filter(f => f.scr).sort((a, b) => b.scr - a.scr)[0];
+    if (worst) { banned = worst.id; S.susp[worst.id] = S.day + 2; }
+  }
+  S.cash -= fine; S.day$.cost += fine; S.qProfit -= fine;
+  S.hearing = null;
+  feed('sys', pass ? `Senate hearing concluded. Albatross pays a ${fmt$(fine)} fine, booked as a one-time charge, with no admission of wrongdoing.` : `Senate hearing goes badly. ${fmt$(fine)} fine${banned ? ' and ' + feeById(banned).name + ' is suspended for 3 days' : ''}.`);
+  if (S.hearFail >= 3) gameOver('revoked');
+  return { pass, fine, banned, score };
+}
+
+// ---------------------------------------------------------------------
+// END OF DAY / QUARTER
+// ---------------------------------------------------------------------
+function endDay() {
+  if (S.dayOver) return;
+  S.dayOver = 1;
+  const oh = dailyOverhead();
+  S.cash -= oh; S.day$.cost += oh; S.qProfit -= oh; S.day$.overhead = oh;
+  gainScr(-lobby().decay);
+  S.stock = Math.max(0.5, S.stock * (1 + (S.rep - 50) / 6000));
+  S.history.push({ day:S.day, profit:S.day$.rev - S.day$.cost, rev:S.day$.rev, rep:Math.round(S.rep), cash:Math.round(S.cash) });
+  if (S.history.length > 60) S.history.shift();
+  S.stats.days = S.day;
+  if (S.cash >= 1e6) award('million');
+  const rep = { type:'day', day:S.day, d:Object.assign({}, S.day$) };
+  if (S.day % QUARTER_DAYS === 0) rep.quarter = closeQuarter();
+  S.pending.push(rep);
+  if (S.cash < 0 && !S.over) {
+    if (!S.bailouts) { const amt = Math.max(80000, Math.round(-S.cash + 60000)); S.cash += amt; S.bailouts++; gainScr(25); award('bailout'); rep.bailout = amt; feed('sys', `Albatross is too big to fail. Government bailout: ${fmt$(amt)}.`); }
+    else gameOver('bankrupt');
+  }
+}
+function closeQuarter() {
+  const tgt = target(), p = S.qProfit, beat = p >= tgt, before = S.stock;
+  if (beat) { S.stock *= 1 + clamp(0.08 + 0.25 * (p / tgt - 1), 0.05, 0.4); S.strikes = Math.max(0, S.strikes - 1); }
+  else { S.stock *= 1 - clamp(0.12 + 0.3 * (1 - p / Math.max(1, tgt)), 0.1, 0.45); S.strikes++; }
+  const r = { q:S.q, profit:p, target:tgt, beat, stock0:before, stock1:S.stock, strikes:S.strikes, needGuidance:1 };
+  S.lastQP = Math.max(0, p); S.qProfit = 0; S.q++; S.tgtMul = 1;
+  if (S.strikes >= 3) { gameOver('fired'); r.needGuidance = 0; }
+  S.lastQuarter = r;
+  return r;
+}
+function setGuidance(id) { const g = GUIDANCE.find(x => x.id === id); if (!g) return false; S.tgtMul *= g.tgt; S.stock *= 1 + g.stock; feed('sys', 'Earnings call: ' + g.t); if (S.lastQuarter) S.lastQuarter.needGuidance = 0; return true; }
+function nextDay() {
+  if (!S.dayOver || S.over) return false;
+  S.mods = S.mods.filter(m => m.until > S.day);
+  for (const k in S.susp) if (S.susp[k] <= S.day) delete S.susp[k];
+  S.day++; startDay(); return true;
+}
+function gameOver(why) { if (S.over) return; S.over = why; S.pending.push({ type:'over', why }); }
+
+// run whole minutes (UI passes a fractional accumulator)
+function advance(mins) { let n = 0; while (n < mins && tick()) n++; return n; }
+// =====================================================================
+// GATE 42 — PIXEL RENDERER (320×180 logical pixels)
+// =====================================================================
+const ART = (() => {
+  const W = 320, H = 180;
+  let cv, cx, bg, bgKey = '';
+  const vis = new Map();           // gid -> visual passenger
+  const parts = [];                // floating text / puffs
+  let lastT = 0, flash = 0, agentPose = 0, dog = { x:120, y:120, tx:120, ty:120, wait:0, f:0 };
+  let paBubble = null, captainT = 0, cartT = -1, distant = [], tickN = 0;
+
+  // ---------- palette ----------
+  const P = {
+    ceil:'#23272e', ceil2:'#2c313a', mull:'#1b1e23', sill:'#585f69', sill2:'#3f454e', wall:'#4a515b',
+    tar:'#5d636b', tar2:'#53595f', line:'#ffcc00', grass:'#5b7a4a',
+    navy:'#1d3a6e', yel:'#ffcc00', white:'#e9edf1', shade:'#b9c2cc', glass:'#26313f', lit:'#ffe08a',
+    desk:'#30353d', desk2:'#ffcc00', door:'#101317', belt:'#3a64c8', post:'#c9ced6',
+    rage:'#ff3b30', cash:'#ffe066', calm:'#5fd3c6', ink:'#0d0f12'
+  };
+  const SKIN = ['#f3cfac', '#e2b088', '#c68a56', '#8d5a33', '#5e3b22'];
+  const HAIR = ['#2b1d14', '#6b4423', '#c9a36b', '#121212', '#9c3b2a', '#8a8a8a', '#e8d9a8'];
+  const SHIRT = ['#e94f37', '#3f88c5', '#44bba4', '#f6ae2d', '#8e6c8a', '#dfe3e8', '#f86624', '#6aa84f', '#c2185b', '#00a6a6'];
+  const PANTS = ['#2e3440', '#3b4f74', '#5a4634', '#222831', '#6b6f78'];
+  const SEATCOL = [['#8a5a3c', '#6d452d'], ['#5b6470', '#47505b'], ['#2f5fa8', '#244a85'], ['#1f7a6f', '#175e55'], ['#5a2d2d', '#3f1f1f']];
+
+  // ---------- tiny 3×5 font ----------
+  const G = {
+    '0':'111101101101111', '1':'010110010010111', '2':'111001111100111', '3':'111001111001111', '4':'101101111001001',
+    '5':'111100111001111', '6':'111100111101111', '7':'111001010010010', '8':'111101111101111', '9':'111101111001111',
+    A:'010101111101101', B:'110101110101110', C:'011100100100011', D:'110101101101110', E:'111100110100111',
+    F:'111100110100100', G:'011100101101011', H:'101101111101101', I:'111010010010111', J:'001001001101010',
+    K:'101101110101101', L:'100100100100111', M:'101111111101101', N:'110101101101101', O:'010101101101010',
+    P:'110101110100100', Q:'010101101110011', R:'110101110101101', S:'011100010001110', T:'111010010010010',
+    U:'101101101101111', V:'101101101101010', W:'101101111111101', X:'101101010101101', Y:'101101010010010',
+    Z:'111001010100111', '$':'011110010011110', '+':'000010111010000', '-':'000000111000000', '!':'010010010000010',
+    '#':'101111101111101', '?':'110001010000010', '.':'000000000000010', '%':'101001010100101', ':':'000010000010000',
+    ',':'000000000010100', "'":'010010000000000', '"':'101101000000000', '/':'001001010100100', '&':'010101010101011',
+    '(':'010100100100010', '=':'000111000111000', ')':'010001001001010', ' ':'000000000000000'
+  };
+  function txt(s, x, y, col, sc = 1) {
+    s = String(s).toUpperCase(); cx.fillStyle = col;
+    for (let i = 0; i < s.length; i++) {
+      const g = G[s[i]] || G['?'];
+      for (let k = 0; k < 15; k++) if (g[k] === '1') cx.fillRect(x + i * 4 * sc + (k % 3) * sc, y + Math.floor(k / 3) * sc, sc, sc);
+    }
+  }
+  const tw = (s, sc = 1) => String(s).length * 4 * sc - sc;
+  const R = (x, y, w, h, c) => { cx.fillStyle = c; cx.fillRect(Math.round(x), Math.round(y), w, h); };
+  function mix(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const r = Math.round(((pa >> 16) & 255) * (1 - t) + ((pb >> 16) & 255) * t), g = Math.round(((pa >> 8) & 255) * (1 - t) + ((pb >> 8) & 255) * t), bl = Math.round((pa & 255) * (1 - t) + (pb & 255) * t);
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1);
+  }
+
+  // ---------- layout ----------
+  const ROWS = [110, 132, 154], SEAT_X0 = 18, SEAT_DX = 12, SEATS_PER = 15;
+  const seats = []; ROWS.forEach(y => { for (let i = 0; i < SEATS_PER; i++) seats.push({ x:SEAT_X0 + i * SEAT_DX, y, g:0 }); });
+  const stand = [];
+  for (let x = 20; x <= 190; x += 9) stand.push({ x, y:97, g:0 });
+  for (let x = 24; x <= 190; x += 10) { stand.push({ x, y:120, g:0 }); stand.push({ x, y:143, g:0 }); }
+  for (let y = 162; y <= 172; y += 9) for (let x = 30; x <= 180; x += 11) stand.push({ x, y, g:0 });
+  const queue = [];
+  const LANES = [121, 131, 141, 151, 161, 171];
+  LANES.forEach((y, li) => { for (let i = 0; i < 13; i++) { const x = li % 2 === 0 ? 296 - i * 7 : 212 + i * 7; queue.push({ x, y }); } });
+  const DOOR = { x:309, y:113 }, ENTRY = { x:-8, y:170 }, EXIT = { x:-10, y:176 };
+
+  function init(canvas) {
+    cv = canvas; cv.width = W; cv.height = H; cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+    bg = document.createElement('canvas'); bg.width = W; bg.height = H;
+  }
+
+  // ---------- static interior (cached; rebuilt when seating/amenities change) ----------
+  function buildBg() {
+    const b = bg.getContext('2d'), sv = cx; cx = b;
+    // carpet: classic airport geometric pattern
+    for (let y = 86; y < H; y++) for (let x = 0; x < W; x++) {
+      const u = (x + y * 2) % 16, v = (x * 3 - y + 400) % 22;
+      let c = '#1d5c63';
+      if (u === 0 || u === 1) c = '#17484e';
+      if (v === 0) c = '#e07a3f'; else if (v === 11 && (x + y) % 4 === 0) c = '#7a4b8c';
+      if ((x * 7 + y * 13) % 41 === 0) c = '#2a7a80';
+      b.fillStyle = c; b.fillRect(x, y, 1, 1);
+    }
+    // walkway (concourse) along the bottom
+    R(0, 164, 210, 16, '#585e66'); for (let x = 0; x < 210; x += 8) R(x, 164, 1, 16, '#4f555c'); R(0, 164, 210, 1, '#6c737c');
+    // sill + low wall under the windows
+    R(0, 78, W, 8, P.sill2); R(0, 78, W, 2, P.sill); R(0, 85, W, 1, '#2b3037');
+    // queue zone floor (lighter tile)
+    R(204, 114, 104, 62, '#3b4048'); for (let x = 204; x < 308; x += 8) for (let y = 114; y < 176; y += 8) R(x, y, 7, 7, '#41474f');
+    // stanchions + belts
+    for (let li = 0; li < LANES.length - 1; li++) {
+      const y = LANES[li] + 5, x0 = li % 2 === 0 ? 216 : 206, x1 = li % 2 === 0 ? 304 : 294;
+      R(x0, y, x1 - x0, 1, P.belt);
+      for (let x = x0; x <= x1; x += 22) { R(x, y - 3, 1, 5, P.post); R(x - 1, y + 2, 3, 1, '#7d838c'); }
+    }
+    // door to the jet bridge
+    R(300, 88, 20, 30, '#2b3037'); R(302, 91, 16, 27, P.door); R(302, 91, 16, 2, '#1f2329');
+    txt('42', 305, 84, P.yel);
+    // gate desk
+    R(232, 98, 56, 12, P.desk); R(232, 98, 56, 2, '#4a515b'); R(232, 104, 56, 1, P.yel);
+    txt('ALBATROSS', 242, 106 - 0, '#c9ced6');
+    R(246, 92, 8, 6, '#15181c'); R(247, 93, 6, 4, '#3a8fd1');   // monitor
+    // amenities
+    if (S.amen.outlets) { R(203, 92, 4, 12, '#6b727c'); R(203, 92, 4, 1, '#9aa1aa'); R(208, 96, 1, 2, '#9fe870'); R(201, 98, 1, 2, '#fff'); }
+    if (S.amen.wifi) { R(4, 80, 21, 6, '#15181c'); txt('WIFI', 5, 81, '#5fd3c6'); }
+    if (S.amen.pods) for (let i = 0; i < 2; i++) { const y = 92 + i * 30; R(0, y, 12, 24, '#cfd6de'); R(1, y + 2, 10, 20, '#2b3b4f'); R(2, y + 3, 4, 6, '#7fd0ff'); }
+    // seats (backs drawn per row in the live pass; legs here)
+    cx = sv; bgKey = keyNow();
+  }
+  const keyNow = () => [S.seat, S.amen.outlets, S.amen.wifi, S.amen.pods].join(',');
+
+  // ---------- sky / window ----------
+  function skyCols(t) {
+    const day = ['#7fb6e8', '#bcdcf5'], dawn = ['#5b5f9a', '#f2a07b'], dusk = ['#3f3c78', '#f08a5d'], night = ['#0c1430', '#1b2550'];
+    let top, bot;
+    if (t < 390) [top, bot] = dawn; else if (t < 450) { const k = (t - 390) / 60; top = mix(dawn[0], day[0], k); bot = mix(dawn[1], day[1], k); }
+    else if (t < 1110) [top, bot] = day; else if (t < 1200) { const k = (t - 1110) / 90; top = mix(day[0], dusk[0], k); bot = mix(day[1], dusk[1], k); }
+    else if (t < 1260) { const k = (t - 1200) / 60; top = mix(dusk[0], night[0], k); bot = mix(dusk[1], night[1], k); } else [top, bot] = night;
+    const w = S.weather;
+    if (w === 'cloudy') { top = mix(top, '#8d98a5', 0.45); bot = mix(bot, '#aab3bd', 0.45); }
+    if (w === 'rain') { top = mix(top, '#59636f', 0.6); bot = mix(bot, '#7b8591', 0.6); }
+    if (w === 'storm') { top = mix(top, '#2b313b', 0.7); bot = mix(bot, '#4a525e', 0.7); }
+    return [top, bot, t >= 1230 || t < 360];
+  }
+  function drawWindow(t, dtG) {
+    const [top, bot, night] = skyCols(t);
+    for (let y = 8; y < 56; y++) R(0, y, W, 1, mix(top, bot, (y - 8) / 48));
+    if (night) for (let i = 0; i < 40; i++) { const x = (i * 97) % W, y = 10 + (i * 37) % 38; if ((i + Math.floor(t / 7)) % 9) R(x, y, 1, 1, '#c9d4ff'); }
+    // clouds
+    {
+      const n = S.weather === 'clear' ? 3 : 7, cc = S.weather === 'storm' ? '#3b424d' : S.weather === 'rain' ? '#8a939e' : '#eef2f6';
+      for (let i = 0; i < n; i++) { const x = ((i * 83 + t * (0.15 + i * 0.02)) % (W + 60)) - 40, y = 14 + (i * 13) % 26; R(x, y, 26, 4, cc); R(x + 5, y - 3, 14, 3, cc); }
+    }
+    // horizon: far terminal + tower
+    R(0, 50, W, 6, night ? '#1b2333' : '#7d8794'); R(30, 44, 60, 6, night ? '#232c3d' : '#8b95a1'); R(150, 46, 40, 4, night ? '#232c3d' : '#8b95a1');
+    R(262, 30, 4, 20, night ? '#2b3446' : '#6f7884'); R(258, 26, 12, 5, night ? '#2b3446' : '#6f7884'); R(259, 27, 10, 2, night ? '#ffd98a' : '#a6d3ea');
+    if (night) for (let x = 34; x < 88; x += 6) R(x, 46, 2, 1, '#ffd98a');
+    R(0, 56, W, 2, P.grass); R(0, 57, W, 1, '#4b6a3c');
+    // runway + tarmac
+    R(0, 58, W, 20, P.tar); R(0, 58, W, 3, '#6a7078');
+    for (let x = (t * 3) % 24 - 24; x < W; x += 24) R(x, 59, 10, 1, '#d8dde2');
+    R(0, 72, W, 1, P.line);
+    if (night) for (let x = 6; x < W; x += 20) R(x, 61, 1, 1, '#ff6b5b');
+    // distant traffic: rival planes taking off
+    for (const d of distant) {
+      d.x -= dtG * 2.2; d.y -= dtG * (d.x < 220 ? 0.35 : 0);
+      const c = d.col; R(d.x, d.y, 14, 3, '#dfe4ea'); R(d.x + 11, d.y - 3, 3, 3, c); R(d.x + 4, d.y + 2, 6, 1, '#9aa3ad'); R(d.x, d.y + 1, 14, 1, c);
+    }
+    for (let i = distant.length - 1; i >= 0; i--) if (distant[i].x < -20 || distant[i].y < 8) distant.splice(i, 1);
+    // our plane + jet bridge
+    drawGatePlane(t);
+    // weather particles
+    if (S.weather === 'rain' || S.weather === 'storm') { cx.fillStyle = 'rgba(200,215,235,0.55)'; for (let i = 0; i < 70; i++) { const x = (i * 53 + t * 37) % W, y = 8 + ((i * 29 + t * 61) % 70); cx.fillRect(x, y, 1, 3); } }
+    if (S.weather === 'storm') { if (flash > 0) { cx.fillStyle = `rgba(255,255,255,${flash * 0.6})`; cx.fillRect(0, 8, W, 70); } else if (Math.random() < 0.004) flash = 1; }
+    flash = Math.max(0, flash - 0.08);
+    // mullions + ceiling
+    for (let x = 0; x <= W; x += 64) R(x - 1, 8, 3, 70, P.mull);
+    R(0, 0, W, 8, P.ceil); for (let x = 10; x < W; x += 40) R(x, 6, 14, 2, '#e9e4c8');
+    R(0, 7, W, 1, P.ceil2);
+  }
+  function gateFlight() { return S.flights.find(f => f.phase === 'arriving' || f.phase === 'gate' || f.phase === 'boarding' || f.phase === 'push'); }
+  function planeSpec() { return PLANES[S.plane]; }
+  function drawGatePlane(t) {
+    const fl = gateFlight(); if (!fl) return;
+    const sp = PLANES[fl.pl !== undefined ? fl.pl : S.plane];
+    const L = sp.len, park = 252 - (L - 16);
+    let x = park, bridge = 1;
+    if (fl.phase === 'arriving') { const k = clamp((t - fl.A) / 7, 0, 1); x = -L - 20 + (park + L + 20) * (1 - Math.pow(1 - k, 2)); bridge = k >= 1 ? 1 : 0; }
+    if (fl.phase === 'push') { const k = clamp((t - fl.dep) / 7, 0, 1); x = park - (park + L + 30) * k * k; bridge = 0; }
+    const lit = fl.phase === 'boarding' || fl.phase === 'push' ? clamp(fl.boarded / Math.max(1, fl.cap), 0, 1) : 0;
+    drawPlane(x, 74, sp, lit);
+    if (bridge) {
+      const dx = x + L - 16;
+      cx.fillStyle = '#8e969f'; cx.beginPath(); cx.moveTo(dx - 3, 53); cx.lineTo(300, 60); cx.lineTo(300, 72); cx.lineTo(dx - 3, 63); cx.closePath(); cx.fill();
+      cx.fillStyle = '#6d747d'; cx.fillRect(Math.round(dx - 4), 52, 7, 12);
+      R(dx + 20, 63, 2, 15, '#4c535b'); R(dx + 18, 76, 6, 2, '#2e3339');
+    }
+  }
+  function drawPlane(x, gy, sp, lit) {
+    x = Math.round(x); const L = sp.len, h = sp.decks === 2 ? 20 : 11 + Math.round((L - 58) / 30), top = gy - 4 - h;
+    // shadow
+    cx.fillStyle = 'rgba(0,0,0,0.18)'; cx.fillRect(x + 6, gy, L - 10, 2);
+    // tail fin
+    cx.fillStyle = P.navy; cx.beginPath(); cx.moveTo(x + 2, top + 2); cx.lineTo(x + 6, top - 11 - (sp.decks === 2 ? 3 : 0)); cx.lineTo(x + 13, top - 11 - (sp.decks === 2 ? 3 : 0)); cx.lineTo(x + 20, top + 2); cx.closePath(); cx.fill();
+    R(x + 8, top - 8, 4, 4, P.yel);
+    // fuselage
+    R(x + 2, top + 1, L - 6, h, P.white); R(x, top + 3, 3, h - 4, P.white);
+    R(x + L - 5, top + 2, 3, h - 2, P.white); R(x + L - 3, top + 4, 2, h - 6, P.white); R(x + L - 1, top + 6, 1, h - 9, P.white);
+    R(x + 2, top + h - 2, L - 7, 3, P.shade); R(x + 4, top + h - 4, L - 12, 1, P.navy);
+    // cockpit
+    R(x + L - 6, top + 3, 4, 2, P.glass);
+    // windows
+    const rows = sp.decks === 2 ? [top + 4, top + 10] : [top + 4];
+    const nw = Math.floor((L - 30) / 3); let k = 0, litN = Math.round(nw * rows.length * lit);
+    for (const wy of rows) for (let i = 0; i < nw; i++, k++) R(x + 14 + i * 3, wy, 1, 2, k < litN ? P.lit : P.glass);
+    // door
+    R(x + L - 16, top + 3, 3, h - 5, P.shade); R(x + L - 16, top + 3, 3, 1, '#8a939d');
+    // wing + engine
+    cx.fillStyle = '#9aa3ad'; cx.beginPath(); cx.moveTo(x + L * 0.38, top + h - 2); cx.lineTo(x + L * 0.62, top + h - 2); cx.lineTo(x + L * 0.5, gy - 1); cx.lineTo(x + L * 0.3, gy - 1); cx.closePath(); cx.fill();
+    R(x + L * 0.45, gy - 4, 9, 4, '#7b848f'); R(x + L * 0.45, gy - 4, 2, 4, '#2b3037');
+    // gear
+    R(x + 10, gy - 1, 2, 2, '#15181c'); R(x + L * 0.52, gy - 1, 3, 2, '#15181c'); R(x + L - 10, gy - 1, 2, 2, '#15181c');
+    // name
+    if (L >= 84) txt('ALBATROSS', x + 22, top + h - 6 - (sp.decks === 2 ? 0 : 0) - 0, P.navy);
+  }
+
+  // ---------- people ----------
+  function lookOf(g) { const l = g.look; return { skin:SKIN[l % 5], hair:HAIR[(l >> 1) % HAIR.length], shirt:SHIRT[(l * 7) % SHIRT.length], pants:PANTS[(l >> 2) % PANTS.length] }; }
+  function person(v, g, seated, small) {
+    const lk = lookOf(g), x = Math.round(v.x), y = Math.round(v.y);
+    const rage = g.rage;
+    let skin = lk.skin; if (rage > 45) skin = mix(skin, '#ff4433', clamp((rage - 45) / 55, 0, 0.85));
+    let shirt = lk.shirt, pants = lk.pants;
+    if (g.type === 'business') { shirt = '#2c3e50'; pants = '#1f2a36'; }
+    if (g.type === 'elite') { shirt = '#d4af37'; pants = '#1b1b1b'; }
+    const sh = rage >= 90 && !seated ? (tickN % 6 < 3 ? 1 : 0) : 0, jump = g.melted && (tickN + g.id * 7) % 40 < 6 ? -2 : 0;
+    const X = x + sh, Y = y + jump;
+    if (small) { // kid
+      R(X - 1, Y - 7, 3, 2, skin); R(X - 1, Y - 8, 3, 1, lk.hair); R(X - 1, Y - 5, 3, 3, SHIRT[(g.look + 3) % SHIRT.length]); R(X - 1, Y - 2, 1, 2, pants); R(X + 1, Y - 2, 1, 2, pants); return;
+    }
+    if (seated) { R(X - 1, Y - 13, 3, 1, lk.hair); R(X - 1, Y - 12, 3, 2, skin); R(X - 2, Y - 10, 5, 3, shirt); return; }
+    const step = v.moving ? Math.floor(v.walk) % 2 : 0;
+    R(X - 1, Y - 11, 3, 1, lk.hair); R(X - 1, Y - 10, 3, 3, skin);
+    R(X - 2, Y - 7, 5, 4, shirt);
+    if (g.type === 'business') R(X, Y - 7, 1, 2, '#e9edf1');
+    R(X - 1, Y - 3, 1, 3 - step, pants); R(X + 1, Y - 3, 1, 2 + step, pants);
+    if (g.type === 'business' && v.moving) R(X + 3, Y - 4, 2, 2, '#6b4423');
+    if (g.type === 'influencer') { R(X + 2, Y - 11, 1, 2, '#f2f4f7'); if (rage > 60 && tickN % 20 < 10) R(X + 3, Y - 12, 1, 1, '#ff3b30'); }
+    if (g.type === 'elite') R(X - 2, Y - 6, 1, 1, '#fff6c2');
+    if (g.prio && g.state === 'queue') R(X + 2, Y - 6, 1, 1, P.yel);
+  }
+  function bubble(v, g) {
+    const x = Math.round(v.x), y = Math.round(v.y) - (v.seated ? 16 : 15);
+    if (g.melted) { R(x - 3, y - 6, 9, 7, '#ff3b30'); txt('!!', x - 2, y - 5, '#fff'); return; }
+    if (g.rage >= 75) { if (tickN % 30 < 18) { R(x - 3, y - 5, 9, 6, '#2b0d0d'); txt('#!', x - 2, y - 5 + 0, '#ff6b5b'); } }
+    else if (g.rage >= 55 && (tickN + g.id * 13) % 90 < 40) { R(x - 2, y - 3, 7, 4, '#1b1e23'); R(x - 1, y - 2, 1, 1, '#c9ced6'); R(x + 1, y - 2, 1, 1, '#c9ced6'); R(x + 3, y - 2, 1, 1, '#c9ced6'); }
+  }
+
+  // ---------- passenger targets ----------
+  function freeSpot(list, g) { const free = list.filter(s => !s.g); if (!free.length) return null; const s = free[Math.floor(Math.random() * free.length)]; s.g = g.id; return s; }
+  function release(v) { if (v.spot) { v.spot.g = 0; v.spot = null; } }
+  function sync(dtG) {
+    const live = new Set();
+    // queue order per flight
+    const qpos = new Map();
+    let qi = 0;
+    for (const fl of S.flights) if (fl.phase === 'boarding') for (const g of fl.queue) qpos.set(g.id, qi++);
+    for (const g of S.groups) {
+      live.add(g.id);
+      let v = vis.get(g.id);
+      if (!v) { v = { x:ENTRY.x, y:ENTRY.y + (g.id % 3) * 2, tx:ENTRY.x, ty:ENTRY.y, walk:0, moving:0, spot:null, kind:'', seated:0, born:performance.now() }; vis.set(g.id, v); }
+      if (g.state === 'wait') {
+        if (v.kind !== 'wait') { release(v); v.spot = freeSpot(seats, g) || freeSpot(stand, g); v.kind = 'wait'; }
+        if (v.spot) { v.tx = v.spot.x; v.ty = v.spot.y; }
+      } else if (g.state === 'queue') {
+        if (v.kind !== 'queue') { release(v); v.kind = 'queue'; v.seated = 0; }
+        const i = qpos.get(g.id) || 0, q = queue[Math.min(i, queue.length - 1)];
+        v.tx = q.x; v.ty = q.y + (i >= queue.length ? (i % 4) * 2 : 0);
+      } else if (g.state === 'board') {
+        if (v.kind !== 'board') { release(v); v.kind = 'board'; v.seated = 0; }
+        v.tx = DOOR.x; v.ty = DOOR.y;
+      } else if (g.state === 'leave') {
+        if (v.kind !== 'leave') { release(v); v.kind = 'leave'; v.seated = 0; if (g.bump === 'inv') v.guard = 1; }
+        v.tx = EXIT.x; v.ty = EXIT.y;
+      }
+    }
+    for (const [id, v] of vis) if (!live.has(id) && v.kind !== 'board' && v.kind !== 'leave') { release(v); vis.delete(id); }
+    for (const [id, v] of vis) if (!live.has(id) && (v.kind === 'board' || v.kind === 'leave')) v.ghost = (v.ghost || 0) + dtG;
+  }
+  function move(dtG, dtR) {
+    const sp = Math.min(16 * dtG, 520 * dtR);
+    for (const [id, v] of vis) {
+      const dx = v.tx - v.x, dy = v.ty - v.y, d = Math.hypot(dx, dy);
+      if (d > 0.6) {
+        // walk along the bottom concourse first, then up
+        let tx = v.tx, ty = v.ty;
+        if (v.y > 160 && v.ty < 160 && Math.abs(dx) > 30) { ty = v.y; }
+        const ex = tx - v.x, ey = ty - v.y, ed = Math.hypot(ex, ey) || 1, k = Math.min(1, sp / ed);
+        v.x += ex * k; v.y += ey * k; v.moving = 1; v.walk += sp * 0.25; v.seated = 0;
+      } else { v.x = v.tx; v.y = v.ty; v.moving = 0; v.seated = v.kind === 'wait' && v.spot && seats.includes(v.spot) ? 1 : 0; }
+      if ((v.kind === 'board' && d < 3) || (v.kind === 'leave' && v.x < -6) || (v.ghost || 0) > 30) { release(v); vis.delete(id); }
+    }
+  }
+
+  // ---------- fx ----------
+  function takeFx() {
+    while (FX.length) {
+      const e = FX.shift(), v = e.gid ? vis.get(e.gid) : null;
+      if (parts.length > 60 && (e.type === 'coin' || e.type === 'fume')) continue;
+      if (e.type === 'coin' && v && e.v >= 1) parts.push({ x:v.x, y:v.y - 16, vy:-6, life:1.6, t:'+$' + Math.round(e.v), c:P.cash });
+      else if (e.type === 'fume' && v && e.v >= 6) for (let i = 0; i < 3; i++) parts.push({ x:v.x + (i - 1) * 2, y:v.y - 13, vy:-4 - i, life:0.9, puff:1, c:e.v > 14 ? '#ff5b4f' : '#c9ced6' });
+      else if (e.type === 'melt' && v) { parts.push({ x:v.x, y:v.y - 22, vy:-3, life:2.4, t:'MELTDOWN', c:'#ff3b30' }); }
+      else if (e.type === 'drag' && v) { v.guard = 1; parts.push({ x:v.x, y:v.y - 18, vy:-3, life:2, t:'RE-ACCOMMODATED', c:'#ff8a7a' }); }
+      else if (e.type === 'voucher' && v) parts.push({ x:v.x, y:v.y - 18, vy:-3, life:1.6, t:'VOUCHER', c:'#9fe870' });
+      else if (e.type === 'pa') { const p = paById(e.id); paBubble = { t:p.text.toUpperCase().replace(/[^A-Z0-9 $!?.,'%:&/()-]/g, ''), life:4.2 }; if (e.id === 'captain') captainT = 5; if (e.id === 'pretzel') cartT = 0; agentPose = 1.5; }
+      else if (e.type === 'viral') parts.push({ x:160, y:96, vy:-2, life:2.6, t:'VIRAL', c:'#ff6bd6', big:1 });
+    }
+  }
+  function drawParts(dtR) {
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i]; p.life -= dtR; p.y += p.vy * dtR; if (p.life <= 0) { parts.splice(i, 1); continue; }
+      if (p.puff) { cx.globalAlpha = Math.min(1, p.life); R(p.x, p.y, 2, 2, p.c); cx.globalAlpha = 1; continue; }
+      const sc = p.big ? 2 : 1, w = tw(p.t, sc);
+      cx.globalAlpha = Math.min(1, p.life * 1.5); R(p.x - w / 2 - 1, p.y - 1, w + 2, 5 * sc + 2, 'rgba(10,12,15,0.7)'); txt(p.t, Math.round(p.x - w / 2), Math.round(p.y), p.c, sc); cx.globalAlpha = 1;
+    }
+  }
+  function drawPA(dtR) {
+    if (!paBubble) return;
+    paBubble.life -= dtR; if (paBubble.life <= 0) { paBubble = null; return; }
+    const words = paBubble.t.split(' '), lines = []; let ln = '';
+    for (const w of words) { if ((ln + ' ' + w).trim().length > 46) { lines.push(ln.trim()); ln = w; } else ln += ' ' + w; }
+    lines.push(ln.trim());
+    const wmax = Math.max(...lines.map(l => tw(l))), x = Math.round(160 - wmax / 2), h = lines.length * 7 + 5;
+    cx.globalAlpha = Math.min(1, paBubble.life * 2);
+    R(x - 5, 10, wmax + 10, h, '#0d0f12'); R(x - 5, 10, wmax + 10, 1, P.yel); R(x - 5, 10 + h - 1, wmax + 10, 1, P.yel);
+    lines.forEach((l, i) => txt(l, Math.round(160 - tw(l) / 2), 13 + i * 7, '#ffe9a3'));
+    // speaker waves
+    const k = (4.2 - paBubble.life) * 4 % 3;
+    R(x - 12, 12, 4, 4, '#c9ced6'); for (let i = 0; i < 2; i++) if (k > i) R(x - 7 + i * 2, 11 - i, 1, 6 + i * 2, '#c9ced6');
+    cx.globalAlpha = 1;
+  }
+
+  // ---------- main draw ----------
+  function frame(tf, dtR, dtG) {
+    if (!cx || !S) return;
+    tickN++;
+    if (keyNow() !== bgKey) buildBg();
+    if (Math.random() < dtG / 45) { const open = RIVALS.filter(r => !S.rivals[r.id]); const c = open.length && Math.random() < 0.7 ? pick(open).color : P.navy; distant.push({ x:W + 10, y:57, col:c }); }
+    sync(dtG); takeFx(); move(dtG, dtR);
+    cx.clearRect(0, 0, W, H);
+    drawWindow(tf, dtG);
+    cx.drawImage(bg, 0, 86, W, H - 86, 0, 86, W, H - 86);
+    cx.drawImage(bg, 0, 78, W, 8, 0, 78, W, 8);
+    // depth-sorted interior objects
+    const items = [];
+    const sc = SEATCOL[S.seat];
+    seats.forEach(s => items.push({ y:s.y + 0.5, f:() => { R(s.x - 5, s.y - 9, 10, 6, sc[0]); R(s.x - 5, s.y - 9, 10, 1, mix(sc[0], '#ffffff', 0.25)); R(s.x - 4, s.y - 3, 1, 3, '#2b3037'); R(s.x + 3, s.y - 3, 1, 3, '#2b3037'); R(s.x - 5, s.y - 4, 10, 1, sc[1]); } }));
+    for (const [id, v] of vis) {
+      const g = S.groups.find(x => x.id === id) || v.last; if (!g) continue; v.last = g;
+      items.push({ y:v.y, f:() => {
+        if (v.ghost) cx.globalAlpha = Math.max(0, 1 - v.ghost / 30);
+        person(v, g, v.seated);
+        if (g.kid && !v.seated) person({ x:v.x + 5, y:v.y, moving:v.moving, walk:v.walk + 1 }, g, 0, 1);
+        if (v.guard) { const gx = Math.round(v.x + 6), gy = Math.round(v.y); R(gx - 1, gy - 11, 3, 1, '#111'); R(gx - 1, gy - 10, 3, 3, SKIN[2]); R(gx - 2, gy - 7, 5, 4, '#1c2a4a'); R(gx - 1, gy - 3, 1, 3, '#111'); R(gx + 1, gy - 3, 1, 3, '#111'); R(gx - 2, gy - 12, 5, 1, '#1c2a4a'); }
+        cx.globalAlpha = 1;
+      } });
+    }
+    // gate agent (+ Albie, captain, dog, cart)
+    items.push({ y:97, f:() => {
+      const ax = 266, ay = 99; R(ax - 1, ay - 11, 3, 1, '#3a2a1a'); R(ax - 1, ay - 10, 3, 3, SKIN[1]); R(ax - 2, ay - 7, 5, 6, P.navy); R(ax - 1, ay - 7, 3, 1, P.yel);
+      if (agentPose > 0) { R(ax + 3, ay - 9, 1, 3, P.navy); R(ax + 3, ay - 10, 2, 1, '#2b3037'); }
+      if (S.amen.albie) { R(279, 86, 7, 6, '#c9ced6'); R(280, 87, 5, 3, '#0d0f12'); R(281, 88, 1, 1, '#5fd3c6'); R(283, 88, 1, 1, '#5fd3c6'); R(281, 92, 3, 6, '#9aa1aa'); }
+      if (captainT > 0) { const x = 226, y = 112; R(x - 2, y - 12, 5, 1, '#111'); R(x - 1, y - 13, 3, 1, P.yel); R(x - 1, y - 11, 3, 3, SKIN[0]); R(x - 2, y - 8, 5, 5, '#111a2e'); R(x - 2, y - 8, 1, 1, P.yel); R(x + 2, y - 8, 1, 1, P.yel); R(x - 1, y - 3, 1, 3, '#111'); R(x + 1, y - 3, 1, 3, '#111'); }
+    } });
+    if (S.amen.dog) items.push({ y:dog.y, f:() => { const x = Math.round(dog.x), y = Math.round(dog.y); R(x - 3, y - 4, 6, 3, '#c98d4e'); R(x + 2, y - 6, 3, 3, '#c98d4e'); R(x + 4, y - 5, 1, 1, '#2b1d14'); R(x - 4, y - 5, 1, 2, '#c98d4e'); R(x - 2, y - 1, 1, 1, '#7a5230'); R(x + 1, y - 1, 1, 1, '#7a5230'); R(x - 2, y - 3, 4, 1, '#d9534f'); } });
+    if (cartT >= 0) items.push({ y:160, f:() => { const x = Math.round(-20 + cartT * 60), y = 160; R(x, y - 8, 14, 6, '#dfe4ea'); R(x, y - 8, 14, 1, P.yel); txt('$0', x + 3, y - 7, '#a0522d'); R(x + 1, y - 2, 2, 2, '#15181c'); R(x + 11, y - 2, 2, 2, '#15181c'); } });
+    items.sort((a, b) => a.y - b.y); for (const it of items) it.f();
+    for (const [id, v] of vis) { const g = S.groups.find(x => x.id === id); if (g && (g.state === 'wait' || g.state === 'queue')) bubble(v, g); }
+    // overhead gate sign
+    R(264, 0, 1, 4, '#5a616b'); R(306, 0, 1, 4, '#5a616b');
+    R(258, 4, 54, 22, '#0d0f12'); R(259, 5, 52, 20, P.yel); R(260, 6, 50, 18, P.yel);
+    txt('GATE', 263, 8, '#0d0f12'); txt('42', 280, 9, '#0d0f12', 3);
+    if (S.amen.brand) { R(263, 26, 44, 8, '#0d0f12'); txt('SIGNATURE', 267, 28, P.yel); }
+    if (S.amen.muzak) { R(60, 8, 6, 4, '#15181c'); R(200, 8, 6, 4, '#15181c'); }
+    drawParts(dtR); drawPA(dtR);
+    // legend
+    const gs = groupScale(); if (gs > 1) { const s = '1 FIGURE = ' + gs + ' PAX'; R(2, 174, tw(s) + 4, 6, 'rgba(10,12,15,0.6)'); txt(s, 4, 175, '#c9ced6'); }
+    // timers
+    agentPose = Math.max(0, agentPose - dtR); captainT = Math.max(0, captainT - dtR); if (cartT >= 0) { cartT += dtR; if (cartT > 6) cartT = -1; }
+    dogStep(dtR);
+  }
+  function groupScale() { const f = S.flights.find(x => x.booked && x.phase !== 'gone' && x.phase !== 'cancelled'); return f ? Math.max(1, Math.ceil(f.shows / 32)) : 1; }
+  function dogStep(dtR) {
+    if (!S.amen.dog) return;
+    const dx = dog.tx - dog.x, dy = dog.ty - dog.y, d = Math.hypot(dx, dy);
+    if (d < 1) { dog.wait -= dtR; if (dog.wait <= 0) { const t = pick(stand); dog.tx = t.x + 4; dog.ty = t.y; dog.wait = 2 + Math.random() * 4; } }
+    else { const k = Math.min(1, 20 * dtR / d); dog.x += dx * k; dog.y += dy * k; }
+  }
+  function reset() { vis.clear(); parts.length = 0; seats.forEach(s => s.g = 0); stand.forEach(s => s.g = 0); paBubble = null; FX.length = 0; bgKey = ''; }
+  // hit-test: which passenger group is under a canvas point
+  function pickAt(px, py) { let best = null, bd = 9; for (const [id, v] of vis) { const d = Math.hypot(v.x - px, v.y - 6 - py); if (d < bd) { bd = d; best = id; } } return best; }
+  return { init, frame, reset, pickAt, W, H };
+})();
+// =====================================================================
+// GATE 42 — UI
+// =====================================================================
+const $ = id => document.getElementById(id);
+let MPS = 4;                       // game minutes per real second at 1×
+let SPEED = 2, ACC = 0, TAB = 'fees', MODAL = null, SOUND = true, DEC_Q = '', LAST_UI = 0, PANE_KEY = '', FEED_KEY = '', BOARD_ROWS = [], LAST_SAVE = 0, PREV_SPEED = 2;
+const MQ = [];
+const SAVE_KEY = 'gate42_save_v1';
+try { SOUND = localStorage.getItem('gate42_sound') !== 'off'; } catch (e) {}
+
+function jz(text) {
+  hear(text);
+  return esc(text).replace(J.all, m => { const i = J.which(m); return i < 0 ? m : `<mark class="jg" tabindex="0" data-j="${i}">${m}</mark>`; });
+}
+const money = v => fmt$(v);
+const pct = v => Math.round(v * 100) + '%';
+const sign$ = v => (v >= 0 ? '+' : '') + fmt$(v);
+const stageName = { book:'At booking', gate:'At the gate', air:'In the air' };
+
+// ---------------------------------------------------------------------
+// SOUND
+// ---------------------------------------------------------------------
+let AC = null;
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+function tone(f, t0, dur, type = 'sine', vol = 0.12, f2) {
+  const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + t0;
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function noise(t0, dur, vol = 0.08, freq = 800) {
+  const a = ac(); if (!a) return;
+  const n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime + t0;
+  s.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; g.gain.value = vol; s.connect(f); f.connect(g); g.connect(a.destination); s.start(t);
+}
+let SFX_LAST = {};
+function sfx(k) {
+  if (!SOUND) return;
+  const now = performance.now(); if (SFX_LAST[k] && now - SFX_LAST[k] < 90) return; SFX_LAST[k] = now;
+  if (k === 'chime') { tone(659, 0, 0.7, 'sine', 0.13); tone(523, 0.32, 0.9, 'sine', 0.13); }
+  else if (k === 'coin') { tone(1320, 0, 0.06, 'square', 0.03); tone(1760, 0.05, 0.08, 'square', 0.03); }
+  else if (k === 'buy') { tone(880, 0, 0.08, 'triangle', 0.08); tone(1320, 0.07, 0.14, 'triangle', 0.08); }
+  else if (k === 'melt') { tone(180, 0, 0.35, 'sawtooth', 0.06, 90); noise(0, 0.25, 0.06, 400); }
+  else if (k === 'depart') noise(0, 1.1, 0.05, 300);
+  else if (k === 'alert') { tone(988, 0, 0.1, 'square', 0.05); tone(988, 0.15, 0.1, 'square', 0.05); tone(1319, 0.3, 0.2, 'square', 0.05); }
+  else if (k === 'click') tone(1400, 0, 0.03, 'square', 0.025);
+  else if (k === 'bad') { tone(330, 0, 0.25, 'square', 0.06, 220); }
+  else if (k === 'good') { tone(660, 0, 0.1, 'triangle', 0.08); tone(880, 0.1, 0.1, 'triangle', 0.08); tone(1100, 0.2, 0.25, 'triangle', 0.08); }
+  else if (k === 'gavel') { noise(0, 0.08, 0.2, 200); noise(0.2, 0.08, 0.2, 200); }
+}
+
+// ---------------------------------------------------------------------
+// TOASTS + TOOLTIP
+// ---------------------------------------------------------------------
+function toast(html, ms = 2800, cls = '') {
+  const el = document.createElement('div'); el.className = 'toast ' + cls; el.innerHTML = html; $('toasts').appendChild(el);
+  while ($('toasts').children.length > 4) $('toasts').firstChild.remove();
+  setTimeout(() => el.remove(), ms);
+}
+let TIP_EL = null;
+function showTipAt(html, r) {
+  const tip = $('jtip'); tip.innerHTML = html; tip.hidden = false;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = Math.min(innerWidth - tw - 8, Math.max(8, r.left + r.width / 2 - tw / 2)), y = r.top - th - 8; if (y < 8) y = r.bottom + 8;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function showTip(el) { const i = +el.dataset.j; if (!JARGON[i]) return; TIP_EL = el; showTipAt(`<b>${esc(JARGON[i][0])}</b>${esc(JARGON[i][1])}`, el.getBoundingClientRect()); }
+function hideTip() { $('jtip').hidden = true; TIP_EL = null; }
+
+// ---------------------------------------------------------------------
+// MODALS
+// ---------------------------------------------------------------------
+function openModal(html, opts = {}) {
+  closeModal(true);
+  const ov = document.createElement('div'); ov.className = 'ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+  ov.innerHTML = `<div class="mo ${opts.wide ? 'wide' : ''}">${html}</div>`;
+  $('ovWrap').appendChild(ov); MODAL = { ov, closable:!!opts.closable, kind:opts.kind || '' };
+  hideTip();
+  const f = ov.querySelector('.choice:not(:disabled), .btn:not(:disabled)'); if (f) setTimeout(() => { try { f.focus({ preventScroll:true }); } catch (e) {} }, 30);
+  return ov;
+}
+function closeModal(silent) {
+  if (!MODAL) return; MODAL.ov.remove(); MODAL = null;
+  if (!silent) { renderAll(true); setTimeout(nextModal, 0); }
+}
+function queueModal(fn) { MQ.push(fn); if (!MODAL) nextModal(); }
+function nextModal() { if (MODAL) return; const fn = MQ.shift(); if (fn) fn(); }
+
+function titleModal() {
+  let has = null; try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const d = JSON.parse(raw); if (d && d.v === 1 && !d.over) has = d; } } catch (e) {}
+  openModal(`
+    <div class="title-sign"><span class="logo-sq">42</span><div><div class="kicker">Albatross Airways</div><h2>GATE 42</h2></div></div>
+    <p>Albatross operates exactly one gate. You run it. Your title is <b>Chief Revenue Experience Officer</b>, which means passengers are a revenue opportunity and Wall Street wants more of it every quarter.</p>
+    <ul>
+      <li><b>Invent fees</b> in the Revenue Lab. Every fee earns money and makes passengers angrier.</li>
+      <li><b>Calm the gate</b> with PA announcements. They cost nothing and fix nothing.</li>
+      <li><b>Watch reputation.</b> Angry passengers write reviews, and reviews decide how many tickets you sell.</li>
+      <li><b>Beat the quarterly target</b> (three misses and you're out), then <b>buy all four rival airlines</b>. Once passengers have nowhere else to go, rage stops mattering.</li>
+    </ul>
+    <div class="acts">${has ? `<button type="button" class="btn alt" id="tNew">New game</button><button type="button" class="btn" id="tCont">Continue · Day ${has.day}</button>` : `<button type="button" class="btn" id="tNew">Start day 1</button>`}</div>`, { kind:'title' });
+  $('tNew').onclick = () => { sfx('click'); startNew(); };
+  if (has) $('tCont').onclick = () => { sfx('click'); if (load()) { closeModal(); resumeChecks(); } else startNew(); };
+}
+function startNew() {
+  newGame(); ART.reset(); ACC = 0; SPEED = 2; TAB = 'fees'; PANE_KEY = ''; FEED_KEY = '';
+  feed('tip', TIPS.welcome); S.tips.welcome = 1;
+  save(); closeModal();
+}
+function helpModal() {
+  openModal(`<div class="kicker">How it works</div><h2>Running Gate 42</h2>
+    <ul>
+      <li>Flights leave on a schedule. Passengers arrive, wait, board, and fly. One little figure can stand for several passengers.</li>
+      <li><b>Fees</b> (Revenue tab) earn money per passenger. Fees charged at booking or at the gate add rage you can see. In-air fees only show up in the reviews.</li>
+      <li><b>Rage</b> builds while people wait, especially during delays or with nowhere to sit. At 100 they melt down, which hurts reputation and draws regulators.</li>
+      <li><b>Reputation</b> moves after every flight, toward 100 minus that flight's average rage. It sets your share of the market. Below 25, people boycott you.</li>
+      <li><b>PA announcements</b> calm everyone waiting. Repeating the same line wears off for about four hours.</li>
+      <li><b>Ops</b>: routes add demand, bigger planes add seats, quick turnarounds add flights. Watch the demand-versus-seats bar.</li>
+      <li><b>Scrutiny</b> rises with aggressive fees, meltdowns and bumped passengers. At 100% you go to a Senate hearing. Answer with beautiful nothing.</li>
+      <li><b>Wall Street</b> checks your adjusted EBITDA every 3 days. Miss three times and the Board replaces you. A beat erases one miss.</li>
+      <li><b>Win</b> by buying all four rivals. Each one grows the market and makes reputation matter less.</li>
+      <li>Keys: <b>Space</b> pauses, <b>1–9</b> make announcements. Hover any dotted phrase to decode it. Click a passenger to see what they paid.</li>
+    </ul>
+    <div class="acts"><button type="button" class="btn" id="mOk">Back to the gate</button></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal();
+}
+function menuModal() {
+  openModal(`<div class="kicker">Menu</div><h2>Paused</h2>
+    <div class="stats"><div>Day<b>${S.day}</b></div><div>Quarter<b>Q${S.q}</b></div><div>Passengers flown<b>${S.stats.pax.toLocaleString('en-US')}</b></div></div>
+    <div class="acts"><button type="button" class="btn alt" id="mNew">New game</button><button type="button" class="btn alt" id="mHelp">How to play</button><button type="button" class="btn" id="mOk">Resume</button></div>
+    <div id="mConfirm" hidden><div class="res bad">Start over? This airline will be lost.</div><div class="acts" style="margin-top:8px"><button type="button" class="btn alt" id="mNo">Keep playing</button><button type="button" class="btn red" id="mYes">Start over</button></div></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal();
+  $('mHelp').onclick = () => helpModal();
+  $('mNew').onclick = () => { $('mConfirm').hidden = false; $('mYes').focus(); };
+  $('mNo').onclick = () => { $('mConfirm').hidden = true; };
+  $('mYes').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} MQ.length = 0; closeModal(true); titleModal(); };
+}
+function eventModal() {
+  const e = eventById(S.inbox[0]); if (!e) { S.inbox.shift(); return; }
+  sfx('alert');
+  const btns = e.choices.map((c, i) => { const cost = choiceCost(c), bl = choiceBlocked(c); return `<button type="button" class="choice" data-ch="${i}" ${bl ? 'disabled' : ''}><span>${jz(c.label)}</span>${cost ? `<small>${bl ? 'Can\'t afford ' : ''}${money(cost)}</small>` : ''}</button>`; }).join('');
+  openModal(`<div class="kicker">Ops alert · ${hhmm(S.t)}</div><h2>${jz(e.subj)}</h2><div class="from">From: ${esc(e.from)}</div><p>${jz(e.body)}</p><div style="display:flex;flex-direction:column;gap:6px">${btns}</div>`, { kind:'event' });
+  MODAL.ov.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => {
+    const r = answerEvent(+b.dataset.ch); if (!r) return;
+    sfx('click');
+    const un = r.res && r.res.unlocked ? `<div class="res good">New revenue innovation: <b>${esc(feeById(r.res.unlocked).name)}</b>. Find it in the Revenue tab.</div>` : '';
+    MODAL.ov.querySelector('.mo').innerHTML = `<div class="kicker">Ops alert · resolved</div><h2>${jz(e.subj)}</h2><div class="res">${jz(r.t)}</div>${un}<div class="acts"><button type="button" class="btn" id="mOk">Back to the gate</button></div>`;
+    $('mOk').onclick = () => closeModal(); $('mOk').focus();
+  });
+}
+function dayModal(rep) {
+  const d = rep.d, profit = d.rev - d.cost, repD = S.rep - d.repStart;
+  let q = '';
+  if (rep.quarter) {
+    const Q = rep.quarter, st = Q.stock1 / Q.stock0 - 1;
+    q = `<div class="sec">Q${Q.q} earnings call<small>Adjusted EBITDA</small></div>
+      <div class="res ${Q.beat ? 'good' : 'bad'}"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="big-num" style="color:var(${Q.beat ? '--cash' : '--rage'})">${money(Q.profit)}</span><span>vs. ${money(Q.target)} consensus</span></div>
+      <p style="margin-top:6px">${Q.beat ? jz('We beat expectations. Analysts praise our customer-centric approach to ancillary revenue.') : jz('We missed. Management cites headwinds and a challenging regulatory environment.')} Stock ${st >= 0 ? 'up' : 'down'} ${Math.abs(Math.round(st * 100))}% to $${Q.stock1.toFixed(2)}. Board confidence: ${'●'.repeat(3 - Q.strikes)}${'○'.repeat(Q.strikes)} (${Q.strikes} of 3 strikes).</p></div>
+      ${Q.needGuidance && !S.over ? `<p class="note">Choose what you tell analysts about next quarter:</p><div style="display:flex;flex-direction:column;gap:6px">${GUIDANCE.map(g => `<button type="button" class="choice" data-g="${g.id}"><span><b>${esc(g.label)}</b><br><span style="color:var(--mute);font-size:13px">${jz(g.t)}</span></span><small>${g.tgt !== 1 ? 'Target ' + (g.tgt > 1 ? '+' : '−') + Math.round(Math.abs(g.tgt - 1) * 100) + '%' : 'No change'}${g.stock ? ' · stock ' + (g.stock > 0 ? '+' : '−') + Math.abs(g.stock * 100) + '%' : ''}</small></button>`).join('')}</div>` : ''}`;
+  }
+  const bail = rep.bailout ? `<div class="res bad">${jz(`Cash went negative. The government has decided Albatross is too big to fail: a ${money(rep.bailout)} bailout, plus a lot of attention. There won't be a second one.`)}</div>` : '';
+  const cashWarn = !S.over && S.cash < dailyOverhead() ? `<div class="res bad">Cash (${money(S.cash)}) is below tomorrow's overhead (${money(dailyOverhead())}). If cash is negative at the end of a day, ${S.bailouts ? 'Albatross goes bankrupt.' : 'you get one bailout.'}</div>` : '';
+  openModal(`<div class="kicker">End of day ${rep.day}${rep.quarter ? ' · quarter close' : ''}</div><h2>Gate 42 closes for the night</h2>
+    <div class="stats">
+      <div>Profit<b style="color:var(${profit >= 0 ? '--cash' : '--rage'})">${sign$(profit)}</b></div>
+      <div>Fees<b>${money(d.fees + d.air)}</b></div><div>Fares<b>${money(d.fare)}</b></div>
+      <div>Passengers<b>${d.pax.toLocaleString('en-US')}</b></div><div>On time<b>${d.ontime} of ${d.flights}</b></div><div>Reputation<b style="color:var(${repD >= 0 ? '--cash' : '--rage'})">${Math.round(S.rep)} (${repD >= 0 ? '+' : ''}${Math.round(repD)})</b></div>
+      <div>Meltdowns<b>${d.melt}</b></div><div>Bumped<b>${d.bumped}</b></div><div>Overhead<b>${money(d.overhead || 0)}</b></div>
+    </div>${q}${bail}${cashWarn}
+    <div class="acts"><button type="button" class="btn" id="mOk" ${rep.quarter && rep.quarter.needGuidance && !S.over ? 'disabled' : ''}>${S.over ? 'Continue' : 'Start day ' + (rep.day + 1)}</button></div>`, { kind:'day' });
+  MODAL.ov.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+    setGuidance(b.dataset.g); sfx('click');
+    MODAL.ov.querySelectorAll('[data-g]').forEach(x => { x.disabled = true; if (x === b) x.style.borderColor = 'var(--sign)'; });
+    $('mOk').disabled = false; $('mOk').focus();
+  });
+  $('mOk').onclick = () => {
+    if (S.over) { closeModal(); return; }
+    if (S.lastQuarter && S.lastQuarter.needGuidance && rep.quarter) return;
+    S.lastDayRep = null; nextDay(); ART.reset(); save(); closeModal();
+  };
+}
+function hearingModal() {
+  const h = S.hearing; if (!h) return;
+  sfx('gavel');
+  const need = hearingNeed(), b = lobby().bonus;
+  const ask = () => {
+    const i = h.ans.length;
+    if (i >= h.qs.length) return finish();
+    const q = HEARING_Q[h.qs[i]];
+    const ans = h.order[i].map(k => `<button type="button" class="choice" data-a="${k}"><span>${jz(q.a[k][0])}</span></button>`).join('');
+    MODAL.ov.querySelector('.mo').innerHTML = `<div class="kicker">Senate Subcommittee on Aviation · question ${i + 1} of ${h.qs.length}</div><h2>Hearing #${S.hearPass + S.hearFail + 1}</h2>
+      <div class="senator">${jz(q.q)}</div><div style="display:flex;flex-direction:column;gap:6px">${ans}</div>
+      <p class="note">Passing takes ${need} points${b ? ` (lobbying adds ${b})` : ''}. A non-answer that sounds like an answer scores best. Honesty scores nothing.</p>`;
+    MODAL.ov.querySelectorAll('[data-a]').forEach(btn => btn.onclick = () => { hearingAnswer(i, +btn.dataset.a); sfx('click'); ask(); });
+    const f = MODAL.ov.querySelector('.choice'); if (f) f.focus();
+  };
+  const finish = () => {
+    const r = hearingResolve(); if (!r) return;
+    sfx(r.pass ? 'good' : 'bad');
+    MODAL.ov.querySelector('.mo').innerHTML = `<div class="kicker">Hearing concluded · ${r.score} points of ${need} needed</div><h2>${r.pass ? 'No admission of wrongdoing' : 'That went badly'}</h2>
+      <div class="res ${r.pass ? 'good' : 'bad'}">${r.pass ? jz(`The senators run out of time. Albatross pays a ${money(r.fine)} fine, booked as a one-time charge, with no admission of wrongdoing. Scrutiny falls to 45%.`) : jz(`Albatross is fined ${money(r.fine)}.${r.banned ? ' ' + feeById(r.banned).name + ' is suspended for 3 days.' : ''} Scrutiny stays at 60%. Failed hearings: ${S.hearFail} of 3.`)}</div>
+      ${!r.pass && S.hearFail < 3 ? `<p class="note">At three failed hearings, the FAA revokes Albatross's operating certificate. Lobbying (Board tab) makes hearings rarer and easier.</p>` : ''}
+      <p class="note">Each hearing you survive raises the bar for the next one${S.hearPass ? `: the next needs ${hearingNeed()} points` : ''}.</p>
+      <div class="acts"><button type="button" class="btn" id="mOk">${S.over ? 'Continue' : 'Back to the gate'}</button></div>`;
+    $('mOk').onclick = () => closeModal(); $('mOk').focus();
+  };
+  openModal(`<div class="kicker">Senate Subcommittee on Aviation</div><h2>You've been called to testify</h2>
+    <p>${jz('Regulator scrutiny hit 100%. Three senators will ask three questions about Albatross. Answer with confidence and transparency, or at least with words.')}</p>
+    <p class="note">Score ${need} or more to pass${b ? ` (your lobbying adds ${b})` : ''}. Failed hearings: ${S.hearFail} of 3.</p>
+    <div class="acts"><button type="button" class="btn" id="hGo">Take the oath</button></div>`, { kind:'hearing' });
+  $('hGo').onclick = () => { sfx('click'); ask(); };
+}
+function overModal(why) {
+  const T = {
+    fired:['The Board has decided to go in a different direction', 'Three missed quarters. You are thanked for your leadership, given a severance package worth more than Gate 42, and asked to leave through the jet bridge.'],
+    bankrupt:['Chapter 11', 'Albatross ran out of cash twice. The bailout is gone, the planes are leased to BudgetBird, and the gate sign is listed on eBay.'],
+    revoked:['Certificate revoked', 'Three failed Senate hearings. The FAA revokes Albatross\'s operating certificate. Gate 42 becomes a Hudson News.']
+  }[why] || ['Game over', ''];
+  sfx('bad');
+  openModal(`<div class="kicker">Game over · Day ${S.day}</div><h2>${esc(T[0])}</h2><p>${jz(T[1])}</p>${statsHtml()}
+    <div class="acts"><button type="button" class="btn" id="mNew">New game</button></div>`, { kind:'over', wide:true });
+  $('mNew').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} closeModal(true); startNew(); };
+}
+function winModal() {
+  sfx('good');
+  openModal(`<div class="kicker">Day ${S.day} · Market rationalization complete</div><h2>Albatross is the only airline</h2>
+    <p>${jz('Heritage Air signs the papers. BudgetBird, Pelican Pacific and JetSet Express are now Albatross. The press release calls it consolidation. Passengers have nowhere else to go, so reputation no longer affects demand.')}</p>
+    <p>${jz('Rage is now cosmetic. Every fee is rational. Shareholder value has never looked better.')}</p>${statsHtml()}
+    <div class="acts"><button type="button" class="btn alt" id="mNew">New game</button><button type="button" class="btn" id="mOk">Keep flying</button></div>`, { kind:'win', wide:true });
+  $('mOk').onclick = () => closeModal();
+  $('mNew').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} closeModal(true); startNew(); };
+}
+function statsHtml() {
+  const st = S.stats, feeTot = Object.values(st.feeRev).reduce((a, b) => a + b, 0), best = Object.entries(st.feeRev).sort((a, b) => b[1] - a[1])[0];
+  return `<div class="stats">
+    <div>Days<b>${S.day}</b></div><div>Stock<b>$${S.stock.toFixed(2)}</b></div><div>Cash<b>${money(S.cash)}</b></div>
+    <div>Passengers flown<b>${st.pax.toLocaleString('en-US')}</b></div><div>Fee revenue<b>${money(feeTot)}</b></div><div>Top fee<b style="font-size:13px">${best ? esc(feeById(best[0]).name) : '—'}</b></div>
+    <div>Meltdowns<b>${st.melt}</b></div><div>Viral videos<b>${st.viral}</b></div><div>Re-accommodated<b>${st.invol}</b></div>
+    <div>Announcements<b>${st.pa}</b></div><div>Jargon decoded<b>${Object.keys(S.heard).length} / ${JARGON.length}</b></div><div>Achievements<b>${Object.keys(S.ach).length} / ${ACHIEVEMENTS.length}</b></div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------------
+// PENDING EVENTS FROM THE ENGINE
+// ---------------------------------------------------------------------
+let NEW_HEARD = 0, LAST_HEARD_TOAST = 0;
+function processPending() {
+  if (!S) return;
+  const list = S.pending; S.pending = [];
+  for (const p of list) {
+    if (p.type === 'tip') { feed('tip', TIPS[p.id]); toast(esc(TIPS[p.id]), 7000, 'tip'); }
+    else if (p.type === 'ach') { const a = ACHIEVEMENTS.find(x => x.id === p.id); if (a) { toast(`Achievement: <b>${esc(a.name)}</b><br>${esc(a.d)}`, 4000); sfx('good'); } }
+    else if (p.type === 'hearing') queueModal(hearingModal);
+    else if (p.type === 'day') { S.lastDayRep = p; queueModal(() => dayModal(p)); save(); }
+    else if (p.type === 'win') queueModal(winModal);
+    else if (p.type === 'over') { const w = p.why; queueModal(() => overModal(w)); save(); }
+  }
+  if (S.newHeard) { NEW_HEARD += S.newHeard; S.newHeard = 0; }
+  const now = performance.now();
+  if (NEW_HEARD && now - LAST_HEARD_TOAST > 2500) { toast(NEW_HEARD === 1 ? 'Decoded <b>1</b> new phrase. Hover dotted text to read it.' : `Decoded <b>${NEW_HEARD}</b> new phrases`, 2200); NEW_HEARD = 0; LAST_HEARD_TOAST = now; if (Object.keys(S.heard).length >= 100) award('decoder'); }
+  if (!MODAL && !MQ.length && S.inbox.length && !S.over) eventModal();
+}
+// after loading a save, re-open anything that was mid-flight
+function resumeChecks() {
+  if (S.over) { queueModal(() => overModal(S.over)); return; }
+  if (S.hearing) queueModal(hearingModal);
+  if (S.dayOver && S.lastDayRep) { const r = S.lastDayRep; queueModal(() => dayModal(r)); }
+  else if (S.dayOver) { nextDay(); ART.reset(); }
+}
+
+// ---------------------------------------------------------------------
+// RENDER: header, meters, board, PA, feed
+// ---------------------------------------------------------------------
+function renderHud() {
+  $('hClock').textContent = hhmm(S.t);
+  $('hDay').textContent = `Day ${S.day} · Q${S.q} · day ${((S.day - 1) % QUARTER_DAYS) + 1} of ${QUARTER_DAYS}`;
+  const w = weather(); $('hWx').textContent = w.name; $('hWx').className = 'wx' + (w.id === 'rain' || w.id === 'storm' ? ' bad' : '');
+  $('hCash').textContent = money(S.cash); $('hCash').className = S.cash < 0 ? 'neg' : '';
+  $('hStock').textContent = '$' + S.stock.toFixed(2);
+  document.querySelectorAll('#speed [data-speed]').forEach(b => b.classList.toggle('on', +b.dataset.speed === SPEED));
+  $('bSound').textContent = SOUND ? 'Sound on' : 'Sound off';
+}
+function stars(r) { const n = Math.round(r / 20); return '★'.repeat(n) + '☆'.repeat(5 - n); }
+function nextFlight() { return S.flights.find(f => f.phase !== 'gone' && f.phase !== 'cancelled' && f.phase !== 'push'); }
+function renderMeters() {
+  const tgt = target(), qp = S.qProfit, qd = ((S.day - 1) % QUARTER_DAYS) + 1, wp = waitingPax(), ar = avgRage(), seats = SEATING[S.seat].cap, nf = nextFlight();
+  const todayP = S.day$.rev - S.day$.cost;
+  const m = [
+    { l:'Reputation', v:Math.round(S.rep) + ' ' + stars(S.rep), bar:S.rep, cls:'rep', s:`Market share ${pct(share() * boycott())}${boycott() < 1 ? ' · boycott' : ''}`, alert:S.rep < 25 && shareFloor() < 1 },
+    { l:'Scrutiny', v:Math.round(S.scr) + '%', bar:S.scr, cls:'scr', s:S.scr >= 70 ? 'Senate hearing at 100%' : `Hearings ${S.hearPass} passed · ${S.hearFail}/3 failed`, alert:S.scr >= 80 },
+    { l:`Q${S.q} EBITDA`, v:money(qp), bar:clamp(qp / tgt * 100, 0, 100), cls:'cash', s:`Target ${money(tgt)} · day ${qd} of ${QUARTER_DAYS}`, alert:qd === QUARTER_DAYS && qp < tgt * 0.7 },
+    { l:'Today', v:sign$(todayP), s:`Fees ${money(S.day$.fees + S.day$.air)} · fares ${money(S.day$.fare)}` },
+    { l:'Gate rage', v:Math.round(ar) + ' avg', bar:ar, cls:'rage', s:`${wp} waiting · ${seats} seats`, alert:ar >= 60 },
+    { l:'Next flight', v:nf ? nf.no : '—', s:nf ? `${nf.dest} · ${nf.booked ? nf.sold + '/' + nf.cap + ' sold' : 'booking soon'}` : 'Done for the day' }
+  ];
+  $('meters').innerHTML = m.map(x => `<div class="meter ${x.alert ? 'alert' : ''}"><div class="mh"><span class="ml">${esc(x.l)}</span><span class="mv">${esc(x.v)}</span></div>${x.bar !== undefined ? `<div class="bar ${x.cls}"><i style="width:${clamp(x.bar, 0, 100)}%"></i></div>` : ''}<div class="ms">${esc(x.s)}</div></div>`).join('');
+}
+function flStatus(fl) {
+  if (fl.phase === 'cancelled') return ['CANCELLED', 'st-bad'];
+  if (fl.phase === 'gone' || fl.phase === 'push') return ['DEPARTED ' + hhmm(fl.dep), 'st-gone'];
+  if (fl.phase === 'boarding') return S.t >= fl.bs + fl.B - 6 ? ['FINAL CALL', 'st-final'] : ['BOARDING', 'st-board'];
+  const late = fl.revealed ? lateBy(fl) : 0;
+  if (late >= 10) return ['DELAYED ' + hhmm(fl.T + late), late >= 60 ? 'st-bad' : 'st-late'];
+  if (S.t >= fl.T - 112) return ['ON TIME', 'st-ok'];
+  return ['SCHEDULED', 'st-gone'];
+}
+function flapCells(s, prev) { let h = ''; for (let i = 0; i < s.length; i++) { const ch = s[i] === ' ' ? '&nbsp;' : esc(s[i]); h += `<i${!prev || prev[i] !== s[i] ? ' class="f" style="animation-delay:' + (i * 18) + 'ms"' : ''}>${ch}</i>`; } return h; }
+function renderBoard() {
+  const fls = S.flights, idx = fls.findIndex(f => f.phase !== 'gone' && f.phase !== 'cancelled');
+  let start = Math.max(0, (idx < 0 ? fls.length : idx) - 1); const rows = fls.slice(start, start + 5);
+  const data = rows.map(fl => { const [st, cls] = flStatus(fl); return { id:fl.id, time:hhmm(fl.T), no:fl.no, dest:fl.dest.slice(0, 11), st, cls, load:fl.booked ? `${Math.min(fl.sold, 999)}/${fl.cap}` : '--', over:fl.booked && fl.shows > fl.cap, gone:fl.phase === 'gone' || fl.phase === 'cancelled' }; });
+  const key = JSON.stringify(data);
+  if (key === renderBoard.k) return; renderBoard.k = key;
+  const prevMap = {}; BOARD_ROWS.forEach(r => prevMap[r.id] = r);
+  let h = `<div class="bd-h"><span>Time</span><span>Flight</span><span>Destination</span><span>Status</span><span style="text-align:right">Sold</span></div>`;
+  for (const r of data) {
+    const p = prevMap[r.id];
+    h += `<div class="bd-r ${r.gone ? 'gone' : ''}"><span class="fl">${flapCells(r.time, p && p.time)}</span><span class="fl">${flapCells(r.no, p && p.no)}</span><span class="fl">${flapCells(r.dest.padEnd(11), p && p.dest.padEnd(11))}</span><span class="fl ${r.cls}">${flapCells(r.st.padEnd(14), p && p.st.padEnd(14))}</span><span class="bd-load" ${r.over ? 'style="color:var(--rage)" title="Oversold"' : ''}>${r.load}</span></div>`;
+  }
+  if (!data.length) h += `<div class="bd-r"><span class="fl">${flapCells('-----')}</span></div>`;
+  $('board').innerHTML = h; BOARD_ROWS = data;
+}
+function renderPA() {
+  const ul = PAS.filter(p => !p.needs || S.amen[p.needs]), locked = PAS.length - ul.length;
+  let h = `<div class="pa-lbl"><span>PA announcements</span><span>${waitingPax()} waiting · avg rage ${Math.round(avgRage())}${locked ? ` · ${locked} more in the Gate tab` : ''}</span></div>`;
+  ul.forEach((p, i) => {
+    const st = paStatus(p.id), m = paMult(p.id) * amenEff('pa', 1) * modMul('calm'), calm = Math.round(p.calm * m);
+    const absT = S.day * 2000 + S.t, rem = st.cd ? clamp(st.cd / p.cd, 0, 1) : 0;
+    const sub = st.ok ? `−${calm} rage${p.cost ? ' · ' + money(paCost(p)) : ''}${p.lie && S.weather === 'clear' ? ' · it\'s sunny' : ''}` : st.why;
+    h += `<button type="button" class="pa-b ${st.ok ? 'ready' : ''}" data-pa="${p.id}" ${st.ok ? '' : 'disabled'} title="${esc(p.text + (p.note ? ' — ' + p.note : ''))}"><span class="k">${i + 1}</span><b>${esc(p.label)}</b><small>${esc(sub)}</small>${rem ? `<span class="cd" style="width:${rem * 100}%"></span>` : ''}</button>`;
+  });
+  $('pa').innerHTML = h;
+}
+function renderFeed() {
+  const key = S.feed.length + ':' + (S.feed[0] ? S.feed[0].day + '.' + S.feed[0].t + S.feed[0].text.length : '');
+  if (key === FEED_KEY) return; FEED_KEY = key;
+  let h = `<div class="fd-h"><span>Gate 42 feed</span><span>Day ${S.day}</span></div>`;
+  for (const e of S.feed.slice(0, 45)) {
+    let x = '';
+    if (e.kind === 'post') x = `<span class="fd-u">${esc(e.user)}</span>${jz(e.text)}`;
+    else if (e.kind === 'flight') x = `${jz(e.text)} · <b class="${e.profit < 0 ? 'neg' : ''}">${sign$(e.profit)}</b>`;
+    else x = jz(e.text);
+    h += `<div class="fd k-${e.kind}"><span class="fd-t">${e.day !== S.day ? 'D' + e.day : hhmm(e.t)}</span><span class="fd-x">${x}</span></div>`;
+  }
+  $('feed').innerHTML = h;
+}
+function renderSceneTag() {
+  const t = [];
+  if (SPEED === 0 && !MODAL) t.push('<span class="paused">Paused · Space to resume</span>');
+  const fl = S.flights.find(f => f.phase === 'boarding'); if (fl) t.push(`<span>${esc(fl.no)} boarding · ${fl.boarded}/${fl.cap}</span>`);
+  if (S.promise) t.push(`<span class="r">"Shortly" expires ${hhmm(S.promise.until)}</span>`);
+  const h = t.join(''); if ($('sceneTag').innerHTML !== h) $('sceneTag').innerHTML = h;
+}
+
+// ---------------------------------------------------------------------
+// SIDE PANEL
+// ---------------------------------------------------------------------
+const TABS = [['fees', 'Revenue'], ['ops', 'Ops'], ['gate', 'Gate'], ['board', 'Board'], ['decoder', 'Decoder']];
+function tabDot(id) {
+  const rsv = 0;
+  if (id === 'fees') return FEES.some(f => !S.own[f.id] && tierOpen(f.tier) && S.cash >= f.cost + rsv);
+  if (id === 'ops') return ['plane', 'route', 'turn', 'maint', 'bridge'].some(k => { const c = upgradeCost(k); return c !== null && S.cash >= c; });
+  if (id === 'gate') return AMENITIES.some(a => !S.amen[a.id] && S.cash >= a.cost) || (upgradeCost('seat') !== null && S.cash >= upgradeCost('seat'));
+  if (id === 'board') { const r = RIVALS.find(x => !S.rivals[x.id]); return !!r && S.cash >= r.cost; }
+  return false;
+}
+function renderTabs() {
+  const h = TABS.map(([id, l]) => `<button type="button" data-tab="${id}" class="${TAB === id ? 'on' : ''}">${l}${id === 'decoder' ? `<small>${Object.keys(S.heard).length}</small>` : ''}${id !== TAB && tabDot(id) ? '<span class="dot" title="Something new is affordable"></span>' : ''}</button>`).join('');
+  if ($('tabs').innerHTML !== h) $('tabs').innerHTML = h;
+}
+function paneKey() {
+  const aff = []; FEES.forEach(f => aff.push(S.cash >= f.cost ? 1 : 0)); AMENITIES.forEach(a => aff.push(S.cash >= a.cost ? 1 : 0)); RIVALS.forEach(r => aff.push(S.cash >= r.cost ? 1 : 0));
+  Object.keys(LADDERS).forEach(k => { const c = upgradeCost(k); aff.push(c !== null && S.cash >= c ? 1 : 0); });
+  const base = [TAB, S.day, JSON.stringify(S.own), JSON.stringify(S.on), JSON.stringify(S.susp), JSON.stringify(S.amen), S.plane, S.route, S.turn, S.maint, S.bridge, S.seat, S.lobby, S.ob, S.bump, JSON.stringify(S.rivals), aff.join(''), S.hearPass, S.hearFail, S.strikes, S.q, DEC_Q];
+  if (TAB === 'board') base.push(Math.round(S.qProfit / 500), Math.round(S.scr), Object.keys(S.ach).length, Math.round(S.stock * 10));
+  if (TAB === 'ops') base.push(Math.round(S.rep), Math.round(marketBase()));
+  if (TAB === 'gate') base.push(Math.round(avgRage() / 5), waitingPax());
+  if (TAB === 'decoder') base.push(Object.keys(S.heard).length);
+  if (TAB === 'fees') base.push(feeCountForFeeFee());
+  return base.join('|');
+}
+function renderPane(force) {
+  const k = paneKey(); if (!force && k === PANE_KEY) return; PANE_KEY = k;
+  const pane = $('pane'), st = pane.scrollTop;
+  const fn = { fees:paneFees, ops:paneOps, gate:paneGate, board:paneBoard, decoder:paneDecoder }[TAB];
+  const focusId = document.activeElement && document.activeElement.closest && document.activeElement.closest('#pane') ? (document.activeElement.id || document.activeElement.dataset.k) : null;
+  pane.innerHTML = fn(); pane.scrollTop = st;
+  if (focusId) { const el = $(focusId) || pane.querySelector(`[data-k="${focusId}"]`); if (el) try { el.focus({ preventScroll:true }); } catch (e) {} }
+}
+function feeTags(f) {
+  const t = [];
+  if (f.kind === 'yield') t.push(['c', '+8% fare'], ['y', 'Unlocks overbooking']);
+  else if (f.kind === 'basic') t.push(['c', '+22% demand'], ['r', '−10% fare'], ['r', `+${f.rp} rage`]);
+  else if (f.kind === 'density') t.push(['c', '+18% seats'], ['r', `+${f.rp} rage in the air`]);
+  else if (f.kind === 'stand') t.push(['c', '+30% seats'], ['r', `+${f.rp} rage in the air`]);
+  else if (f.kind === 'complaint') t.push(['c', `$${f.price} per melting passenger`], ['r', `+${f.rp} rage`]);
+  else { const e = feeEstimate(f); t.push(['c', `+$${e.rev.toFixed(e.rev < 10 ? 1 : 0)}/pax`], ['r', `+${e.rage.toFixed(1)} rage`]); if (f.kind === 'feefee') t.push(['y', `$${f.price} × ${feeCountForFeeFee()} fees`]); }
+  if (f.stage && !f.kind) t.push(['y', stageName[f.stage]]);
+  else if (f.stage && (f.kind === 'basic' || f.kind === 'feefee')) t.push(['y', stageName[f.stage]]);
+  if (f.scr >= 0.3) t.push(['s', 'Regulators notice']);
+  if (f.eliteExempt) t.push(['', 'Elites exempt']); if (f.eliteOnly) t.push(['', 'Elites only']);
+  if (S.susp[f.id] >= S.day) t.push(['r', `Suspended until day ${S.susp[f.id] + 1}`]);
+  return t.map(([c, s]) => `<span class="tag ${c}">${esc(s)}</span>`).join('');
+}
+function paneFees() {
+  const act = activeFees();
+  let rev = 0, rage = 0, air = 0; for (const f of act) { if (f.kind && f.kind !== 'feefee') { if (f.kind === 'yield') continue; if (f.stage === 'air') air += f.rp; else rage += f.rp; continue; } const e = feeEstimate(f); rev += e.rev; if (f.stage === 'air') air += e.rage; else rage += e.rage; }
+  let h = `<div class="ph"><h2>Revenue Lab</h2><span>${act.length} of ${FEES.length} active</span></div>
+    <div class="sumbox"><div>Fees per passenger<b style="color:var(--cash)">$${rev.toFixed(0)}</b></div><div>Rage you'll see<b style="color:var(--rage)">+${rage.toFixed(0)}</b></div><div>Rage in reviews<b style="color:var(--rage)">+${air.toFixed(0)}</b></div></div>
+    <p class="note">${jz('Every fee is a touchpoint. Fees at booking and at the gate anger passengers where you can see them. In-air fees only show up in reviews, so reputation absorbs all of it. Switch fees off anytime; the money stops too.')}</p>`;
+  for (const tier of [1, 2, 3, 4]) {
+    const open = tierOpen(tier);
+    h += `<div class="sec">Tier ${tier} · ${['', 'Classics', 'Innovation', 'Disruption', 'Vision'][tier]}<small>${open ? '' : tierNeed(tier)}</small></div>`;
+    for (const f of FEES.filter(x => x.tier === tier)) {
+      const own = S.own[f.id], on = active(f.id);
+      let ctl;
+      if (own) ctl = `<button type="button" class="sw ${S.on[f.id] ? 'on' : ''}" data-fee="${f.id}" data-k="fee-${f.id}" role="switch" aria-checked="${S.on[f.id] ? 'true' : 'false'}" aria-label="${esc(f.name)}"></button>`;
+      else if (!open) ctl = `<span class="tag">Locked</span>`;
+      else ctl = `<button type="button" class="btn" data-buyfee="${f.id}" data-k="buy-${f.id}" ${S.cash >= f.cost ? '' : 'disabled'}>${money(f.cost)}</button>`;
+      h += `<div class="card ${on ? 'on' : ''} ${!open && !own ? 'locked' : ''}"><h3>${jz(f.brand)}<small>${esc(f.name)}${!own && open ? ' · R&D cost' : ''}</small></h3>${ctl}<p>${jz(f.desc)}</p><div class="tags">${feeTags(f)}</div></div>`;
+    }
+  }
+  return h;
+}
+function ladderCard(k, title, cur, nextTxt, curTxt) {
+  const L = LADDERS[k], c = upgradeCost(k);
+  const dots = L.map((_, i) => `<i class="${i <= S[k] ? 'on' : ''}"></i>`).join('');
+  return `<div class="card"><h3>${esc(title)}: ${jz(cur)}<small>${esc(curTxt)}</small></h3>${c === null ? '<span class="tag y">Maxed</span>' : `<button type="button" class="btn" data-up="${k}" data-k="up-${k}" ${S.cash >= c ? '' : 'disabled'}>${money(c)}</button>`}
+    ${c === null ? '' : `<p>Next: <b>${jz(L[S[k] + 1].name)}</b> · ${esc(nextTxt)}</p>`}<div class="ladder">${dots}</div></div>`;
+}
+const nFlights = gap => Math.floor((LAST_DEP - 420) / gap) + 1;
+function paneOps() {
+  const dem = marketBase() * share() * boycott(), cap = capacity(), fl = Math.max(dem, cap * (1 + (active('yield') ? S.ob : 0))) * 1.15;
+  const p = PLANES[S.plane], np = PLANES[S.plane + 1], r = ROUTES[S.route], nr = ROUTES[S.route + 1], t = TURNS[S.turn], nt = TURNS[S.turn + 1];
+  const msg = dem > cap * 1.05 ? 'More people want to fly than you have seats. A bigger plane (or overbooking) sells more tickets.' : dem < cap * 0.85 ? 'You are flying empty seats. New routes bring more passengers; better reputation wins a bigger share.' : 'Demand and seats are roughly matched. Grow both together.';
+  let h = `<div class="ph"><h2>Operations</h2><span>${nFlights(t.gap)} flights a day</span></div>
+    <div class="dem"><div class="row"><span>Expected demand per flight</span><b>${Math.round(dem)}</b></div><div class="dbar"><i style="width:${clamp(dem / fl * 100, 0, 100)}%"></i><u style="left:${clamp(cap / fl * 100, 0, 100)}%"></u></div>
+    <div class="row"><span>Seats per flight (yellow line)</span><b>${cap}</b></div><p class="note">${esc(msg)} Demand = market ${Math.round(marketBase())} × your share ${pct(share() * boycott())}.</p></div>
+    <div class="sec">Fleet &amp; network</div>
+    ${ladderCard('plane', 'Plane', p.name, np ? `${np.seats} seats · ${money(np.op)} per flight · ${money(np.oh)}/day overhead (trade-in included)` : '', `${p.model} · ${p.seats} seats · ${money(p.op)} per flight`)}
+    ${ladderCard('route', 'Routes', r.name, nr ? `market ${nr.mkt} per flight · fares ×${nr.fare}` : '', `Market ${r.mkt} per flight · fares ×${r.fare}`)}
+    ${ladderCard('turn', 'Turnaround', t.name, nt ? `a departure every ${nt.gap} min (${nFlights(nt.gap)} a day)` : '', `A departure every ${t.gap} min`)}
+    ${ladderCard('maint', 'Maintenance', MAINT[S.maint].name, MAINT[S.maint + 1] ? `delay chance ×${MAINT[S.maint + 1].m}` : '', `Delay chance today ${pct(delayChance())}`)}
+    ${ladderCard('bridge', 'Boarding', BRIDGES[S.bridge].name, BRIDGES[S.bridge + 1] ? `boarding time ×${BRIDGES[S.bridge + 1].m}` : '', `About ${Math.round(boardTime(cap))} min to board`)}
+    <div class="sec">Overbooking<small>${active('yield') ? '' : 'Needs Yield Management (Revenue)'}</small></div>
+    <div class="card ${active('yield') ? '' : 'locked'}"><h3>${jz('Sell seats you don\'t have')}<small>${jz('About 10% of passengers don\'t show up. Their fares are non-refundable, and overbooking keeps the load factor high.')}</small></h3><span></span>
+      <div class="rng"><input type="range" id="obR" min="0" max="40" step="5" value="${Math.round(S.ob * 100)}" ${active('yield') ? '' : 'disabled'} aria-label="Overbooking percent"><b>+${Math.round(S.ob * 100)}%</b></div></div>
+    <div class="card"><h3>${jz('When a flight is oversold')}<small>${jz(BUMP[S.bump].desc)}</small></h3><span></span>
+      <div class="seg">${Object.entries(BUMP).map(([id, b]) => `<button type="button" data-bump="${id}" class="${S.bump === id ? 'on' : ''}">${esc(b.name)}</button>`).join('')}</div>
+      <p class="note">${jz('Vouchers cost about half their face value, since most are never redeemed. Involuntary denied boarding costs 2× the fare in compensation, plus reputation and regulator attention.')}</p></div>
+    <div class="sec">Costs</div>
+    <div class="sumbox"><div>Fare<b>$${Math.round(fare())}</b></div><div>Per flight<b>${money(opCost())}</b></div><div>Daily overhead<b>${money(dailyOverhead())}</b></div></div>`;
+  return h;
+}
+function paneGate() {
+  const s = SEATING[S.seat], ns = SEATING[S.seat + 1];
+  let h = `<div class="ph"><h2>Gate experience</h2><span>${waitingPax()} waiting · rage ${Math.round(avgRage())}</span></div>
+    <p class="note">${jz('Passengers who can\'t sit get angry faster. Amenities slow the rage; some unlock new PA announcements. Upkeep is charged nightly.')}</p>
+    ${ladderCard('seat', 'Seating', s.name, ns ? `${ns.cap} seats` : '', `${s.cap} seats at the gate`)}
+    <div class="sec">Amenities</div>`;
+  for (const a of AMENITIES) {
+    const own = S.amen[a.id];
+    h += `<div class="card ${own ? 'on' : ''}"><h3>${jz(a.brand)}<small>${esc(a.name)}${a.upkeep ? ' · ' + money(a.upkeep) + '/day upkeep' : ''}</small></h3>${own ? '<span class="tag y">Installed</span>' : `<button type="button" class="btn" data-amen="${a.id}" data-k="am-${a.id}" ${S.cash >= a.cost ? '' : 'disabled'}>${money(a.cost)}</button>`}<p>${jz(a.desc)}</p></div>`;
+  }
+  h += `<div class="sec">All announcements</div>`;
+  for (const p of PAS) h += `<div class="card ${p.needs && !S.amen[p.needs] ? 'locked' : ''}"><h3>${esc(p.label)}<small>−${p.calm} rage · ${p.cd} min cooldown${p.needs ? ' · ' + esc(AMENITIES.find(a => a.id === p.needs).name) : ''}</small></h3><span></span><p>"${jz(p.text)}"${p.note ? ' ' + esc(p.note) : ''}</p></div>`;
+  return h;
+}
+function sparkline() {
+  const hs = S.history.slice(-14); if (hs.length < 2) return '<p class="note">Daily profit appears here after day 2.</p>';
+  const mx = Math.max(1, ...hs.map(x => Math.abs(x.profit))), w = 300, ht = 64, bw = w / hs.length;
+  let bars = '';
+  hs.forEach((x, i) => { const v = x.profit / mx * (ht / 2 - 4), y = v >= 0 ? ht / 2 - v : ht / 2; bars += `<rect x="${(i * bw + 2).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${Math.max(1, Math.abs(v)).toFixed(1)}" fill="${x.profit >= 0 ? '#8bd66b' : '#ff5d4f'}" rx="1"><title>Day ${x.day}: ${fmt$(x.profit)}</title></rect>`; });
+  return `<svg class="spark" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="none" role="img" aria-label="Daily profit, last ${hs.length} days"><line x1="0" x2="${w}" y1="${ht / 2}" y2="${ht / 2}" stroke="#3c444e" stroke-width="1"/>${bars}</svg>`;
+}
+function paneBoard() {
+  const tgt = target(), qd = ((S.day - 1) % QUARTER_DAYS) + 1, L = LOBBY[S.lobby], NL = LOBBY[S.lobby + 1];
+  let h = `<div class="ph"><h2>The Board</h2><span>AQ $${S.stock.toFixed(2)}</span></div>
+    <div class="card"><h3>Q${S.q} · day ${qd} of ${QUARTER_DAYS}<small>${jz('Adjusted EBITDA: fares and fees minus flight costs and overhead. Capital purchases don\'t count.')}</small></h3><span class="tag ${S.qProfit >= tgt ? 'c' : 'r'}">${S.qProfit >= tgt ? 'On track' : 'Behind'}</span>
+      <div class="bar cash" style="grid-column:1/-1"><i style="width:${clamp(S.qProfit / tgt * 100, 0, 100)}%"></i></div>
+      <p><b>${money(S.qProfit)}</b> of <b>${money(tgt)}</b>. Wall Street expects at least the plan, or last quarter plus 10%. Board confidence: ${'●'.repeat(3 - S.strikes)}${'○'.repeat(S.strikes)}</p></div>
+    <div class="sec">Daily profit<small>last ${Math.min(14, S.history.length)} days</small></div>${sparkline()}
+    <div class="sec">Acquisitions<small>${nRivals()} of ${RIVALS.length} · buy in order</small></div>
+    <p class="note">${jz('Each acquisition grows the market 25% and makes reputation matter less. Consolidation is a win-win for shareholder value.')}</p>`;
+  RIVALS.forEach((r, i) => {
+    const own = S.rivals[r.id], avail = i === 0 || S.rivals[RIVALS[i - 1].id];
+    h += `<div class="card ${own ? 'on' : !avail ? 'locked' : ''}"><h3><span style="color:${r.color}">■</span> ${esc(r.name)}<small>${jz('A ' + r.kind)}</small></h3>${own ? `<span class="tag y">Acquired day ${own}</span>` : avail ? `<button type="button" class="btn" data-rival="${r.id}" data-k="rv-${r.id}" ${S.cash >= r.cost ? '' : 'disabled'}>${money(r.cost)}</button>` : `<span class="tag">${money(r.cost)}</span>`}<p>${jz(r.blurb)} ${jz(r.perk)}</p></div>`;
+  });
+  h += `<div class="sec">Government affairs<small>Scrutiny ${Math.round(S.scr)}%</small></div>
+    ${ladderCard('lobby', 'Lobbying', L.name, NL ? `scrutiny gains ×${NL.gain}, −${NL.decay}%/day${NL.bonus ? ', +' + NL.bonus + ' at hearings' : ''}, ${money(NL.upkeep)}/day` : '', `Scrutiny gains ×${L.gain} · falls ${L.decay}% a night${L.bonus ? ' · +' + L.bonus + ' at hearings' : ''}`)}
+    <p class="note">Hearings: ${S.hearPass} passed, ${S.hearFail} of 3 failed. The next one needs ${hearingNeed()} points.</p>
+    <div class="sec">Achievements<small>${Object.keys(S.ach).length} of ${ACHIEVEMENTS.length}</small></div>
+    <div class="ach">${ACHIEVEMENTS.map(a => `<div class="${S.ach[a.id] ? 'got' : ''}"><b>${esc(a.name)}</b>${esc(a.d)}</div>`).join('')}</div>`;
+  return h;
+}
+function paneDecoder() {
+  const n = Object.keys(S.heard).length, q = DEC_Q.trim().toLowerCase();
+  const list = JARGON.map(([p, m], i) => ({ p, m, i, got:!!S.heard[i] })).filter(x => !q || (x.got && (x.p.toLowerCase().includes(q) || x.m.toLowerCase().includes(q)))).sort((a, b) => b.got - a.got || a.p.localeCompare(b.p));
+  return `<div class="ph"><h2>Airline–English Decoder</h2><span>${n} of ${JARGON.length}</span></div>
+    <div class="bar"><i style="width:${n / JARGON.length * 100}%;background:var(--sign)"></i></div>
+    <p class="note">Phrases are decoded the first time they appear anywhere on screen. Hover or tap dotted text for a translation.</p>
+    <input class="srch" id="decQ" type="search" placeholder="Search decoded phrases" value="${esc(DEC_Q)}" aria-label="Search decoded phrases">
+    <div class="dec-l">${list.map(x => x.got ? `<div class="dec"><b>${esc(x.p)}</b><span>${esc(x.m)}</span></div>` : `<div class="dec no"><b>${'▒'.repeat(Math.min(14, x.p.length))}</b><span>Not heard yet</span></div>`).join('')}</div>`;
+}
+
+function renderAll(force) {
+  if (!S) return;
+  renderHud(); renderMeters(); renderBoard(); renderPA(); renderFeed(); renderTabs(); renderPane(force); renderSceneTag();
+}
+
+// ---------------------------------------------------------------------
+// SAVE / LOAD
+// ---------------------------------------------------------------------
+function save() { if (!S) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} LAST_SAVE = performance.now(); }
+function load(raw) {
+  try {
+    const d = JSON.parse(raw || localStorage.getItem(SAVE_KEY)); if (!d || d.v !== 1 || !d.flights) return false;
+    S = d; ART.reset(); ACC = 0; PANE_KEY = ''; FEED_KEY = ''; renderBoard.k = ''; return true;
+  } catch (e) { return false; }
+}
+
+// ---------------------------------------------------------------------
+// ACTIONS
+// ---------------------------------------------------------------------
+function doPA(id) { if (!S || MODAL || S.over) return; if (announce(id)) { sfx('chime'); renderPA(); renderFeed(); } else sfx('bad'); }
+function setSpeed(v) { SPEED = v; if (v) PREV_SPEED = v; ACC = Math.min(ACC, 0.99); renderHud(); renderSceneTag(); }
+function after(ok) { if (ok) { sfx('buy'); renderAll(true); } else sfx('bad'); }
+
+document.addEventListener('click', e => {
+  const mk = e.target.closest && e.target.closest('mark.jg');
+  if (mk) { if (TIP_EL === mk) hideTip(); else showTip(mk); e.stopPropagation(); return; }
+  if (!e.target.closest('#cv')) { if (TIP_EL === 'cv') hideTip(); }
+  if (!S) return;
+  const t = e.target.closest('[data-tab],[data-pa],[data-fee],[data-buyfee],[data-up],[data-amen],[data-rival],[data-bump],[data-speed]'); if (!t) return;
+  if (MODAL && !MODAL.ov.contains(t)) return;
+  if (t.dataset.speed !== undefined) { setSpeed(+t.dataset.speed); sfx('click'); return; }
+  if (t.dataset.tab) { TAB = t.dataset.tab; sfx('click'); renderTabs(); renderPane(true); $('pane').scrollTop = 0; return; }
+  if (t.dataset.pa) return doPA(t.dataset.pa);
+  if (t.dataset.fee) { toggleFee(t.dataset.fee); sfx('click'); renderAll(true); return; }
+  if (t.dataset.buyfee) return after(buyFee(t.dataset.buyfee));
+  if (t.dataset.up) return after(upgrade(t.dataset.up));
+  if (t.dataset.amen) return after(buyAmen(t.dataset.amen));
+  if (t.dataset.rival) return after(buyRival(t.dataset.rival));
+  if (t.dataset.bump) { setBump(t.dataset.bump); sfx('click'); renderPane(true); return; }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'decQ') { DEC_Q = e.target.value; renderPane(true); const el = $('decQ'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  if (e.target.id === 'obR' && S) { setOverbook(+e.target.value / 100); const b = e.target.parentElement.querySelector('b'); if (b) b.textContent = '+' + Math.round(S.ob * 100) + '%'; }
+});
+document.addEventListener('change', e => { if (e.target.id === 'obR') renderPane(true); });
+document.addEventListener('mouseover', e => { const m = e.target.closest && e.target.closest('mark.jg'); if (m) showTip(m); else if (TIP_EL && TIP_EL !== 'cv') hideTip(); });
+document.addEventListener('focusin', e => { const m = e.target.closest && e.target.closest('mark.jg'); if (m) showTip(m); });
+document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('mark.jg')) hideTip(); });
+addEventListener('scroll', () => { if (TIP_EL) hideTip(); }, true);
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && MODAL && MODAL.closable) { closeModal(); return; }
+  if (MODAL || !S || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (e.key === ' ') { e.preventDefault(); setSpeed(SPEED ? 0 : PREV_SPEED || 2); return; }
+  if (/^[1-9]$/.test(e.key)) { const ul = PAS.filter(p => !p.needs || S.amen[p.needs]); const p = ul[+e.key - 1]; if (p) doPA(p.id); }
+});
+$('cv').addEventListener('click', e => {
+  if (!S || MODAL) return;
+  const r = $('cv').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * ART.W, y = (e.clientY - r.top) / r.height * ART.H;
+  const id = ART.pickAt(x, y), g = id && S.groups.find(q => q.id === id);
+  if (!g) { if (TIP_EL === 'cv') hideTip(); return; }
+  const fl = S.flights.find(f => f.id === g.fid);
+  const html = `<b>${esc(PTYPES[g.type].name)}${g.n > 1 ? ' ×' + g.n : ''}</b>${esc(fl ? fl.no + ' to ' + fl.dest : '')}<br>Rage ${Math.round(g.rage)}${g.melted ? ' (melted down)' : ''} · paid ${money(g.paid || 0)} each in fees${g.prio ? ' · priority' : ''}`;
+  TIP_EL = 'cv'; showTipAt(html, { left:e.clientX - 1, top:e.clientY - 4, width:2, height:8, bottom:e.clientY + 4 });
+});
+$('bSound').onclick = () => { SOUND = !SOUND; try { localStorage.setItem('gate42_sound', SOUND ? 'on' : 'off'); } catch (e) {} renderHud(); if (SOUND) sfx('click'); };
+$('bMenu').onclick = () => { if (!MODAL && S) menuModal(); };
+
+// ---------------------------------------------------------------------
+// LOOP
+// ---------------------------------------------------------------------
+let LAST_TS = 0, FX_SEEN = 0;
+function loop(ts) {
+  const dt = Math.min(0.1, Math.max(0, (ts - (LAST_TS || ts)) / 1000)); LAST_TS = ts;
+  let dtG = 0;
+  if (S && !MODAL && !MQ.length && SPEED > 0 && !S.over && !S.dayOver && !S.hearing && !S.inbox.length) {
+    ACC += dt * SPEED * MPS;
+    const n = Math.floor(ACC);
+    if (n > 0) { const done = advance(n); ACC -= n; if (done < n) ACC = 0; }
+    dtG = dt * SPEED * MPS;
+  }
+  if (S) {
+    // sounds for engine events
+    for (let i = FX_SEEN; i < FX.length; i++) { const f = FX[i]; if (f.type === 'coin' && f.v >= 20) sfx('coin'); else if (f.type === 'melt') sfx('melt'); else if (f.type === 'viral') sfx('bad'); }
+    try { ART.frame(S.t + (dtG ? ACC : 0), dt, dtG); } catch (err) { console.error(err); }
+    FX_SEEN = FX.length;
+    if (S.flights.some(f => f.phase === 'push' && f.dep === S.t && !f._snd)) { S.flights.forEach(f => { if (f.phase === 'push' && f.dep === S.t) f._snd = 1; }); sfx('depart'); }
+    processPending();
+    if (ts - LAST_UI > 200) { LAST_UI = ts; renderAll(); }
+    if (ts - LAST_SAVE > 30000 && !S.over) save();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---------------------------------------------------------------------
+// BOOT
+// ---------------------------------------------------------------------
+function start(data) {
+  ART.init($('cv'));
+  if (data && data.save && load(data.save)) { renderAll(true); resumeChecks(); }
+  else { newGame(); renderAll(true); titleModal(); }
+  requestAnimationFrame(loop);
+}
+addEventListener('beforeunload', () => { if (S && !S.over) save(); });
+try { window.claude?.hot?.snapshot?.(() => ({ save:S ? JSON.stringify(S) : null })); } catch (e) {}
+(window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {}));
+</script>
+
+</body></html>

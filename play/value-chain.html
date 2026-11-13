@@ -1,0 +1,2075 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Value Chain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: Sparkworks' neon factory board, moved into an office after hours.
+   Elevator buttons choose the floor; the side panel is the intranet. Single dark look by design. */
+:root { --bg:#070b14; --panel:#0e1524; --panel2:#0a1120; --edge:#1f2c45; --edge2:#2e4366; --ink:#e6eefb; --dim:#7f90ad; --dim2:#5a6a88;
+  --cyan:#3ee6ff; --gold:#ffcf4a; --pink:#ff5aa8; --green:#5dffa8; --violet:#a98bff; --red:#ff5a5a; --doc:#ff6ae0; --hl:#ffe36a;
+  --head:'Space Grotesk', 'Segoe UI', system-ui, sans-serif; --body:'Inter', system-ui, sans-serif; color-scheme:dark; }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:var(--body); }
+body { overflow:hidden; }
+button { font:inherit; color:inherit; cursor:pointer; }
+button:disabled { cursor:not-allowed; }
+:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+#app { position:fixed; inset:0; display:flex; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); }
+#boardWrap { flex:1; position:relative; min-width:0; display:flex; flex-direction:column; }
+.num { font-variant-numeric:tabular-nums; }
+
+/* header */
+#top { display:flex; align-items:center; gap:16px; padding:10px 16px 6px; flex-wrap:wrap; }
+.brand { display:flex; flex-direction:column; line-height:1.05; }
+.brand b { font:700 15px/1 var(--head); letter-spacing:3px; color:var(--cyan); text-shadow:0 0 14px #3ee6ff66; }
+.brand small { font-size:10.5px; color:var(--dim2); letter-spacing:.4px; margin-top:3px; }
+.money { display:flex; align-items:baseline; gap:12px; }
+#cash { font:700 34px/1 var(--head); color:var(--gold); text-shadow:0 0 18px #ffcf4a55; }
+#rate { font:600 16px/1 var(--head); color:var(--green); }
+.stat { display:flex; flex-direction:column; gap:3px; min-width:110px; background:none; border:0; padding:0; text-align:left; }
+.stat small { font:600 10px/1 var(--head); letter-spacing:1.2px; text-transform:uppercase; color:var(--dim); }
+.stat b { font:600 13px/1.1 var(--head); }
+.meter { height:5px; border-radius:3px; background:#16233c; overflow:hidden; width:100%; }
+.meter span { display:block; height:100%; border-radius:3px; background:var(--green); width:0; transition:width .3s; }
+#moraleBox { flex-direction:row; flex-wrap:wrap; align-items:center; column-gap:8px; width:140px; }
+#moraleBox small { width:100%; }
+#moraleBox .meter { flex:1; }
+#moraleBox b { font-size:12px; color:var(--dim); width:24px; text-align:right; }
+.rankchip { cursor:pointer; min-width:150px; max-width:220px; }
+.rankchip b { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rankchip .meter span { background:var(--gold); }
+.rankchip.ready b { color:var(--gold); }
+.rankchip.ready small { color:var(--gold); }
+.eqs { font:600 12px/1.35 var(--head); color:var(--violet); min-width:0; margin-left:auto; text-align:right; }
+.eqs .seats { color:var(--doc); }
+.hbtns { display:flex; gap:6px; }
+.hb { background:var(--panel); border:1px solid var(--edge); border-radius:8px; width:32px; height:32px; font:600 14px/1 var(--head); color:var(--dim); }
+.hb:hover { color:var(--ink); border-color:var(--edge2); }
+
+/* floors: an elevator panel */
+#floorRow { display:flex; gap:10px; align-items:center; padding:4px 16px 0; }
+#floors { display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; flex:1; min-width:0; }
+.fl { display:flex; align-items:center; gap:9px; background:var(--panel2); border:1px solid var(--edge); border-radius:999px; padding:4px 13px 4px 4px; color:var(--dim); text-align:left; min-width:0; position:relative; }
+.fl .btn-n { width:30px; height:30px; flex:none; border-radius:50%; border:2px solid var(--edge2); display:flex; align-items:center; justify-content:center; font:700 13px/1 var(--head); color:var(--ink); background:#0c1424; }
+.fl span { display:flex; flex-direction:column; line-height:1.15; }
+.fl b { font:600 12px/1.2 var(--head); color:var(--ink); white-space:nowrap; }
+.fl small { font-size:10.5px; white-space:nowrap; }
+.fl.on { border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset, 0 0 14px #3ee6ff33; }
+.fl.on .btn-n { border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 10px #3ee6ff66; }
+.fl.locked { opacity:.45; }
+.fl .ping { position:absolute; top:2px; left:26px; width:9px; height:9px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
+
+#cvWrap { flex:1; min-height:0; position:relative; }
+#cv { display:block; width:100%; height:100%; cursor:crosshair; touch-action:none; }
+#buffs { position:absolute; left:16px; top:8px; display:flex; flex-direction:column; gap:4px; pointer-events:none; }
+.buff { font:600 11.5px/1 var(--head); background:#0c1424dd; border:1px solid var(--edge2); border-radius:999px; padding:5px 10px; color:var(--ink); }
+.buff i { font-style:normal; color:var(--green); }
+.buff.bad i { color:var(--red); }
+
+#toolbar { display:flex; align-items:center; gap:10px; padding:4px 16px 2px; }
+.tl { display:flex; gap:6px; }
+.tb { background:var(--panel); border:1px solid var(--edge); border-radius:8px; padding:7px 10px; font:600 12px/1 var(--head); letter-spacing:.3px; color:var(--dim); white-space:nowrap; }
+.tb:hover:not(:disabled) { color:var(--ink); border-color:var(--edge2); }
+.tb:disabled { opacity:.4; }
+.tb.crunch { background:#2a1a0a; border-color:#7a5418; color:var(--gold); letter-spacing:1px; }
+.tb.crunch.live { background:var(--gold); color:#1a1205; box-shadow:0 0 18px #ffcf4a88; }
+#ticker { flex:1; min-width:0; font-size:12.5px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#ticker b { color:var(--ink); font-weight:600; }
+#hint { padding:2px 16px 10px; font-size:12.5px; color:var(--dim); min-height:26px; }
+#hint b { color:var(--cyan); }
+
+/* side panel */
+#side { width:380px; flex:none; background:var(--panel); border-left:1px solid var(--edge); display:flex; flex-direction:column; min-height:0; }
+#tabs { display:flex; flex-wrap:wrap; border-bottom:1px solid var(--edge); }
+#tabs button { flex:1 1 auto; background:none; border:0; color:var(--dim); font:600 12px/1 var(--head); padding:12px 3px 10px; white-space:nowrap; border-bottom:2px solid transparent; }
+#tabs button.on { color:var(--ink); border-color:var(--cyan); }
+#tabs .dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--gold); margin-left:5px; vertical-align:middle; }
+#tabs .badge { display:inline-block; min-width:16px; padding:2px 4px; margin-left:5px; border-radius:999px; background:var(--red); color:#fff; font-size:10px; text-align:center; vertical-align:1px; }
+#pane { flex:1; overflow:auto; padding:12px; overscroll-behavior:contain; }
+.sec { font:600 11px/1.3 var(--head); letter-spacing:1.8px; color:var(--dim); margin:16px 0 8px; text-transform:uppercase; display:flex; justify-content:space-between; gap:8px; }
+.sec:first-child { margin-top:2px; }
+.card { background:var(--panel2); border:1px solid var(--edge); border-radius:12px; padding:12px; margin-bottom:8px; }
+.card h3 { margin:0 0 6px; font:700 17px/1.2 var(--head); }
+.card h3 small { font:500 12px/1 var(--body); color:var(--dim); margin-left:6px; }
+.card p { margin:0 0 8px; font-size:13px; line-height:1.45; color:#c5d0e4; }
+.card p:last-child { margin-bottom:0; }
+.st { font:600 12.5px/1.4 var(--head); color:var(--cyan); }
+.row { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.btn { background:#0c1424; border:1px solid var(--edge2); border-radius:8px; padding:8px 11px; font:700 12px/1 var(--head); letter-spacing:.6px; color:var(--ink); }
+.btn:hover:not(:disabled) { border-color:var(--cyan); }
+.btn:disabled { opacity:.45; }
+.btn.gold { background:var(--gold); border-color:var(--gold); color:#1a1205; }
+.btn.violet { background:var(--violet); border-color:var(--violet); color:#140d2a; }
+.btn.doc { background:var(--doc); border-color:var(--doc); color:#2a0b22; }
+.btn.red { border-color:#7a2a35; color:#ff9aa5; }
+.big { font:700 30px/1.1 var(--head); margin:8px 0; }
+.parts { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:7px; }
+.part { background:var(--panel2); border:1px solid var(--edge); border-radius:10px; padding:7px; display:flex; gap:8px; align-items:flex-start; text-align:left; color:var(--ink); min-width:0; }
+.part:hover:not(.locked) { border-color:var(--edge2); }
+.part.sel { border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset, 0 0 14px #3ee6ff33; }
+.part.locked { opacity:.4; cursor:default; }
+.part img { flex:none; width:40px; height:40px; }
+.part > span { display:flex; flex-direction:column; min-width:0; gap:2px; }
+.part b { font:700 13px/1.15 var(--head); }
+.part b i { font-style:normal; color:var(--dim2); font-size:10.5px; margin-left:3px; }
+.part .cost { font:600 12px/1 var(--head); color:var(--gold); }
+.part.cant .cost { color:var(--red); }
+.part small { font-size:11px; line-height:1.3; color:var(--dim); }
+.res { display:flex; align-items:center; gap:10px; background:var(--panel2); border:1px solid var(--edge); border-radius:10px; padding:9px 10px; margin-bottom:6px; }
+.res > div { flex:1; min-width:0; }
+.res b { font:700 13px/1.2 var(--head); display:block; }
+.res small { display:block; font-size:12px; color:var(--dim); line-height:1.35; margin-top:2px; }
+.res.done { opacity:.55; }
+.lv { font:600 11px/1 var(--head); color:var(--dim); margin-left:4px; }
+.tog { background:#0c1424; border:1px solid var(--edge2); border-radius:999px; padding:6px 12px; font:700 11px/1 var(--head); color:var(--dim); }
+.tog.on { background:var(--green); border-color:var(--green); color:#062014; }
+.ms { display:flex; gap:10px; font-size:12.5px; color:var(--dim); padding:5px 0; border-bottom:1px solid #16233c; }
+.ms .n { flex:0 0 64px; font:600 12px/1.4 var(--head); color:var(--dim2); }
+.ms.on { color:var(--ink); }
+.ms.on .n { color:var(--violet); }
+.tess { color:var(--doc); }
+.ladder { display:flex; flex-direction:column; gap:4px; }
+.lad { display:flex; gap:10px; align-items:baseline; font-size:12.5px; color:var(--dim); padding:6px 8px; border-radius:8px; }
+.lad b { font:600 13px/1.2 var(--head); color:var(--ink); flex:0 0 150px; }
+.lad.now { background:#13203a; box-shadow:0 0 0 1px var(--edge2) inset; }
+.lad.done b { color:var(--green); }
+.lad.future b { color:var(--dim); }
+.pbar { height:8px; border-radius:4px; background:#16233c; overflow:hidden; margin:8px 0 4px; }
+.pbar span { display:block; height:100%; background:linear-gradient(90deg, #a07a20, var(--gold)); }
+.feed { display:flex; flex-direction:column; gap:7px; }
+.feed div { font-size:12.5px; line-height:1.45; color:#c5d0e4; padding-left:9px; border-left:2px solid var(--edge2); }
+.feed div.promo { border-color:var(--gold); } .feed div.mail { border-color:var(--cyan); } .feed div.walk { border-color:var(--green); } .feed div.first { border-color:var(--pink); } .feed div.reorg { border-color:var(--violet); } .feed div.crunch { border-color:#ff9a3a; }
+.mail { background:var(--panel2); border:1px solid var(--edge); border-radius:12px; padding:11px 12px; margin-bottom:8px; }
+.mail .mh { display:flex; justify-content:space-between; gap:8px; font-size:11.5px; color:var(--dim); }
+.mail .mh b { color:var(--ink); font-weight:600; }
+.mail .ms2 { font:700 14px/1.3 var(--head); margin:3px 0 4px; }
+.mail p { margin:0 0 8px; font-size:13px; line-height:1.45; color:#c5d0e4; }
+.choice { display:block; width:100%; text-align:left; background:#0c1424; border:1px solid var(--edge2); border-radius:9px; padding:8px 10px; font-size:12.5px; line-height:1.35; margin-top:5px; color:var(--ink); }
+.choice:hover { border-color:var(--cyan); }
+.dec { display:flex; flex-direction:column; gap:2px; padding:6px 0; border-bottom:1px solid #16233c; font-size:12.5px; }
+.dec b { font:600 13px/1.25 var(--head); color:var(--hl); }
+.dec span { color:var(--dim); }
+input.search { width:100%; background:#0c1424; border:1px solid var(--edge2); border-radius:8px; padding:8px 10px; color:var(--ink); font:inherit; font-size:13px; margin-bottom:6px; }
+mark.jg { background:transparent; color:var(--hl); border-bottom:1px dotted #ffe36a88; cursor:help; }
+#jtip { position:fixed; z-index:60; max-width:270px; background:#1b1530; border:1px solid #4a3a7a; color:#fff; border-radius:9px; padding:8px 10px; font-size:12.5px; line-height:1.4; pointer-events:none; box-shadow:0 10px 30px #000a; }
+#jtip b { display:block; color:var(--hl); font:600 12px/1.3 var(--head); margin-bottom:2px; }
+
+/* modal + toasts */
+.ov { position:fixed; inset:0; background:#02040aaa; backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:20px max(16px, env(safe-area-inset-right)) 20px max(16px, env(safe-area-inset-left)); z-index:50; overflow-y:auto; }
+.mo { background:var(--panel); border:1px solid var(--edge2); border-radius:16px; padding:22px 24px 20px; width:100%; max-width:470px; box-shadow:0 30px 80px #000c; margin:auto 0; }
+.mo .kick { font:700 11px/1 var(--head); letter-spacing:2px; text-transform:uppercase; color:var(--cyan); }
+.mo h2 { font:700 25px/1.15 var(--head); margin:6px 0 10px; }
+.mo p { font-size:14px; line-height:1.55; color:#c5d0e4; margin:0 0 10px; }
+.mo .quote { font-style:italic; color:var(--ink); border-left:3px solid var(--gold); padding-left:10px; }
+.mo ul { margin:0 0 10px; padding-left:18px; font-size:13.5px; line-height:1.5; color:#c5d0e4; }
+.mo .acts { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; flex-wrap:wrap; }
+.mo .bigv { font:700 32px/1.1 var(--head); color:var(--gold); margin:4px 0 10px; }
+#toasts { position:fixed; right:max(16px, env(safe-area-inset-right)); bottom:max(16px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:6px; z-index:40; pointer-events:none; max-width:min(380px, calc(100vw - 32px)); align-items:flex-end; }
+.toast { background:#0c1424f2; border:1px solid var(--edge2); border-radius:10px; padding:9px 12px; font-size:13px; line-height:1.4; box-shadow:0 8px 24px #000a; animation:tin .2s ease; }
+.toast b { color:var(--gold); }
+.toast.good { border-color:#2a7a55; } .toast.bad { border-color:#7a2a35; } .toast.decn { border-color:#6a5a1a; }
+@keyframes tin { from { opacity:0; transform:translateY(6px); } }
+
+/* phone and narrow screens: stack, and let the page scroll */
+@media (max-width: 860px) {
+  body { overflow:auto; }
+  #app { position:static; flex-direction:column; }
+  #boardWrap { height:auto; }
+  #top { gap:10px 14px; padding:10px 16px 4px; }
+  .brand small { display:none; }
+  #cash { font-size:28px; }
+  .eqs { margin-left:0; text-align:left; width:100%; }
+  .eqs:empty { display:none; }
+  #floors { flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+  .fl { flex:none; padding-right:4px; }
+  .fl span { display:none; }
+  .fl.on { padding-right:12px; }
+  .fl.on span { display:flex; }
+  .fl small { display:none; }
+  #cvWrap { flex:none; height:min(62vh, 520px); }
+  #tabs { flex-wrap:nowrap; overflow-x:auto; }
+  #toolbar { flex-wrap:wrap; }
+  #ticker { order:3; flex-basis:100%; white-space:normal; font-size:12px; }
+  .tb.crunch { margin-left:auto; }
+  #side { width:100%; border-left:0; border-top:1px solid var(--edge); }
+  #pane { overflow:visible; }
+  .parts { grid-template-columns:minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .stat { min-width:0; }
+  #moraleBox { width:118px; }
+  .rankchip { max-width:170px; }
+  .tb { padding:7px 8px; }
+}
+</style>
+<div id="app">
+  <section id="boardWrap" aria-label="The office">
+    <header id="top">
+      <div class="brand"><b>VALUE CHAIN</b><small>Hollingsworth Group · after hours</small></div>
+      <div class="money"><div id="cash" class="num">$0</div><div id="rate" class="num">$0/s</div></div>
+      <div class="stat" id="moraleBox" title="Morale speeds up Brainstorms. Crunch Time, Meetings and Consultants wear it down."><small>Morale</small><div class="meter"><span id="moraleBar"></span></div><b id="moraleTxt">80</b></div>
+      <button type="button" class="stat rankchip" id="rankChip" title="Open Career"><small id="rankSmall">Career</small><b id="rankTitle">Unpaid Intern</b><div class="meter"><span id="promoBar"></span></div></button>
+      <div class="stat eqs" id="eqLine"></div>
+    </header>
+    <div id="floorRow"><nav id="floors" aria-label="Floors"></nav><div class="hbtns"><button type="button" class="hb" id="bSound" aria-label="Sound" title="Sound">♪</button><button type="button" class="hb" id="bHelp" aria-label="How to play" title="How to play">?</button></div></div>
+    <div id="cvWrap"><canvas id="cv" aria-label="Floor plan. Click a tile to build."></canvas><div id="buffs"></div></div>
+    <div id="toolbar">
+      <div class="tl"><button type="button" class="tb" id="bRotate" title="Rotate (R)">⟳ Rotate</button><button type="button" class="tb" id="bUpg" title="Upgrade selected (U)">▲ Upgrade</button><button type="button" class="tb" id="bSellSel" title="Sell selected (X)">✕ Sell</button></div>
+      <div id="ticker" aria-live="polite"></div>
+      <button type="button" class="tb crunch" id="bCrunch" title="Crunch Time (Space)">CRUNCH TIME</button>
+    </div>
+    <div id="hint"></div>
+  </section>
+  <aside id="side" aria-label="Office tools">
+    <nav id="tabs"></nav>
+    <div id="pane"></div>
+  </aside>
+</div>
+<div id="ov" class="ov" role="dialog" aria-modal="true" hidden><div class="mo" id="mo"></div></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="jtip" hidden></div>
+<script>
+"use strict";
+const JARGON = [
+  ['circle back', 'We will never speak of this again.', 'circl(?:e|ed|ing) back'],
+  ['touch base', 'Interrupt someone to confirm nothing has changed.', 'touch(?:ing|ed)? base'],
+  ['synergy', 'Two departments doing one job, worse.', 'synerg(?:y|ies|ize|izing|istic)'],
+  ['leverage', 'Use, but with more syllables.', 'leverag(?:e|ed|ing)'],
+  ['move the needle', 'Make a number on a slide go up.', 'mov(?:e|ed|ing) the needle'],
+  ['low-hanging fruit', 'Work someone else already did.'],
+  ['deep dive', 'A meeting about a meeting.', 'deep[- ]dives?'],
+  ['take it offline', 'Stop talking in front of my boss.', 'tak(?:e|ing) (?:it|this) offline'],
+  ['bandwidth', 'Willingness, disguised as capacity.'],
+  ['paradigm shift', 'The same thing, in a new font.'],
+  ['value add', 'The part we bill extra for.', 'value[- ]adds?'],
+  ['pivot', 'We were wrong, but faster.', 'pivot(?:ed|ing|s)?'],
+  ['run it up the flagpole', 'Ask someone more senior to say no.', '(?:run|ran|running) it up the flagpole'],
+  ['parking lot', 'Where good ideas go to die.'],
+  ['win-win', 'I win twice.', 'win[- ]win'],
+  ['thought leadership', 'Opinions with a headshot.'],
+  ['disrupt', 'Break something that worked.', 'disrupt(?:ed|ing|ive|ion)?'],
+  ['ideate', 'Think, but billable.', 'ideat(?:e|ed|ing|ion)'],
+  ['north star', 'A metric nobody can name.'],
+  ['core competency', 'The one thing we haven\'t outsourced yet.', 'core competenc(?:y|ies)'],
+  ['best practice', 'What a consultant did once, in 2009.', 'best practices?'],
+  ['action item', 'A task assigned to whoever left the call first.', 'action items?'],
+  ['deliverable', 'Anything with a logo on it.', 'deliverables?'],
+  ['stakeholder', 'Someone who can say no but never says yes.', 'stakeholders?'],
+  ['alignment', 'Everyone agreeing to do nothing.', 'align(?:ment|ed)'],
+  ['holistic', 'We didn\'t read any of it, all at once.', 'holistic(?:ally)?'],
+  ['scalable', 'Works until a second person uses it.', 'scal(?:able|e it)'],
+  ['game changer', 'Slightly different.', 'game[- ]changers?'],
+  ['blue-sky thinking', 'Ideas with no budget.', 'blue[- ]sky(?: thinking)?'],
+  ['think outside the box', 'Do my job for me.', '(?:think(?:ing)? )?outside the box'],
+  ['hard stop', 'I\'m leaving whether this ends or not.'],
+  ['EOD', 'Some time before the heat death of the universe.', 'EOD'],
+  ['per my last email', 'Can you read?'],
+  ['unpack', 'I didn\'t understand any of that.', 'unpack(?:ing)?'],
+  ['double-click', 'Explain it again, slower.', 'double[- ]click(?:ing)?'],
+  ['level set', 'Remind everyone who is in charge.', 'level[- ]set'],
+  ['socialize', 'Forward it to everyone and hope.', 'socializ(?:e|ed|ing)'],
+  ['boil the ocean', 'Try to do everything. Finish nothing.', 'boil(?:ing)? the ocean'],
+  ['wheelhouse', 'The only thing I\'m good at.'],
+  ['tiger team', 'Five people who already have full-time jobs.'],
+  ['swim lane', 'Stay out of my project.', 'swim ?lanes?'],
+  ['ducks in a row', 'Excuses, prepared in advance.'],
+  ['move the goalposts', 'Change the target after you hit it.', 'mov(?:e|ed|ing) the goalposts'],
+  ['herding cats', 'Managing adults.'],
+  ['peel back the onion', 'Find more problems. Cry.', 'peel(?:ing)? back the onion'],
+  ['net-net', 'The summary I\'ll skip straight to.', 'net[- ]net'],
+  ['ecosystem', 'A product plus its add-ons.'],
+  ['quick win', 'Something to put in the newsletter.', 'quick wins?'],
+  ['bleeding edge', 'Untested.'],
+  ['mission-critical', 'Breaks on Fridays.', 'mission[- ]critical'],
+  ['rightsizing', 'Layoffs.', 'rightsiz(?:e|ed|ing)'],
+  ['headcount', 'People, as a number.'],
+  ['optimize', 'Remove.', 'optimiz(?:e|ed|ing|ation)'],
+  ['empower', 'Give more work without more pay.', 'empower(?:ed|ing|ment)?'],
+  ['learnings', 'Lessons, but plural-er.'],
+  ['the ask', 'A request, as a noun, as a threat.'],
+  ['solutioning', 'Problem solving, with a suffix.'],
+  ['operationalize', 'Do.', 'operationaliz(?:e|ed|ing)'],
+  ['incentivize', 'Bribe.', 'incentiviz(?:e|ed|ing)'],
+  ['onboarding', 'Three days of password resets.'],
+  ['offboarding', 'Escorted out by security.'],
+  ['KPI', 'A number that justifies someone\'s bonus.', 'KPIs?'],
+  ['OKR', 'KPIs, but with feelings.', 'OKRs?'],
+  ['ROI', 'Return on investment, or "no".', 'ROI'],
+  ['granular', 'Too many columns.'],
+  ['360 feedback', 'Anonymous revenge.', '360(?:-degree)? feedback'],
+  ['growth mindset', 'Accepting the pay freeze cheerfully.'],
+  ['fail fast', 'Fail, then blame the timeline.'],
+  ['agile', 'Meetings, but standing up.'],
+  ['sprint', 'A two-week marathon.', 'sprints?'],
+  ['standup', 'A sit-down that never ends.', 'stand-?ups?'],
+  ['retro', 'Where we agree to repeat our mistakes.', 'retros?'],
+  ['capacity', 'How much more you can be given.'],
+  ['cadence', 'How often we have this meeting.'],
+  ['sunset', 'Kill, gently.', 'sunset(?:ted|ting)?'],
+  ['greenlight', 'Approve something we\'ll cancel later.', 'green[- ]?l(?:ight|ighted|it)'],
+  ['ballpark', 'A guess you will be held to.'],
+  ['back burner', 'Never.', 'back[- ]burner'],
+  ['boots on the ground', 'Interns.'],
+  ['tee up', 'Make someone else go first.', 'tee(?:d)? (?:it |this )?up'],
+  ['loop in', 'CC, as a verb.', 'loop(?:ed|ing)? (?:me |you |them |him |her )?in'],
+  ['pain point', 'Something customers yell about.', 'pain points?'],
+  ['mindshare', 'People have heard of us, sadly.'],
+  ['reach out', 'Email.', 'reach(?:ed|es|ing)? out'],
+  ['going forward', 'We are pretending the past didn\'t happen.'],
+  ['at the end of the day', 'I\'m about to repeat myself.'],
+  ['it is what it is', 'Please don\'t ask me to fix it.'],
+  ['table that', 'Put it in the parking lot.'],
+  ['put a pin in it', 'Table that, but cuter.', 'put a pin in (?:it|that)'],
+  ['bring to the table', 'What you can do for me.', 'bring(?:s)? (?:\\w+ ){0,3}to the table'],
+  ['cross-functional', 'Nobody is responsible.', 'cross[- ]functional'],
+  ['customer-centric', 'We have a survey.', 'customer[- ]centric'],
+  ['data-driven', 'We found a chart that agrees with us.', 'data[- ]driven'],
+  ['drill down', 'Ask why, but with a laser pointer.', 'drill(?:ing)? down'],
+  ['hit the ground running', 'No training will be provided.', 'hit(?:ting)? the ground running'],
+  ['punt', 'Delay it and call it strategy.', 'punt(?:ed|ing)?'],
+  ['shift left', 'Do it earlier, with fewer people.'],
+  ['skin in the game', 'Your bonus is at risk. Not mine.'],
+  ['take ownership', 'It is your fault now.', 'tak(?:e|ing) ownership'],
+  ['value proposition', 'Why anyone should care (pending).'],
+  ['workstream', 'A task with a project code.', 'workstreams?'],
+  ['bake in', 'Add it later and claim it was always there.', 'bak(?:e|ed) (?:it |that )?in'],
+  ['bucket', 'A folder, conceptually.', 'buckets?'],
+  ['lean in', 'Work weekends.', 'lean(?:ing)? in'],
+  ['open door policy', 'The door is open. The calendar is not.'],
+  ['we\'re a family', 'We will guilt you into overtime.', 'we\'re a family'],
+  ['unlimited PTO', 'Zero PTO, plus anxiety.'],
+  ['pizza party', 'Your raise.', 'pizza part(?:y|ies)'],
+  ['culture fit', 'Likes the same podcasts as the boss.'],
+  ['rockstar', 'Will work for exposure.', 'rockstars?'],
+  ['ninja', 'A rockstar, but quieter.', 'ninjas?'],
+  ['wear many hats', 'Do three jobs for one salary.', 'wear(?:ing)? many hats'],
+  ['self-starter', 'Nobody will help you.', 'self[- ]starters?'],
+  ['fast-paced environment', 'Chaos.', 'fast[- ]paced(?: environment)?'],
+  ['competitive salary', 'Lower than you think.'],
+  ['reply-all', 'The nuclear option.', 'repl(?:y|ied)[- ]all'],
+  ['quiet quitting', 'Doing exactly your job description.'],
+  ['return to office', 'Commuting to join video calls.'],
+  ['restructuring', 'Rightsizing, but as a slide deck.', 're-?org(?:anization)?s?|restructur(?:e|ing)'],
+  ['10x', 'Loud.'],
+  ['on my radar', 'I have seen the email. I will not open it.'],
+  ['out of pocket', 'Unreachable, fashionably.'],
+  ['ping', 'An interruption, branded.', 'ping(?:ed|ing)?'],
+  ['heads-up', 'A warning you cannot act on.', 'heads[- ]up'],
+  ['offsite', 'A meeting with a buffet.', 'offsites?'],
+  ['all-hands', 'A meeting where one person talks.', 'all[- ]hands'],
+  ['town hall', 'An all-hands with a Q&A nobody uses.'],
+  ['big picture', 'Ignore the details that are on fire.'],
+  ['key takeaways', 'The only slide anyone reads.'],
+  ['deck', 'A document that is 80% logos.', 'decks?'],
+  ['Q4', 'A season of panic.'],
+  ['stretch goal', 'An impossible target, with a smile.', 'stretch (?:goals?|assignments?)'],
+  ['upskilling', 'Learning, on your own time.'],
+  ['pipeline', 'Things that might happen.'],
+  ['thought partner', 'Someone to blame in the meeting.', 'thought partners?'],
+  ['moving parts', 'Things I haven\'t tracked.'],
+  ['visibility', 'Being seen near work.'],
+  ['impact', 'Whatever your manager remembers.'],
+  ['bottom line', 'Money. Always money.'],
+];
+// =====================================================================
+// VALUE CHAIN — CONTENT
+// A deliverables factory at Hollingsworth Group, the company from
+// Another Day at the Office. Ideas ride workflows through buzzwords,
+// decks and committees until a stakeholder ships them for Value.
+// =====================================================================
+const COMPANY = 'Hollingsworth Group';
+
+// ---------------------------------------------------------------------
+// PARTS. cost/grow: purchase price and growth per owned copy.
+// up: upgrade base/growth. rank: career rank that unlocks it. t2: IPO only.
+// ---------------------------------------------------------------------
+const PARTS = {
+  belt:  { n:'Workflow', d:'Moves deliverables along. Drag to lay a line.', cost:2, grow:1, col:'#4a6a9a' },
+  gen:   { n:'Brainstorm', d:'Produces an Idea every few seconds. Only works on Floor 1: executives don\'t have ideas.', cost:15, grow:4, col:'#3ee6ff', up:{ base:12, grow:1.8 } },
+  core:  { n:'Stakeholder', d:'Ships deliverables for Value. Pays more on higher floors.', cost:30, grow:6, col:'#ffcf4a', up:{ base:60, grow:2.0 } },
+  add:   { n:'Buzzword', d:'Adds Value to everything that passes. Synergy, mostly.', cost:20, grow:1.6, col:'#5dffa8', up:{ base:25, grow:1.75 } },
+  mul:   { n:'Slide Deck', d:'Multiplies Value. Nobody reads past slide three.', cost:250, grow:1.9, col:'#ff5aa8', up:{ base:300, grow:1.85 }, rank:1 },
+  split: { n:'Reply All', d:'Copies a deliverable to the left and right. Each copy is worth a bit less.', cost:2500, grow:2.6, col:'#a98bff', up:{ base:3000, grow:2.2 }, rank:2 },
+  prism: { n:'Rebrand', d:'Huge multiplier, but each deliverable can only be rebranded once.', cost:40000, grow:2.6, col:'#ff9a3a', up:{ base:50000, grow:2.0 }, rank:3 },
+  comp:  { n:'Committee', d:'Collects 4 deliverables and releases one worth their total, plus a bonus.', cost:350000, grow:3, col:'#ff5a5a', up:{ base:400000, grow:2.1 }, rank:4 },
+  esc:   { n:'Escalation', d:'Sends a deliverable up to the same spot on the floor above, with a bonus.', cost:1e5, grow:4, col:'#7af0ff', up:{ base:1.2e5, grow:2.2 }, rank:4 },
+  meet:  { n:'Meeting', d:'Holds up to 3 deliverables for a few seconds, then releases them worth far more. If the room is booked, they walk past.', cost:2e7, grow:3, col:'#ffd8a8', up:{ base:2.5e7, grow:2.0 }, rank:5 },
+  cons:  { n:'Consultant', d:'Multiplies passing deliverables enormously. Bills 12% of all Value your company earns.', cost:5e10, grow:5, col:'#c9d2e3', up:{ base:6e10, grow:2.2 }, rank:6 },
+  // ---- after the IPO ----
+  stamp: { n:'Sign-off', d:'Signs the side a deliverable enters by. Signed on all 4 sides, it\'s Fully Aligned (huge bonus).', cost:3000, grow:2.2, col:'#ff6ae0', up:{ base:4000, grow:1.9 }, t2:1 },
+  fuse:  { n:'Merger', d:'Merges 2 deliverables into one of a higher grade. Stakeholders pay ×4 per grade.', cost:1e7, grow:2.6, col:'#5a7dff', up:{ base:1.5e7, grow:2.0 }, t2:1, rank:2 },
+  reso:  { n:'Circle Back', d:'Multiplies on every lap of a loop. Sends deliverables out the front until the laps are used, then out the side.', cost:5e9, grow:2.8, col:'#c6ff4a', up:{ base:6e9, grow:2.1 }, t2:1, rank:4 },
+  cat:   { n:'Middle Manager', d:'Produces nothing and blocks deliverables, but the 4 parts touching it get free levels.', cost:5e13, grow:4, col:'#e8ecff', up:{ base:6e13, grow:2.5 }, t2:1, rank:5 },
+  exp:   { n:'AI Transformation', d:'Raises a deliverable\'s Value to a power, once per deliverable, ever. Put it last.', cost:1e19, grow:3.5, col:'#fff1a8', up:{ base:1.5e19, grow:2.4 }, t2:1, rank:6 },
+  arr:   { n:'Arrivals', d:'Escalated deliverables arrive here from the floor below and head the way the arrow points.', cost:0, grow:1, col:'#7af0ff', fixed:1 }
+};
+const ORDER = ['belt', 'gen', 'core', 'add', 'mul', 'split', 'prism', 'comp', 'esc', 'meet', 'cons', 'stamp', 'fuse', 'reso', 'cat', 'exp'];
+
+// ---------------------------------------------------------------------
+// FLOORS. Stakeholders pay ×10^pay. Brainstorms only on Floor 1.
+// ---------------------------------------------------------------------
+const FLOORS = [
+  { n:'Floor 1', sub:'The Cubicle Farm', pay:0, rank:0, tint:'#0a1222', line:'#16233c' },
+  { n:'Floor 12', sub:'Middle Management', pay:2, rank:4, tint:'#0d1424', line:'#1d2a44' },
+  { n:'Floor 30', sub:'The Executive Suite', pay:5, rank:6, tint:'#120f22', line:'#2a2244' },
+  { n:'Floor 51', sub:'The Boardroom', pay:9, rank:8, tint:'#16101a', line:'#36243a' }
+];
+
+// ---------------------------------------------------------------------
+// CAREER. need: run-rate (log10 of $/s) to ask for this rank.
+// grid: [w, h] for every floor. pay: sales bonus (×).
+// ---------------------------------------------------------------------
+const RANKS = [
+  { t:'Unpaid Intern', boss:'Todd', grid:[8, 5], need:null, pay:1 },
+  { t:'Associate', boss:'Todd', grid:[9, 6], need:0.7, pay:1.5, unlock:'Slide Decks' },
+  { t:'Senior Associate', boss:'Todd', grid:[10, 6], need:1.8, pay:2, unlock:'Reply All and Crunch Time' },
+  { t:'Team Lead', boss:'Marcia', grid:[11, 7], need:3.0, pay:3, unlock:'Rebrands' },
+  { t:'Manager', boss:'Marcia', grid:[12, 7], need:4.4, pay:4, unlock:'Committees, Escalations and Floor 12 (Middle Management)' },
+  { t:'Director', boss:'Dirk', grid:[13, 8], need:6.2, pay:6, unlock:'Meetings' },
+  { t:'Vice President', boss:'Dirk', grid:[14, 9], need:8.5, pay:8, unlock:'Consultants and Floor 30 (the Executive Suite)' },
+  { t:'Senior Vice President', boss:'Trent', grid:[15, 9], need:11.5, pay:11, unlock:'a corner office (bigger floors)' },
+  { t:'Chief Executive Officer', boss:'the Board', grid:[16, 10], need:15, pay:16, unlock:'Floor 51 (the Boardroom)' }
+];
+const PROMO_LINES = {
+  Todd:['Todd: "Honestly? You\'ve been moving the needle. Let\'s make it official."', 'Todd: "I ran it up the flagpole and the flagpole said yes."', 'Todd: "You bring so much to the table. Same desk, new title. Mostly the title."'],
+  Marcia:['Marcia: "Your workstream is very aligned. I\'m socializing your promotion now."', 'Marcia: "Congratulations. You now own the north star. Please don\'t ask what it is."'],
+  Dirk:['Dirk: "You think outside the box. I\'ve decided to put you in a bigger box."', 'Dirk: "Welcome to the leadership team. The ask is simple: more."'],
+  Trent:['Trent: "I see a lot of myself in you. Mostly the parts I paid for."'],
+  'the Board':['The Board: "We have reviewed the numbers. They go up. The job is yours."']
+};
+const PROMO_DENY = ['"Love the energy. Let\'s revisit in Q4." (Your run-rate isn\'t there yet.)', '"I\'m going to put a pin in this. Get the run-rate up and we\'ll circle back."'];
+
+// ---------------------------------------------------------------------
+// TRAINING (bought with Value; resets on a Reorg unless you own Tribal Knowledge)
+// ---------------------------------------------------------------------
+const TRAINING = {
+  t_speed:  { n:'Process Optimization', d:'+25% workflow speed per level. Same process, faster.', cost:400, lv:6, grow:3.5 },
+  t_sales:  { n:'Client Relationships', d:'+20% Value from every Stakeholder per level.', cost:1500, lv:10, grow:3.2 },
+  t_walk:   { n:'Networking', d:'Coworkers drop by more often and their favors pay more.', cost:5000, lv:3, grow:6 },
+  t_well:   { n:'Wellness Program', d:'Morale recovers 50% faster per level. It\'s a yoga app.', cost:20000, lv:3, grow:8 },
+  t_crunch: { n:'Hustle Culture', d:'Crunch Time lasts 25s and recharges faster.', cost:8e5, rank:2 },
+  t_remote: { n:'Remote Work', d:'Earn 80% of your run-rate while you\'re away, up from 40%. Your camera is "broken".', cost:2e5 },
+  t_market: { n:'Global Expansion', d:'×3 Value from every Stakeholder per level.', cost:1e9, lv:10, grow:1e3, t2:1 }
+};
+
+// ---------------------------------------------------------------------
+// REORG (prestige 1): Equity ◆. PERKS are bought with banked Equity.
+// ---------------------------------------------------------------------
+const EQ_K = 1;     // Equity = 10^((log earned − 6) / EQ_K)
+const REORG_AT = 6;                         // log10($1M) earned this run
+const IPO_AT = 308.25;                      // log10(1.8e308), the largest number a spreadsheet can hold
+const MILESTONES = [
+  [1, 'Start each run with $200, as an Associate.'],
+  [3, 'Start as a Senior Associate.'],
+  [5, 'Workflows cost nothing to place.'],
+  [10, 'Earn 100% of your run-rate while away. Start as a Team Lead.'],
+  [25, 'Start as a Manager, with Floor 12 open.'],
+  [60, 'Deliverables move 50% faster.'],
+  [1000, 'Start as a Director, with Process Optimization maxed.'],
+  [1e6, 'After the IPO: start with Mergers and Circle Backs.']
+];
+const PERKS = {
+  auto:    { n:'Delegation', d:'Twice a second, buys the cheapest upgrade that costs under half your Value.', cost:3, tog:1 },
+  rebuild: { n:'Process Documentation', d:'After a Reorg, your old layout rebuilds itself as Value allows.', cost:5, tog:1 },
+  seed:    { n:'Signing Bonus', d:'Start each run with ×100 more Value per level.', cost:4, grow:6, max:15 },
+  net:     { n:'Open Door Policy', d:'Coworkers drop by 20% sooner and pay 50% more per level.', cost:6, grow:4, max:5 },
+  oc:      { n:'Mandatory Overtime', d:'Crunch Time speeds Brainstorms one step more per level (×3 to ×6).', cost:10, grow:8, max:3 },
+  melt:    { n:'Golden Parachute', d:'+25% Equity from every Reorg per level.', cost:15, grow:5, max:8 },
+  keepRes: { n:'Tribal Knowledge', d:'Training survives a Reorg.', cost:60 },
+  zen:     { n:'Nap Pods', d:'Morale never drops below 50.', cost:120 }
+};
+// ---------------------------------------------------------------------
+// IPO (prestige 2): Board Seats ⬢
+// ---------------------------------------------------------------------
+const BOARD = {
+  sales: { n:'Shareholder Value', d:'×10 Value from every Stakeholder per level.', cost:1, grow:2, max:20 },
+  seal:  { n:'Total Alignment', d:'Fully Aligned deliverables pay ×10 more per level.', cost:1, grow:3, max:10 },
+  quick: { n:'Agile Transformation', d:'+25% workflow speed per level.', cost:2, grow:2, max:4 },
+  mem:   { n:'Retention Bonus', d:'Keep 10% of your Equity (and its milestones) through an IPO, per level.', cost:3, grow:3, max:5 },
+  lock:  { n:'Grandfathered Perks', d:'Perks survive an IPO.', cost:4 }
+};
+
+// ---------------------------------------------------------------------
+// COWORKERS who drop by (click them for a favor)
+// ---------------------------------------------------------------------
+const WALKBYS = [
+  { id:'chad', n:'Chad', col:'#e2483d', w:3, fx:'cash', s:30, say:['"Bro. Hot lead. Leverage it."', '"Closed a deal on the golf course. You\'re welcome. Circle back."'] },
+  { id:'priya', n:'Priya', col:'#f08a5d', w:2, fx:'cash', s:75, say:['"I pre-finished your deliverables. And the ones after those."', '"I took ownership of your backlog. It\'s color-coded now."'] },
+  { id:'kyle', n:'Kyle', col:'#00a6a6', w:2, fx:'gen', m:2, dur:30, say:['"Growth hack: what if the brainstorms went faster?"', '"Fail fast, ideate faster. Brainstorms ×2."'] },
+  { id:'brenda', n:'Brenda', col:'#2a9d6f', w:2, fx:'morale', v:25, say:['"Pizza party! Two slices max. Culture is everything."', '"Surprise! It\'s a mandatory fun break. Morale +25."'] },
+  { id:'gary', n:'Gary', col:'#8a96ad', w:2, fx:'lv', v:3, say:['"Fixed your laptop. Also upgraded some stuff. Don\'t tell anyone."', '"I opened a ticket and then closed it myself. Free upgrades."'] },
+  { id:'linda', n:'Linda', col:'#c05299', w:1, fx:'sales', m:3, dur:20, say:['"I got you five minutes on Trent\'s calendar. Stakeholders ×3."', '"Trent\'s out of pocket. I signed off on everything. ×3."'] }
+];
+
+// ---------------------------------------------------------------------
+// INBOX. fx keys: sec (gain N seconds of run-rate), lose (lose % of Value),
+// morale, buff [kind, mult, seconds] (kind: gen | sales | speed), lv (free part levels)
+// minRank / minFloor / t2 gate who gets the email.
+// ---------------------------------------------------------------------
+const EMAILS = [
+  { id:'welcome', from:'Todd Brennan', subj:'Welcome to the Value Chain!', body:'Welcome aboard! Your Brainstorm makes Ideas, the Workflow moves them, and the Stakeholder ships them for Value. Add a Buzzword to the line and watch the impact. Let\'s touch base EOD.',
+    choices:[{ l:'"Excited to hit the ground running!"', fx:{ sec:20 }, t:'Todd reacts with a rocket emoji. You feel seen.' }, { l:'"What is a Value Chain?"', fx:{ morale:5 }, t:'Todd sends you a 40-slide deck. Slide one says "Value." Slide two says "Chain."' }] },
+  { id:'pizza', from:'Brenda Kowalski', subj:'Pizza party Friday!!', body:'To celebrate a record quarter, we\'re having a pizza party! Two slices max. Attendance is optional but tracked. We\'re a family here.',
+    choices:[{ l:'Go to the pizza party', fx:{ morale:20, buff:['gen', 0.7, 30] }, t:'Two slices. Brenda says culture is everything. The brainstorms slow down while everyone is eating.' }, { l:'Stay at your desk', fx:{ sec:40, morale:-10 }, t:'You hear the party through the wall. Your run-rate doesn\'t care.' }] },
+  { id:'offsite', from:'Marcia Feld', minRank:2, subj:'Strategy offsite (mandatory)', body:'We\'re doing a two-day offsite to align on our north star and peel back the onion on Q4. There will be trust falls. Blue-sky thinking only.',
+    choices:[{ l:'Attend and ideate', fx:{ buff:['sales', 2, 60], morale:-8 }, t:'You return with a laminated north star. Stakeholders love it. You do not love trust falls.' }, { l:'"I have a hard stop."', fx:{ morale:6 }, t:'Marcia writes "not a culture fit?" in a notebook you weren\'t meant to see.' }] },
+  { id:'replyall', from:'IT Help Desk', subj:'RE: RE: RE: RE: Who took my stapler', body:'Somebody hit reply-all on the 4,000-person list. People are replying-all to ask people to stop replying-all.',
+    choices:[{ l:'Reply-all "please remove me"', fx:{ morale:-6, sec:5 }, t:'You are now part of the problem. You get 600 replies thanking you for your leadership.' }, { l:'Mute the thread', fx:{ morale:4 }, t:'Peace. At the end of the day, it is what it is.' }] },
+  { id:'rto', from:'Trent Hollingsworth III', subj:'Return to office: a message from Trent', body:'Effective Monday, we\'re returning to office five days a week, to foster synergy and empower collaboration. The offices have been rightsized. There are fewer chairs.',
+    choices:[{ l:'Come in every day', fx:{ buff:['speed', 1.4, 60], morale:-15 }, t:'Workflows move faster when everyone\'s watching. You commute 90 minutes for a video call.' }, { l:'Quietly hybrid', fx:{ morale:8, lose:5 }, t:'Your badge data is "under review." You lose a little Value to a compliance audit.' }] },
+  { id:'okr', from:'Marcia Feld', minRank:1, subj:'Q4 OKRs are due', body:'Please submit your OKRs by EOD. Remember: Key Results must be measurable, ambitious, and achievable. Pick two.',
+    choices:[{ l:'Stretch goals', fx:{ buff:['gen', 1.6, 45], morale:-10 }, t:'You commit to 300% growth. The brainstorms work harder out of fear.' }, { l:'Sandbag it', fx:{ sec:30 }, t:'Your KPIs are green. Everyone\'s KPIs are green. That\'s the trick.' }] },
+  { id:'linkedin', from:'LinkedIn', subj:'You appeared in 9 searches this week', body:'Someone at a company you\'ve never heard of viewed your profile. Upgrade to Premium to see who. Also, your former intern is now a VP. Congratulate them!',
+    choices:[{ l:'Post some thought leadership', fx:{ sec:25, morale:-4 }, t:'"I\'m humbled to announce..." 400 likes. Your mother comments "proud of you!!" on the wrong post.' }, { l:'Close the tab', fx:{ morale:6 }, t:'Growth mindset: unaffected.' }] },
+  { id:'consult', from:'Dirk Vandermolen', minRank:5, subj:'Bringing in some help', body:'I\'ve engaged McAllister & Partners for a 12-week deep dive into our value proposition. They\'ll be shadowing everyone. Please don\'t make eye contact; it\'s billable.',
+    choices:[{ l:'Welcome them', fx:{ buff:['sales', 3, 40], lose:15 }, t:'They produce a 200-page report recommending you hire them again. Sales triple. So does the invoice.' }, { l:'"We have it in-house."', fx:{ morale:10 }, t:'Dirk says "noted" in a tone that is not noted.' }] },
+  { id:'hackathon', from:'Kyle Jensen', subj:'Hackathon this weekend! 🚀', body:'48 hours to disrupt ourselves. Free energy drinks. The winning idea gets a trophy and gets sunset by Q2.',
+    choices:[{ l:'Join the hackathon', fx:{ buff:['gen', 2.5, 40], morale:-18 }, t:'You build an app that schedules meetings about apps. It wins. The brainstorms are on fire.' }, { l:'Have a weekend', fx:{ morale:15 }, t:'You touch grass. It\'s scalable.' }] },
+  { id:'survey', from:'Brenda Kowalski', subj:'Anonymous engagement survey', body:'Please complete our 100% anonymous engagement survey. It\'s linked to your employee ID for anonymity purposes.',
+    choices:[{ l:'Be honest', fx:{ morale:12, lose:3 }, t:'Your feedback is "socialized." Your manager thanks you for your candor, by name.' }, { l:'Rate everything 5 stars', fx:{ sec:20 }, t:'Engagement is up 4%. A slide celebrates it.' }] },
+  { id:'reorg_rumor', from:'Chad Brockman', subj:'heads-up', body:'Bro, heads-up. Hearing a restructuring is coming. Lots of moving parts. Might be time to take ownership of something visible.',
+    choices:[{ l:'Take ownership of something visible', fx:{ buff:['sales', 1.8, 60] }, t:'You put your name on the most visible deliverable. Visibility: achieved. Work: unchanged.' }, { l:'Keep your head down', fx:{ morale:5, sec:15 }, t:'You fly under the radar. It\'s a valid career strategy for a while.' }] },
+  { id:'standup', from:'Priya Raman', subj:'Adding a daily standup', body:'To improve our cadence, I\'m adding a 15-minute standup every morning, plus a 30-minute pre-standup to prepare. And a retro on Fridays.',
+    choices:[{ l:'Accept', fx:{ buff:['speed', 0.7, 40], buff2:['sales', 1.5, 40] }, t:'Everyone moves slower but in the same direction. The stakeholders call it alignment.' }, { l:'Decline (it could have been an email)', fx:{ morale:8 }, t:'Priya puts a pin in it. Priya has never removed a pin.' }] },
+  { id:'ai_mandate', from:'Dirk Vandermolen', minRank:4, subj:'We are now an AI-first company', body:'Effective immediately, every team must leverage AI. I don\'t know what that means. Please operationalize it by EOD.',
+    choices:[{ l:'Rename the Brainstorm "AI Ideation"', fx:{ buff:['sales', 2.5, 30] }, t:'Same Brainstorm, new name. Stakeholders pay more for anything with AI in it.' }, { l:'Write a strategy deck about it', fx:{ sec:60, morale:-6 }, t:'300 slides, generated in four seconds. Dirk calls it a game changer.' }] },
+  { id:'layoffs', from:'Trent Hollingsworth III', minRank:3, subj:'An update on our team', body:'Today we made the difficult decision to rightsize. This is about our cost structure, not our incredible people, some of whom are now in our alumni network.',
+    choices:[{ l:'Survivor\'s guilt (work harder)', fx:{ buff:['gen', 1.8, 45], morale:-20 }, t:'You do the work of three people. Three people\'s worth of morale goes with it.' }, { l:'Update your résumé', fx:{ morale:5, lose:4 }, t:'You spend an afternoon describing yourself as a "self-starter in a fast-paced environment."' }] },
+  { id:'gary', from:'Gary Pham', subj:'Mandatory password reset', body:'Your password expires today. New password must be 16 characters, with a symbol, a hieroglyph and a word you have never said out loud.',
+    choices:[{ l:'Comply', fx:{ lv:2 }, t:'Gary is so moved by your compliance he quietly upgrades two of your parts.' }, { l:'Put it on a sticky note', fx:{ sec:15, morale:3 }, t:'Security through visibility.' }] },
+  { id:'tigerteam', from:'Marcia Feld', minRank:3, subj:'Tiger team assignment', body:'You\'ve been selected for a cross-functional tiger team to solution our pain points. It\'s on top of your current workstream. It\'s an honor.',
+    choices:[{ l:'Accept the honor', fx:{ buff:['sales', 2, 50], morale:-12 }, t:'Your swim lane is now an ocean. The stakeholders are impressed.' }, { l:'"I don\'t have the bandwidth."', fx:{ morale:4 }, t:'Marcia says she\'s "hearing a capacity concern." She writes it down. In pen.' }] },
+  { id:'unlimited', from:'Brenda Kowalski', subj:'Introducing Unlimited PTO!', body:'Great news: we now offer unlimited PTO! Take as much as you want, as long as nobody notices you\'re gone. Accrued vacation has been sunset.',
+    choices:[{ l:'Take a week off', fx:{ morale:30, buff:['gen', 0.5, 30] }, t:'You come back rested. Everyone asks if "everything is okay."' }, { l:'Take zero days, like everyone else', fx:{ sec:45, morale:-8 }, t:'Average PTO taken under the unlimited policy: 4 days. Industry-leading.' }] },
+  { id:'boardvisit', from:'Linda Okafor', minRank:6, subj:'The board is visiting Floor 30', body:'The board will tour the Executive Suite on Thursday. Please make it look like value is being created. The plants have been replaced with nicer plants.',
+    choices:[{ l:'Stage a demo', fx:{ buff:['sales', 4, 30], morale:-10 }, t:'You run every deliverable through the nicest Stakeholder. The board says "hm" in a good way.' }, { l:'Hide in the parking lot', fx:{ morale:10 }, t:'The board meets a ficus and is satisfied.' }] },
+  { id:'ipo_roadshow', from:'Trent Hollingsworth III', t2:1, subj:'Quarterly earnings call', body:'Analysts are asking about our "path to profitability." I told them we have a path. Please create a path.',
+    choices:[{ l:'Beat the estimates', fx:{ buff:['sales', 5, 40], morale:-15 }, t:'You beat estimates by a penny. The stock rises 30%. Nobody knows why. Nobody asks.' }, { l:'Guide conservatively', fx:{ sec:120 }, t:'Analysts call it "prudent." That\'s analyst for "boring."' }] },
+  { id:'merger_talks', from:'Dirk Vandermolen', t2:1, subj:'Exploratory merger conversations', body:'We\'re in talks to acquire a startup with no revenue and a very good logo. Synergies are expected to be significant and unspecified.',
+    choices:[{ l:'Acquire them', fx:{ lv:5, lose:10 }, t:'You absorb fifty disruptors. They all report to you now. Some of your parts level up from the energy.' }, { l:'Pass', fx:{ morale:5 }, t:'The startup is acquired by a competitor and immediately sunset.' }] },
+  { id:'culture', from:'Brenda Kowalski', minRank:2, subj:'Our new company values', body:'After a six-month process, we\'re proud to share our new values: Integrity. Excellence. Synergy. Hustle. Also Integrity again, by popular demand.',
+    choices:[{ l:'Live the values', fx:{ morale:10, buff:['sales', 1.3, 60] }, t:'You put a values poster on your cubicle. A stakeholder notices. That counts.' }, { l:'Ask which value is "hustle"', fx:{ morale:-3, sec:20 }, t:'Brenda takes it offline. "It\'s a vibe," she explains later.' }] },
+  { id:'ninja', from:'Kyle Jensen', subj:'We\'re hiring rockstars', body:'Write a job ad for a 10x ninja rockstar who wears many hats, at an entry-level competitive salary. Must be a self-starter with 8 years of experience in a 2-year-old tool.',
+    choices:[{ l:'Post it', fx:{ buff:['gen', 1.5, 60] }, t:'The new hire is a ninja. Specifically, nobody has ever seen them. The brainstorms pick up anyway.' }, { l:'Rewrite it honestly', fx:{ morale:8 }, t:'"Wanted: person. Will be tired." Zero applicants. Very honest.' }] },
+  { id:'feedback', from:'Todd Brennan', subj:'Your 360 feedback is in', body:'Your 360 feedback is in! Highlights: "great energy," "a real thought partner," and "who?" Let\'s double-click on the learnings.',
+    choices:[{ l:'Lean in to the learnings', fx:{ buff:['speed', 1.3, 60] }, t:'You commit to a growth mindset. Workflows run a little faster out of sheer optimism.' }, { l:'Ask who wrote "who?"', fx:{ morale:-5, sec:15 }, t:'It was anonymous. It was Chad.' }] },
+  { id:'townhall', from:'Trent Hollingsworth III', minRank:4, subj:'All-hands town hall', body:'Join us for an all-hands town hall. There will be a Q&A. Questions must be submitted in advance and will be answered by a slide.',
+    choices:[{ l:'Submit a real question', fx:{ morale:-6, sec:30 }, t:'Your question is read aloud, "rephrased for clarity," and becomes a question about how great the quarter was.' }, { l:'Watch on mute', fx:{ morale:6 }, t:'Key takeaways: we are going forward. Also there are no raises.' }] },
+  { id:'quietquit', from:'Priya Raman', subj:'Is everyone okay??', body:'I noticed some team members leaving at 5pm. Is this quiet quitting? I\'ve made a deck about it. It has a slide about me.',
+    choices:[{ l:'Defend leaving at 5', fx:{ morale:12, lose:3 }, t:'You and Priya agree to disagree. She adds a slide about that too.' }, { l:'Stay until 9', fx:{ sec:50, morale:-12 }, t:'Priya sends you a "great hustle!!" at 9:04 PM. She is also still there.' }] },
+  { id:'audit', from:'Legal', minRank:5, subj:'Routine compliance audit', body:'This is a routine audit. Please preserve all documents. Please do not delete anything. Please especially do not delete the thing you are thinking of deleting.',
+    choices:[{ l:'Cooperate fully', fx:{ lose:8, morale:5 }, t:'The auditors find nothing, and invoice for it.' }, { l:'"Per my last email..."', fx:{ sec:40, morale:-5 }, t:'Legal reads your last email. Legal regrets reading your last email.' }] },
+  { id:'mentor', from:'Linda Okafor', minRank:3, subj:'Mentorship program', body:'You\'ve been paired with a mentor! Your mentor is Chad. He has blocked off 15 minutes, in a parking garage.',
+    choices:[{ l:'Take the meeting', fx:{ buff:['sales', 2, 45] }, t:'Chad\'s advice: "always be closing, never be closed." Somehow, it helps.' }, { l:'Find a different mentor', fx:{ morale:5, lv:1 }, t:'Gary agrees to mentor you. He upgrades one of your parts out of pity.' }] },
+  { id:'swag', from:'Brenda Kowalski', subj:'New company swag!', body:'Everyone gets a branded fleece vest! Vests are the core competency of a company that has made it.',
+    choices:[{ l:'Wear the vest', fx:{ morale:8, buff:['sales', 1.2, 60] }, t:'You look like you have a podcast. Stakeholders trust you more.' }, { l:'Sell it on eBay', fx:{ sec:25 }, t:'The vest goes for $9. Value is value.' }] },
+  { id:'budget', from:'Finance', minRank:4, subj:'Use it or lose it', body:'Your department has unspent budget. If it isn\'t spent by Friday, next year\'s budget will be cut by the same amount. Please spend it on anything.',
+    choices:[{ l:'Spend it all on a ping-pong table', fx:{ morale:20 }, t:'Nobody plays. Everyone feels better knowing it\'s there.' }, { l:'Return it', fx:{ sec:60, morale:-4 }, t:'Finance thanks you. Next year\'s budget is cut anyway, as a best practice.' }] }
+];
+
+// ---------------------------------------------------------------------
+// CHATTER: the office feed under the board. One every ~25s.
+// ---------------------------------------------------------------------
+const CHATTER = [
+  'Chad is "leveraging his network" at the coffee machine. Again.',
+  'Priya scheduled a meeting to align on the meeting cadence.',
+  'Kyle pivoted his side project. It is now a newsletter about pivoting.',
+  'Gary put a sign on the printer: "Out of order. Like everything."',
+  'Someone in Finance said "net-net" twice in one sentence and got promoted.',
+  'Marcia is boiling the ocean. She says it\'s a stretch goal.',
+  'Todd wants to socialize an idea before it\'s an idea.',
+  'The parking lot from last week\'s meeting is now a full agenda.',
+  'Brenda announced an open door policy. Her door is locked.',
+  'Dirk said "boots on the ground" about a spreadsheet.',
+  'An intern asked what "synergy" means. Nobody could say. The intern was promoted.',
+  'Chad is "on a call" in the stairwell. The call is with his landlord.',
+  'Someone used "bleeding edge" to describe a fax machine.',
+  'The ecosystem team is now a "tiger team." Same people, new animal.',
+  'Linda is tee-ing up a deep dive with Trent. Trent is out of pocket until Q3.',
+  'Marcia asked everyone to "get their ducks in a row." The ducks are in a spreadsheet.',
+  'Kyle wants to shift left on lunch.',
+  'Priya would like to double-click on something you said in 2019.',
+  'The KPI dashboard is green. The building is on fire. Both are data-driven.',
+  'Todd moved the goalposts, then congratulated the team for scoring.',
+  'There is a new acronym. Nobody knows it, so everyone uses it.',
+  'Someone put "customer-centric" in a customer complaint reply.',
+  'The ROI on the ROI study is still being calculated.',
+  'Herding cats is now a formal workstream.',
+  'Dirk says the north star moved. Nobody saw it move.',
+  'Chad said "win-win." He won twice.',
+  'An email says "per my last email." The office goes quiet.',
+  'Facilities is bringing in standing desks to incentivize standing.',
+  'Gary has been asked to "operationalize the Wi-Fi."',
+  'Brenda is onboarding a new hire and offboarding another, in the same room.',
+  'The value add of the value-add team is under review.',
+  'Kyle used "10x" as a verb.',
+  'Priya pinged you to ask if you saw her ping.',
+  'Marcia: "Let\'s not boil the ocean. Let\'s boil the lake."',
+  'Todd is "taking it offline," which means the hallway.',
+  'Someone wrote "solutioning" on a whiteboard and walked away.',
+  'There\'s cake in the break room for Gerald. Nobody knows Gerald.',
+  'Linda put a pin in a pin.',
+  'The agile coach is doing a retro on the retro.',
+  'Finance reports the bottom line is on the bottom, as expected.',
+  'Your granular deliverable has been punted to the back burner.',
+  'Dirk wants "more mindshare" for a product we don\'t sell yet.',
+  'Chad says he\'s in his wheelhouse. His wheelhouse is a golf cart.',
+  'Someone used "learnings" in a sentence and meant it.',
+  'Todd scheduled a "quick sync" for 90 minutes.',
+  'The ballpark estimate was for a different ballpark.',
+  'Marcia greenlit a project, then sunset it, then greenlit it, in one meeting.',
+  'Kyle\'s growth mindset has a growth mindset.',
+  'Brenda says we\'re a family. Like a family, nobody can leave the group chat.',
+  'Someone pitched "Uber, but for meetings." It got funding.',
+  'Priya is upskilling on a weekend. She is upskilling the weekend.',
+  'Gary set an EOD deadline for a ticket from 2017.',
+  'Dirk wants to bake in some skin in the game. Nobody asked how.',
+  'Todd asked who wants to take ownership. Everyone looked at the intern.',
+  'An empower initiative was rolled out to empower people to attend the empower initiative.',
+  'The capacity planning meeting ran out of capacity.',
+  'Someone said "going forward" and the room nodded backward.',
+  'Marcia is reaching out to loop in the person she just looped out.',
+  'The best practice is to do what the last consultant said, in 2009.',
+  'Chad wants to bring something to the table. It\'s a cold brew.',
+  'A visibility consultant is visibly consulting.',
+  'Kyle is putting a bucket of ideas into a bucket.',
+  'Priya says she wears many hats. They are all the same hat.',
+  'There\'s a new swim lane. It\'s mostly a lane.',
+  'Somebody asked for a heads-up about the heads-up.',
+  'The holistic review reviewed nothing, all at once.',
+  'The game changer turned out to be a font.',
+  'An OKR was written for writing OKRs.',
+  'Todd has an action item to assign action items.',
+  'Someone said "it\'s mission-critical" about a birthday card.',
+  'Brenda is drafting a culture fit rubric. It\'s a picture of Brenda.',
+  'Dirk is drilling down on the drill-down.',
+  'The pipeline is full. It\'s full of things that might happen.',
+  'Kyle said we should "disrupt the elevator." The elevator was fine.',
+  'Marcia is running it up the flagpole. The flagpole is busy.',
+  'Linda has the whole sprint on her radar.',
+  'Someone said "thought leadership" at a funeral.',
+  'Gary says the low-hanging fruit is a broken chair.',
+  'The paradigm shift was scheduled for Tuesday but moved to Wednesday.',
+  'Chad says his core competency is "the hang."',
+  'Todd wants a level set before the level set.',
+  'Priya is cross-functional now. She crosses all the functions.',
+  'A sprint is now three weeks long. "It\'s more of a jog," Todd explains.',
+  'The standup is now a sit-down.',
+  'The return to office has returned to a different office.',
+  'Kyle is pivoting from "move fast" to "move fast and fix things later."',
+  'There\'s a scalable plan to scale the plan.',
+  'Someone said "unpack that" and nobody had brought luggage.',
+  'The value proposition has been proposed. Value TBD.',
+  'Facilities says the hard stop is a door.',
+  'Someone said "quick win" and lost an afternoon.',
+  'Marcia says the ask is small. It is not small.',
+  'Dirk found a pain point. It was his shoe.',
+  'Brenda is incentivizing incentives.',
+  'Todd says "we\'re all in the same boat." The boat has a business class.',
+  'Finance says headcount is "fluid." Nobody asked what that makes the people.',
+  'Dirk wants to optimize the optimization team.',
+  'Linda will tee up a meeting to tee up the meeting.',
+  'Someone suggested raises. Todd said "let\'s table that."',
+  'Marcia: "Let\'s put a pin in it." The pin is now load-bearing.',
+  'Kyle likes to wear many hats. Expenses will reimburse one.',
+  'Chad says your deliverable is "on my radar." His radar is a golf app.',
+  'Dirk wants everyone to see the big picture. The big picture is a stock chart.'
+];
+
+// ---------------------------------------------------------------------
+// LOG LINES for big moments
+// ---------------------------------------------------------------------
+const FIRSTS = {
+  add:'Your first Buzzword. The deliverable now says "synergy" three times. Stakeholders pay more for it.',
+  mul:'A Slide Deck! Nobody will read past the key takeaways, but the multiplier is real.',
+  split:'You hit Reply All. Every deliverable now goes to two people who didn\'t need it.',
+  prism:'A Rebrand: same thing, new font, much higher price. Once per deliverable, legally.',
+  comp:'A Committee. Four ideas go in, one comes out, and everyone takes credit for it.',
+  esc:'An Escalation. Deliverables can now go over someone\'s head, literally. Floor 12 is waiting.',
+  meet:'A Meeting. It could have been an email, but emails don\'t multiply anything.',
+  cons:'A Consultant has arrived. He bills for the first hour, which was the introduction.',
+  stamp:'Sign-off: a deliverable signed on all four sides is Fully Aligned. Nobody will ever read it.',
+  fuse:'A Merger. Two deliverables become one, with synergies expected to be significant.',
+  reso:'Circle Back: every lap of a loop multiplies. We will never speak of it again, repeatedly.',
+  cat:'A Middle Manager. Produces nothing. The four parts around them try harder.',
+  exp:'AI Transformation. Nobody knows what it does. The number gets an exponent.'
+};
+
+// ---------------------------------------------------------------------
+// TUTORIAL + ACHIEVEMENTS + STORY
+// ---------------------------------------------------------------------
+const TUT = [
+  'Your <b>Brainstorm</b> makes Ideas, the <b>Workflow</b> carries them, and the <b>Stakeholder</b> ships them for Value. Watch the Value climb.',
+  'Buy a <b>Buzzword</b> [4] and drop it onto the workflow. Every deliverable that passes gains Value.',
+  'Click a part on the board to <b>upgrade</b> it. Upgraded Brainstorms work faster and pay more.',
+  'Open <b>Career</b> and ask for a promotion when your run-rate hits the target. Promotions unlock parts and bigger floors.',
+  'Tip: give a second Brainstorm its own line, or <b>drag</b> to lay workflows. Coworkers drop by now and then. Click them!'
+];
+const ACHIEVEMENTS = [
+  { id:'ship', n:'Shipped It', d:'Ship your first deliverable.' },
+  { id:'promo', n:'Upwardly Mobile', d:'Get promoted.' },
+  { id:'manager', n:'People Manager', d:'Reach Manager.' },
+  { id:'esc', n:'Over Your Head', d:'Escalate a deliverable to Floor 12.' },
+  { id:'floor3', n:'Corner Office Energy', d:'Ship a deliverable on Floor 30.' },
+  { id:'ceo', n:'The Top Floor', d:'Become CEO.' },
+  { id:'reply', n:'Reply All', d:'Own 5 Reply Alls.' },
+  { id:'meet', n:'Could Have Been an Email', d:'Hold 3 deliverables in one Meeting.' },
+  { id:'cons', n:'Billable', d:'Hire 3 Consultants at once.' },
+  { id:'crunch', n:'Crunch Culture', d:'Use Crunch Time 10 times.' },
+  { id:'burnout', n:'Quiet Quitting', d:'Let morale fall below 15.' },
+  { id:'walk', n:'Networker', d:'Accept 15 favors from coworkers.' },
+  { id:'inbox', n:'Inbox Zero', d:'Answer 25 emails.' },
+  { id:'dec50', n:'Fluent in Corporate', d:'Decode 50 phrases.' },
+  { id:'decall', n:'Native Speaker', d:'Decode every phrase.' },
+  { id:'reorg', n:'Restructured', d:'Survive your first Reorg.' },
+  { id:'reorg10', n:'Serial Reorganizer', d:'Reorg 10 times.' },
+  { id:'b100', n:'A Googol, Ish', d:'Earn e100 Value in one run.' },
+  { id:'ipo', n:'Ring the Bell', d:'Take the company public.' },
+  { id:'seal', n:'Fully Aligned', d:'Sign off a deliverable on all four sides.' },
+  { id:'ai', n:'Transformed', d:'Run a deliverable through AI Transformation.' },
+  { id:'e1000', n:'Larger Than the Economy', d:'Earn e1000 Value in one run.' }
+];
+const STORY = {
+  ceo:{ k:'The Top Floor', t:'You made it.', p:'On your first day as CEO you hold a town hall. You announce a paradigm shift, a reorg and a return to office, then rightsize the floor you just left. Floor 51 is open: the Boardroom pays more than any floor below it. Somewhere on Floor 1, a new intern sits down on a folding chair and starts a Brainstorm.' },
+  reorg:{ k:'A message from Brenda', t:'This isn\'t a layoff. It\'s a Reorg.', p:'Brenda books a quick sync in a room with no windows. Your factory is being "restructured for agility." You keep your Equity and a blueprint of your old layout. Your title resets, because titles are "a construct." Equity is forever: every share you\'ve ever earned pays +10% on everything.' },
+  ipo:{ k:'Wall Street', t:'Ring the bell.', p:'Your Value hit 1.8e308, the largest number a spreadsheet can hold. Finance gave up and called the bankers. You fold everything into Board Seats and take Hollingsworth Group public. Deliverables come back as paperwork, and the paperwork needs signatures: Sign-offs, Mergers, Circle Backs, Middle Managers and an AI Transformation are now on the Career ladder.' },
+  e1000:{ k:'Economists, worldwide', t:'Larger than the economy.', p:'Your run earned e1000 Value. That is more Value than there are atoms in the universe, raised to the tenth power. Analysts say it is "a lot." Trent has asked Linda to book the moon for an offsite.' }
+};
+// =====================================================================
+// VALUE CHAIN — ENGINE (no DOM; runs headless for the balance bots)
+// Every amount of Value is stored as log10(x), so there's no ceiling.
+// =====================================================================
+const LZ = -1e9, L2 = Math.log10(2), LG4 = Math.log10(4);
+const lg = x => x > 0 ? Math.log10(x) : LZ;
+function lAdd(a, b) { if (b > a) { const t = a; a = b; b = t; } const d = b - a; if (d < -16) return a; return a + Math.log10(1 + Math.pow(10, d)); }
+function lSub(a, b) { if (b <= LZ + 1) return a; const d = b - a; if (d >= -1e-12) return LZ; if (d < -16) return a; return a + Math.log10(1 - Math.pow(10, d)); }
+const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+function fmt(n, d = 1) {
+  if (!isFinite(n)) return '∞';
+  if (n < 1000) return n < 10 && n % 1 ? n.toFixed(d) : Math.floor(n).toString();
+  const e = Math.floor(Math.log10(n) / 3);
+  if (e < SUF.length) { const v = n / Math.pow(1000, e); return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + SUF[e]; }
+  return n.toExponential(2).replace('+', '');
+}
+function fmtL(l) {
+  if (l < -30) return '0';
+  if (l < 3) { const n = Math.pow(10, l); return n < 10 && n % 1 > 0.05 ? n.toFixed(1) : Math.round(n).toString(); }
+  const e = Math.floor(l / 3 + 1e-9);
+  if (e < SUF.length) { const v = Math.pow(10, l - e * 3); return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + SUF[e]; }
+  if (l < 1e6) { let ex = Math.floor(l), m = Math.pow(10, l - ex); if (m >= 9.995) { m = 1; ex++; } return m.toFixed(2) + 'e' + ex; }
+  return 'e' + fmt(l);
+}
+const fmtV = l => '$' + fmtL(l);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rnd = Math.random;
+const pick = a => a[Math.floor(rnd() * a.length)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+const LIVE = { gen:1, core:1, comp:1, fuse:1, cat:1, meet:1, esc:1, arr:1 };
+
+// ---------------------------------------------------------------------
+// JARGON (the Decoder): every phrase in game text is collected on sight
+// ---------------------------------------------------------------------
+const J = (() => {
+  const rx = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const items = JARGON.map(([p, m, re], i) => ({ i, p, m, src:re || rx(p), test:new RegExp('^(?:' + (re || rx(p)) + ')$', 'i') }));
+  const sorted = items.slice().sort((a, b) => b.src.length - a.src.length);
+  const all = new RegExp('\\b(?:' + sorted.map(x => x.src).join('|') + ')\\b', 'gi');
+  const which = str => { for (const it of sorted) if (it.test.test(str)) return it.i; return -1; };
+  return { items, all, which };
+})();
+function findJargon(text) { const out = []; J.all.lastIndex = 0; let m; while ((m = J.all.exec(text))) { const i = J.which(m[0]); if (i >= 0) out.push(i); } return out; }
+
+// ---------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------
+let S = null;
+function startRank(s) {
+  const c = s.tier >= 2 ? Math.max(s.totalEq, 25) : s.totalEq;
+  return c >= 1000 ? 5 : c >= 25 ? 4 : c >= 10 ? 3 : c >= 3 ? 2 : c >= 1 ? 1 : 0;
+}
+function fresh(keep) {
+  const s = { v:1, tier:1, cash:LZ, lifetime:LZ, runEarned:LZ, eq:0, totalEq:0, seats:0, seatsTotal:0, board:{}, perks:{ autoOn:true, rebuildOn:true }, training:{},
+    rank:0, maxRank:0, fl:[{}, {}, {}, {}], owned:{}, nextId:1, view:0, t:0, saved:Date.now(),
+    morale:80, crT:0, crCD:0, buffs:[], walkT:45, mailT:6, chatT:12, inbox:[], mailSeen:[], dec:{}, log:[], layout:null, ghost:false,
+    stats:{ orbs:0, reorgs:0, ipos:0, seals:0, crunch:0, walks:0, mails:0, esc:0 }, ach:{}, story:{}, firsts:{}, tut:0, pending:[], rate:LZ };
+  if (keep) {
+    for (const k of ['eq', 'totalEq', 'seats', 'seatsTotal', 'board', 'perks', 'layout', 'stats', 'lifetime', 'tier', 'dec', 'ach', 'story', 'firsts', 'maxRank']) if (keep[k] !== undefined) s[k] = keep[k];
+    s.tut = 99; s.mailT = 40; s.walkT = 30;
+    if (s.perks.keepRes && keep.training) s.training = Object.assign({}, keep.training);
+  }
+  const c = s.tier >= 2 ? Math.max(s.totalEq, 25) : s.totalEq;
+  if (c >= 1) s.cash = Math.max(s.cash, lg(200));
+  if (c >= 1000) s.training.t_speed = Math.max(s.training.t_speed || 0, 6);
+  if (s.perks.seed) s.cash = Math.max(s.cash, lg(200) + 2 * s.perks.seed);
+  s.rank = startRank(s);
+  return s;
+}
+function starter(s) {
+  place(s, 0, 1, 2, 'gen', 0, true); for (let x = 2; x <= 5; x++) place(s, 0, x, 2, 'belt', 0, true); place(s, 0, 6, 2, 'core', 0, true);
+  s.cash = lAdd(s.cash, 1);
+}
+const key = (x, y) => x + ',' + y;
+const GW = () => RANKS[S.rank].grid[0], GH = () => RANKS[S.rank].grid[1];
+const floorsOpen = () => FLOORS.filter(F => S.rank >= F.rank).length;
+const visible = type => !PARTS[type].fixed && (!PARTS[type].t2 || S.tier >= 2);
+function unlocked(type) { const P = PARTS[type]; if (!visible(type)) return false; if (S.tier >= 2 && S.totalEq >= 1e6 && (type === 'fuse' || type === 'reso')) return true; return S.rank >= (P.rank || 0); }
+function partCostL(type) { const P = PARTS[type]; if (type === 'belt' && S.totalEq >= 5) return LZ; return lg(P.cost) + (S.owned[type] || 0) * Math.log10(P.grow); }
+function upCostL(t) { const U = PARTS[t.type].up; return lg(U.base) + t.lvl * Math.log10(U.grow); }
+const afford = L => S.cash >= L - 1e-9;
+function place(s, f, x, y, type, dir, free) {
+  const t = { id:s.nextId++, type, dir, lvl:0, x, y, f, cd:0, store:LZ, storeN:0, flash:0 };
+  s.fl[f][key(x, y)] = t;
+  if (type !== 'arr') { if (!free) s.owned[type] = (s.owned[type] || 0) + 1; else s.owned[type] = (s.owned[type] || 0) + (type === 'belt' ? 0 : 1); }
+  if (type === 'esc' && f + 1 < 4) { const up = s.fl[f + 1][key(x, y)]; if (!up) { const a = { id:s.nextId++, type:'arr', dir, lvl:0, x, y, f:f + 1, cd:0, store:LZ, storeN:0, flash:0 }; s.fl[f + 1][key(x, y)] = a; } }
+  if (s === S) reindex();
+  return t;
+}
+const tileAtF = (f, x, y) => S.fl[f][key(x, y)];
+// why can't this part go here? '' means it can
+function placeBlock(f, x, y, type) {
+  if (x < 0 || y < 0 || x >= GW() || y >= GH()) return 'Off the floor plan.';
+  if (f >= floorsOpen()) return 'That floor is locked.';
+  if (tileAtF(f, x, y)) return 'Something is already there.';
+  if (!unlocked(type)) return 'Not unlocked yet.';
+  if (type === 'gen' && f > 0) return 'Brainstorms only work on Floor 1. Executives don\'t have ideas.';
+  if (type === 'esc') { if (f + 1 >= floorsOpen()) return 'There\'s no open floor above this one yet.'; const up = tileAtF(f + 1, x, y); if (up) return 'The same spot on the floor above is taken.'; }
+  return '';
+}
+function refundL(t) {
+  const P = PARTS[t.type];
+  if (t.type === 'belt') return S.totalEq >= 5 ? LZ : lg(2);
+  const n = Math.max(0, (S.owned[t.type] || 1) - 1);
+  let L = lg(P.cost) + n * Math.log10(P.grow);
+  if (P.up && t.lvl > 0) { const g = P.up.grow; L = lAdd(L, lg(P.up.base) + t.lvl * Math.log10(g) + Math.log10(1 - Math.pow(g, -t.lvl)) - Math.log10(g - 1)); }
+  return L - L2;
+}
+function sell(t) {
+  if (!t || t.type === 'arr') return LZ;
+  const r = refundL(t);
+  delete S.fl[t.f][key(t.x, t.y)];
+  S.owned[t.type] = Math.max(0, (S.owned[t.type] || 1) - 1);
+  S.cash = lAdd(S.cash, r);
+  FL[t.f].orbs = FL[t.f].orbs.filter(o => !(o.tx === t.x && o.ty === t.y));
+  if (t.type === 'esc' && t.f + 1 < 4) { const a = S.fl[t.f + 1][key(t.x, t.y)]; if (a && a.type === 'arr') { delete S.fl[t.f + 1][key(t.x, t.y)]; FL[t.f + 1].orbs = FL[t.f + 1].orbs.filter(o => !(o.tx === t.x && o.ty === t.y)); } }
+  reindex();
+  return r;
+}
+const trLv = k => S.training[k] || 0;
+const trCostL = (R, lv) => lg(R.cost) + lv * Math.log10(R.grow || 1);
+function buffMul(kind) { let m = 1; for (const b of S.buffs) if (b.k === kind) m *= b.m; return m; }
+function decodedN() { return Object.keys(S.dec).length; }
+function salesL() {
+  return lg(1 + 0.2 * trLv('t_sales')) + lg(1 + 0.1 * S.totalEq) + (S.board.sales || 0) + trLv('t_market') * Math.log10(3) + lg(RANKS[S.rank].pay)
+    + lg(1 + 0.005 * decodedN()) + lg(buffMul('sales')) + (S.owned.cons || 0) * Math.log10(0.88);
+}
+function sealL() { return 2 + (S.board.seal || 0); }
+function orbSpeed() { return 2.4 * (1 + 0.25 * trLv('t_speed')) * (S.totalEq >= 60 ? 1.5 : 1) * (1 + 0.25 * (S.board.quick || 0)) * buffMul('speed'); }
+function moraleTarget() { return clamp(88 - 4 * (S.owned.meet || 0) - 6 * (S.owned.cons || 0), 20, 100); }
+function moraleMul() { return 0.6 + 0.6 * S.morale / 100; }
+function crunchMul() { return S.crT > 0 ? 3 + (S.perks.oc || 0) : 1; }
+function genMul() { return moraleMul() * crunchMul() * buffMul('gen'); }
+function partStat(type, lvl) {
+  let s;
+  switch (type) {
+    case 'gen': s = { period:Math.max(0.3, 2.2 * Math.pow(0.9, lvl)), value:1 + lvl }; s.L = lg(s.value); return s;
+    case 'core': s = { mult:1 + lvl * 0.2 }; s.L = lg(s.mult); return s;
+    case 'add': s = { add:2 + lvl * 1.5 }; s.L = lg(s.add); return s;
+    case 'mul': s = { mul:1.4 + lvl * 0.1 }; s.L = lg(s.mul); return s;
+    case 'split': s = { keep:Math.min(0.95, 0.6 + lvl * 0.05) }; s.L = lg(s.keep); return s;
+    case 'prism': s = { mul:3 + lvl * 0.5 }; s.L = lg(s.mul); return s;
+    case 'comp': s = { need:4, bonus:1.3 + lvl * 0.12 }; s.L = lg(s.bonus); return s;
+    case 'esc': s = { mul:2 + lvl * 0.5 }; s.L = lg(s.mul); return s;
+    case 'meet': s = { hold:Math.max(1.2, 6 * Math.pow(0.92, lvl)), mul:6 + lvl, cap:3 }; s.L = lg(s.mul); return s;
+    case 'cons': s = { mul:20 + 4 * lvl }; s.L = lg(s.mul); return s;
+    case 'stamp': s = { mul:1.4 + lvl * 0.1 }; s.L = lg(s.mul); return s;
+    case 'fuse': s = { need:2, bonus:2.5 + lvl * 0.25 }; s.L = lg(s.bonus); return s;
+    case 'reso': s = { mul:1.2 + lvl * 0.03, passes:Math.min(8, 3 + Math.floor(lvl / 4)) }; s.L = lg(s.mul); return s;
+    case 'cat': return { boost:2 + lvl };
+    case 'exp': return { pow:Math.min(2, 1.1 + lvl * 0.01) };
+  }
+  return {};
+}
+function statText(type, lvl) {
+  const s = partStat(type, lvl);
+  switch (type) {
+    case 'gen': return `${fmt(s.value)} Value every ${s.period.toFixed(2)}s`;
+    case 'core': return `pays ×${s.mult.toFixed(1)}`;
+    case 'add': return `+${fmt(s.add)} Value`;
+    case 'mul': return `×${s.mul.toFixed(2)} Value`;
+    case 'split': return `two copies at ${Math.round(s.keep * 100)}% each`;
+    case 'prism': return `×${s.mul.toFixed(1)} (once per deliverable)`;
+    case 'comp': return `4 in → 1 out at ×${s.bonus.toFixed(2)} their total`;
+    case 'esc': return `×${s.mul.toFixed(1)} and up one floor`;
+    case 'meet': return `holds 3 for ${s.hold.toFixed(1)}s, then ×${fmt(s.mul)}`;
+    case 'cons': return `×${fmt(s.mul)} · bills 12% of all Value`;
+    case 'stamp': return `×${s.mul.toFixed(2)} per new side · Fully Aligned ×${fmtL(sealL())}`;
+    case 'fuse': return `2 in → 1 at ×${s.bonus.toFixed(2)}, grade +1 (max 4)`;
+    case 'reso': return `×${s.mul.toFixed(2)} per lap, ${s.passes} laps, then out the side`;
+    case 'cat': return `+${s.boost} levels to each touching part`;
+    case 'exp': return `Value ^ ${s.pow.toFixed(2)} (once per deliverable${s.pow >= 2 ? ' · max' : ''})`;
+    case 'arr': return 'arrivals from the floor below';
+  }
+  return 'moves deliverables';
+}
+
+// ---------------------------------------------------------------------
+// SIMULATION
+// ---------------------------------------------------------------------
+let FL = [0, 1, 2, 3].map(() => ({ TG:[], gens:[], cores:[], meets:[], orbs:[] }));
+let POPS = [], FX = [], INC = LZ;
+const INCB = new Float64Array(10).fill(LZ); let incSec = 0;
+const FINCB = [0, 1, 2, 3].map(() => new Float64Array(10).fill(LZ));
+function floorRate(f) { let sum = LZ; for (let k = 0; k < 10; k++) if (k !== incSec % 10) sum = lAdd(sum, FINCB[f][k]); return sum - Math.log10(Math.min(9, Math.max(1, S.t - 1))); }
+const TGW = 32;
+function reindex() {
+  for (let f = 0; f < 4; f++) {
+    const R = FL[f]; R.TG = []; R.gens = []; R.cores = []; R.meets = []; const cats = [];
+    const tiles = S.fl[f];
+    for (const k in tiles) { const t = tiles[k]; R.TG[t.y * TGW + t.x] = t; if (t.type === 'gen') R.gens.push(t); else if (t.type === 'core') R.cores.push(t); else if (t.type === 'cat') cats.push(t); else if (t.type === 'meet') { R.meets.push(t); if (!t.q) t.q = []; } }
+    for (const k in tiles) {
+      const t = tiles[k]; let b = 0;
+      if (cats.length && t.type !== 'cat' && t.type !== 'belt' && t.type !== 'arr') for (const c of cats) if (Math.abs(c.x - t.x) + Math.abs(c.y - t.y) === 1) b += 2 + c.lvl;
+      t.boost = b; t.st = partStat(t.type, t.lvl + b);
+    }
+  }
+}
+const tileXY = (f, x, y) => FL[f].TG[y * TGW + x];
+function emit(t, val, dir) {
+  FL[t.f].orbs.push({ x:t.x, y:t.y, tx:t.x + DIRS[dir][0], ty:t.y + DIRS[dir][1], dir, k:0, v:val, seen:[t.id], prism:false, hops:0, big:false, fc:0, gr:0, sl:false, rs:null, ex:false });
+}
+function earn(L, x, y, core, f) {
+  S.cash = lAdd(S.cash, L); S.lifetime = lAdd(S.lifetime, L); S.runEarned = lAdd(S.runEarned, L);
+  const b = incSec % 10; INCB[b] = lAdd(INCB[b], L);
+  if (core) { core.pop = core.pop === undefined ? L : lAdd(core.pop, L); FINCB[core.f][b] = lAdd(FINCB[core.f][b], L); }
+  else if (x !== undefined) POPS.push({ f:f === undefined ? S.view : f, x, y, text:'+' + fmtV(L), life:1, big:true });
+}
+function child(o, x, y, d, v) { return { x, y, tx:x + DIRS[d][0], ty:y + DIRS[d][1], dir:d, k:o.k, v, seen:o.seen.slice(), prism:o.prism, hops:o.hops, big:o.big, fc:o.fc, gr:o.gr, sl:o.sl, rs:o.rs ? Object.assign({}, o.rs) : null, ex:o.ex }; }
+function fizzle(o, f) { if (FX.length < 40) FX.push({ f, x:o.x + 0.5, y:o.y + 0.5, life:0.3, col:'#7f90ad' }); }
+function out(o, d, W, H) { o.dir = d; o.tx = o.x + DIRS[d][0]; o.ty = o.y + DIRS[d][1]; return !(o.tx < 0 || o.ty < 0 || o.tx >= W || o.ty >= H); }
+function step(dt) {
+  S.t += dt;
+  const sec = Math.floor(S.t);
+  if (sec !== incSec) { for (let s2 = incSec + 1; s2 <= sec && s2 - incSec <= 10; s2++) { INCB[s2 % 10] = LZ; for (const B of FINCB) B[s2 % 10] = LZ; } incSec = sec; }
+  if (S.crT > 0) S.crT -= dt; else if (S.crCD > 0) S.crCD -= dt;
+  for (const b of S.buffs) b.t -= dt; if (S.buffs.length && S.buffs.some(b => b.t <= 0)) S.buffs = S.buffs.filter(b => b.t > 0);
+  // morale drifts toward its target
+  const T = moraleTarget(), rate = 0.35 * (1 + 0.5 * trLv('t_well'));
+  if (S.morale < T) S.morale = Math.min(T, S.morale + rate * dt); else if (S.morale > T) S.morale = Math.max(T, S.morale - 0.15 * dt);
+  if (S.perks.zen) S.morale = Math.max(50, S.morale);
+  const gm = genMul();
+  for (const t of FL[0].gens) {
+    t.cd -= dt * gm;
+    if (t.cd <= 0) { t.cd += t.st.period; if (t.cd < -1) t.cd = 0; emit(t, t.st.L, t.dir); t.flash = 0.15; }
+  }
+  const sp = orbSpeed() * dt, W = GW(), H = GH(), sm = salesL(), open = floorsOpen();
+  for (let f = 0; f < open; f++) {
+    const R = FL[f], pay = sm + FLOORS[f].pay;
+    const next = [];
+    // meetings release what they've been holding
+    for (const t of R.meets) {
+      if (!t.q.length) continue;
+      for (const h of t.q) h.left -= dt;
+      while (t.q.length && t.q[0].left <= 0) {
+        const h = t.q.shift(), o = h.o; o.v += t.st.L; o.k = 0; o.x = t.x; o.y = t.y; t.flash = 0.25;
+        if (out(o, t.dir, W, H)) next.push(o); else fizzle(o, f);
+      }
+    }
+    const orbs = R.orbs;
+    for (let i = 0; i < orbs.length; i++) {
+      const o = orbs[i];
+      o.k += sp;
+      if (o.k < 1) { next.push(o); continue; }
+      o.k -= 1; o.x = o.tx; o.y = o.ty; o.hops++;
+      const t = tileXY(f, o.x, o.y);
+      if (!t || o.hops > 400) { fizzle(o, f); continue; }
+      const ty = t.type;
+      if (ty === 'belt' || ty === 'arr') { if (out(o, t.dir, W, H)) next.push(o); else fizzle(o, f); continue; }
+      if (ty === 'gen' || ty === 'cat') { fizzle(o, f); continue; }
+      if (ty === 'core') { earn(o.v + t.st.L + pay + o.gr * LG4, 0, 0, t); t.flash = 0.2; S.stats.orbs++; if (f >= 2) S.shipF2 = 1; continue; }
+      const st = t.st;
+      if (ty === 'reso') {
+        const rs = o.rs || (o.rs = {}), n = rs[t.id] || 0;
+        if (n < st.passes) { rs[t.id] = n + 1; o.v += st.L; t.flash = 0.12; }
+        const od = rs[t.id] < st.passes ? t.dir : (t.dir + 1) % 4;
+        if (out(o, od, W, H)) next.push(o); else fizzle(o, f);
+        continue;
+      }
+      if (o.seen.indexOf(t.id) < 0) {
+        if (ty === 'add') { o.v = lAdd(o.v, st.L); t.flash = 0.15; }
+        else if (ty === 'mul' || ty === 'cons') { o.v += st.L; t.flash = 0.15; }
+        else if (ty === 'prism') { if (!o.prism) { o.v += st.L; o.prism = true; t.flash = 0.2; } }
+        else if (ty === 'esc') {
+          const up = f + 1 < open ? tileXY(f + 1, o.x, o.y) : null;
+          if (!up) { fizzle(o, f); continue; }
+          o.v += st.L; t.flash = 0.25; if (o.seen.length < 24) o.seen.push(t.id);
+          o.k = 0; if (up.type === 'arr' || up.type === 'belt') { if (out(o, up.dir, W, H)) { FL[f + 1].orbs.push(o); S.stats.esc++; } else fizzle(o, f + 1); }
+          else { o.k = 0.999; o.tx = o.x; o.ty = o.y; FL[f + 1].orbs.push(o); S.stats.esc++; }   // lands straight on a part upstairs
+          continue;
+        }
+        else if (ty === 'meet') {
+          if (t.q.length < st.cap) { if (o.seen.length < 24) o.seen.push(t.id); t.q.push({ o, left:st.hold }); t.flash = 0.1; if (t.q.length >= 3) S.fullMeet = 1; continue; }
+        }
+        else if (ty === 'stamp') {
+          const bit = 1 << ((o.dir + 2) % 4);
+          if (!(o.fc & bit)) {
+            o.fc |= bit; o.v += st.L; t.flash = 0.15;
+            if (o.fc === 15 && !o.sl) { o.sl = true; o.v += sealL(); t.flash = 0.4; S.stats.seals++; if (FX.length < 40) FX.push({ f, x:o.x + 0.5, y:o.y + 0.5, life:0.3, col:'#ff6ae0' }); }
+          }
+        }
+        else if (ty === 'exp') { if (!o.ex && o.v > 0) { o.v *= st.pow; o.ex = true; t.flash = 0.2; S.usedAI = 1; } }
+        else if (ty === 'split') {
+          t.flash = 0.15;
+          const d1 = (t.dir + 3) % 4, d2 = (t.dir + 1) % 4, v = o.v + st.L;
+          if (o.seen.length < 24) o.seen.push(t.id);
+          for (const d of [d1, d2]) {
+            const nx = o.x + DIRS[d][0], ny = o.y + DIRS[d][1];
+            if (nx < 0 || ny < 0 || nx >= W || ny >= H || !tileXY(f, nx, ny)) continue;
+            next.push(child(o, o.x, o.y, d, v));
+          }
+          continue;
+        } else if (ty === 'comp' || ty === 'fuse') {
+          if (t.storeN === 0) { t.store = o.v; t.sgr = o.gr; t.sf = o.fc; t.ssl = o.sl; t.sex = o.ex; }
+          else { t.store = lAdd(t.store, o.v); t.sgr = Math.max(t.sgr, o.gr); t.sf |= o.fc; t.ssl = t.ssl || o.sl; t.sex = t.sex || o.ex; }
+          t.storeN++; t.flash = 0.1;
+          if (t.storeN >= st.need) {
+            const fu = ty === 'fuse';
+            const no = { x:o.x, y:o.y, tx:o.x + DIRS[t.dir][0], ty:o.y + DIRS[t.dir][1], dir:t.dir, k:0, v:t.store + st.L, seen:[t.id], prism:false, hops:o.hops, big:true,
+              fc:t.sf, gr:fu ? Math.min(4, t.sgr + 1) : t.sgr, sl:t.ssl, rs:null, ex:t.sex };
+            if (no.tx >= 0 && no.ty >= 0 && no.tx < W && no.ty < H) next.push(no);
+            t.store = LZ; t.storeN = 0; t.flash = 0.3;
+          }
+          continue;
+        }
+        if (o.seen.length < 24) o.seen.push(t.id);
+      } else if (ty === 'comp' || ty === 'split' || ty === 'fuse' || ty === 'esc') { fizzle(o, f); continue; }
+      if (out(o, t.dir, W, H)) next.push(o); else fizzle(o, f);
+    }
+    if (next.length > 700) { next.sort((a, b) => b.v - a.v); next.length = 700; }
+    R.orbs = next;
+  }
+  let sum = LZ; for (let k = 0; k < 10; k++) if (k !== incSec % 10) sum = lAdd(sum, INCB[k]);
+  INC = sum - Math.log10(Math.min(9, Math.max(1, S.t - 1)));
+  S.rate = INC;
+  // coworkers, email, chatter
+  if (S.walk) { S.walk.life -= dt; if (S.walk.life <= 0) { S.walk = null; S.walkT = nextWalk(); } }
+  else { S.walkT -= dt; if (S.walkT <= 0) spawnWalk(); }
+  S.mailT -= dt; if (S.mailT <= 0) { S.mailT = 95 + rnd() * 70; deliverMail(); }
+  S.chatT -= dt; if (S.chatT <= 0) { S.chatT = 22 + rnd() * 16; log(pick(CHATTER), 'chat'); }
+}
+function fxStep(dt) {
+  for (let f = 0; f < 4; f++) for (const t of FL[f].cores) { t.popT = (t.popT || 0) - dt; if (t.pop !== undefined && t.popT <= 0) { POPS.push({ f, x:t.x, y:t.y, text:'+' + fmtV(t.pop), life:1, big:false }); t.pop = undefined; t.popT = 0.35; } }
+  for (let f = 0; f < 4; f++) for (const k in S.fl[f]) { const t = S.fl[f][k]; if (t.flash > 0) t.flash -= dt; }
+  for (const p of POPS) p.life -= dt * 0.9; POPS = POPS.filter(p => p.life > 0); if (POPS.length > 40) POPS = POPS.slice(-40);
+  for (const e of FX) e.life -= dt; FX = FX.filter(e => e.life > 0);
+}
+
+// ---------------------------------------------------------------------
+// ACTIONS
+// ---------------------------------------------------------------------
+function tryPlace(f, x, y, type, dir) {
+  const why = placeBlock(f, x, y, type); if (why) return why;
+  const c = partCostL(type); if (!afford(c)) return 'Not enough Value.';
+  S.cash = lSub(S.cash, c); place(S, f, x, y, type, dir);
+  if (!S.firsts[type] && FIRSTS[type]) { S.firsts[type] = 1; log(FIRSTS[type], 'first'); }
+  tutCheck();
+  return '';
+}
+function rotateTile(t, by = 1) { if (!t) return; t.dir = (t.dir + by) % 4; if (t.type === 'esc') { const a = S.fl[t.f + 1] && S.fl[t.f + 1][key(t.x, t.y)]; if (a && a.type === 'arr') a.dir = t.dir; } }
+function upgrade(t) {
+  if (!t || !PARTS[t.type].up) return false;
+  const c = upCostL(t); if (!afford(c)) return false;
+  S.cash = lSub(S.cash, c); t.lvl++; reindex(); t.flash = 0.4; tutCheck(); return true;
+}
+function autoUpgrade() {
+  if (!S.perks.auto || !S.perks.autoOn) return 0;
+  let n = 0;
+  for (; n < 30; n++) {
+    let best = null, bc = Infinity;
+    for (let f = 0; f < 4; f++) for (const k in S.fl[f]) { const t = S.fl[f][k]; if (!PARTS[t.type].up) continue; const c = upCostL(t); if (c < bc) { bc = c; best = t; } }
+    if (!best || bc > S.cash - L2) break;
+    S.cash = lSub(S.cash, bc); best.lvl++; best.flash = 0.3;
+  }
+  if (n) reindex();
+  return n;
+}
+function crunch() {
+  if (!crunchOpen()) return 'Crunch Time unlocks at Senior Associate.';
+  if (S.crT > 0) return 'Already crunching.';
+  if (S.crCD > 0) return `Recharging: ${Math.ceil(S.crCD)}s.`;
+  if (S.morale < 25) return 'Morale is too low to crunch. Everyone is already crying.';
+  S.morale -= 25; S.crT = trLv('t_crunch') ? 25 : 15; S.crCD = trLv('t_crunch') ? 60 : 90; S.stats.crunch++;
+  log('Crunch Time! Brainstorms run hot. Morale does not.', 'crunch');
+  return '';
+}
+const crunchOpen = () => S.rank >= 2 || S.totalEq >= 3;
+function buyTraining(k) {
+  const R = TRAINING[k], lv = trLv(k), c = trCostL(R, lv);
+  if (!afford(c) || lv >= (R.lv || 1) || (R.t2 && S.tier < 2) || (R.rank && S.rank < R.rank)) return false;
+  S.cash = lSub(S.cash, c); S.training[k] = lv + 1; return true;
+}
+// --- career ---
+function needL(r) { return RANKS[r].need; }
+function canPromote() { return S.rank < RANKS.length - 1 && INC >= needL(S.rank + 1); }
+function promote() {
+  if (!canPromote()) return null;
+  S.rank++; S.maxRank = Math.max(S.maxRank, S.rank);
+  const R = RANKS[S.rank], line = pick(PROMO_LINES[R.boss] || PROMO_LINES.Todd);
+  log(`Promoted to ${R.t}. ${line}`, 'promo');
+  S.pending.push({ type:'promo', rank:S.rank, line });
+  if (S.rank === 8 && !S.story.ceo) { S.story.ceo = 1; S.pending.push({ type:'story', id:'ceo' }); }
+  reindex();
+  return R;
+}
+// --- coworkers ---
+function nextWalk() { return (60 + rnd() * 60) / (1 + 0.35 * trLv('t_walk')) / (1 + 0.2 * (S.perks.net || 0)); }
+function spawnWalk() {
+  const f = Math.min(S.view, floorsOpen() - 1), w = WALKBYS[(() => { let s = 0; for (const x of WALKBYS) s += x.w; let r = rnd() * s; for (let i = 0; i < WALKBYS.length; i++) { r -= WALKBYS[i].w; if (r <= 0) return i; } return 0; })()];
+  S.walk = { f, x:Math.floor(rnd() * GW()), y:Math.floor(rnd() * GH()), id:w.id, life:12 };
+}
+function claimWalk() {
+  const k = S.walk; if (!k) return null;
+  const w = WALKBYS.find(x => x.id === k.id), net = (1 + 0.5 * trLv('t_walk')) * (1 + 0.5 * (S.perks.net || 0));
+  let res = '';
+  if (w.fx === 'cash') { const v = Math.max(lg(25 * w.s / 30), INC + lg(w.s * net)); earn(v, k.x, k.y, null, k.f); res = `+${fmtV(v)}`; }
+  else if (w.fx === 'gen') { S.buffs.push({ k:'gen', m:w.m, t:w.dur * net, src:w.n }); res = `Brainstorms ×${w.m} for ${Math.round(w.dur * net)}s`; }
+  else if (w.fx === 'sales') { S.buffs.push({ k:'sales', m:w.m, t:w.dur * net, src:w.n }); res = `Stakeholders ×${w.m} for ${Math.round(w.dur * net)}s`; }
+  else if (w.fx === 'morale') { S.morale = clamp(S.morale + w.v * net, 0, 100); res = `Morale +${Math.round(w.v * net)}`; }
+  else if (w.fx === 'lv') { const n = freeLevels(Math.round(w.v * net)); res = n ? `${n} free upgrade${n > 1 ? 's' : ''}` : 'Nothing to upgrade'; }
+  const say = pick(w.say);
+  log(`${w.n}: ${say} (${res})`, 'walk');
+  S.stats.walks++; S.walk = null; S.walkT = nextWalk();
+  return { w, say, res };
+}
+function freeLevels(n) {
+  const ts = []; for (let f = 0; f < 4; f++) for (const k in S.fl[f]) { const t = S.fl[f][k]; if (PARTS[t.type].up) ts.push(t); }
+  if (!ts.length) return 0;
+  for (let i = 0; i < n; i++) { const t = pick(ts); t.lvl++; t.flash = 0.4; }
+  reindex(); return n;
+}
+// --- email ---
+function mailOK(e) { return (!e.minRank || S.rank >= e.minRank) && (!e.t2 || S.tier >= 2) && !S.inbox.some(m => m.id === e.id); }
+function deliverMail(id) {
+  if (S.inbox.length >= 4) return null;
+  let e = id ? EMAILS.find(x => x.id === id) : null;
+  if (!e) {
+    if (!S.story.welcome) { e = EMAILS[0]; S.story.welcome = 1; }
+    else { const pool = EMAILS.filter(x => x.id !== 'welcome' && mailOK(x) && S.mailSeen.indexOf(x.id) < 0); const all = EMAILS.filter(x => x.id !== 'welcome' && mailOK(x)); e = pick(pool.length ? pool : all); if (!pool.length) S.mailSeen = []; }
+  }
+  if (!e) return null;
+  S.inbox.push({ id:e.id, at:S.t, read:false }); S.mailSeen.push(e.id); if (S.mailSeen.length > 20) S.mailSeen.shift();
+  S.pending.push({ type:'mail', id:e.id });
+  return e;
+}
+function answerMail(i, ci) {
+  const m = S.inbox[i]; if (!m) return null;
+  const e = EMAILS.find(x => x.id === m.id), c = e && e.choices[ci]; if (!c) return null;
+  const fx = c.fx, parts = [];
+  if (fx.sec) { const v = Math.max(lg(5 * fx.sec), INC + lg(fx.sec)); earn(v); parts.push('+' + fmtV(v)); }
+  if (fx.lose) { S.cash = S.cash + Math.log10(1 - fx.lose / 100); parts.push(`−${fx.lose}% Value`); }
+  if (fx.morale) { S.morale = clamp(S.morale + fx.morale, 0, 100); parts.push(`Morale ${fx.morale > 0 ? '+' : '−'}${Math.abs(fx.morale)}`); }
+  for (const b of [fx.buff, fx.buff2]) if (b) { S.buffs.push({ k:b[0], m:b[1], t:b[2], src:e.from }); parts.push(`${{ gen:'Brainstorms', sales:'Stakeholders', speed:'Workflows' }[b[0]]} ×${b[1]} for ${b[2]}s`); }
+  if (fx.lv) { const n = freeLevels(fx.lv); parts.push(`${n} free upgrade${n === 1 ? '' : 's'}`); }
+  S.inbox.splice(i, 1); S.stats.mails++;
+  hear(c.t);
+  log(`${e.subj}: ${c.t}`, 'mail');
+  return { t:c.t, fx:parts.join(' · ') };
+}
+// --- decoder + feed ---
+function hear(text) {
+  let n = 0;
+  for (const i of findJargon(text)) if (!S.dec[i]) { S.dec[i] = 1; n++; }
+  if (n) S.newDec = (S.newDec || 0) + n;
+  return n;
+}
+function log(text, kind = 'info') { S.log.unshift({ t:S.t, text, kind }); if (S.log.length > 50) S.log.length = 50; hear(text); }
+
+// ---------------------------------------------------------------------
+// REORG + IPO
+// ---------------------------------------------------------------------
+function equityFor() { const L = S.runEarned; if (L < REORG_AT) return 0; return Math.floor(Math.min(1e300, Math.pow(10, (L - REORG_AT) / EQ_K) * (1 + 0.25 * (S.perks.melt || 0)))); }
+function seatsFor() { const L = S.runEarned; return L < IPO_AT ? 0 : Math.floor(Math.pow(L / IPO_AT, 2)); }
+function snapshotLayout() { const out = []; for (let f = 0; f < 4; f++) for (const k in S.fl[f]) { const t = S.fl[f][k]; out.push({ f, x:t.x, y:t.y, type:t.type, dir:t.dir }); } return out; }
+function resetRuntime() { for (const R of FL) { R.orbs = []; } POPS = []; FX = []; INCB.fill(LZ); for (const B of FINCB) B.fill(LZ); incSec = 0; INC = LZ; }
+function keepFor(extra) {
+  return Object.assign({ eq:S.eq, totalEq:S.totalEq, layout:snapshotLayout(), stats:S.stats, lifetime:S.lifetime, perks:S.perks, seats:S.seats, seatsTotal:S.seatsTotal, board:S.board,
+    tier:S.tier, dec:S.dec, ach:S.ach, story:S.story, firsts:S.firsts, maxRank:S.maxRank, training:S.training }, extra);
+}
+function doReorg() {
+  const gain = equityFor(); if (gain < 1) return 0;
+  const st = Object.assign({}, S.stats, { reorgs:S.stats.reorgs + 1 }), first = !S.story.reorg;
+  S = fresh(keepFor({ eq:Math.min(1e300, S.eq + gain), totalEq:Math.min(1e300, S.totalEq + gain), stats:st }));
+  S.ghost = true; resetRuntime(); starter(S); reindex();
+  if (first) { S.story.reorg = 1; S.pending.push({ type:'story', id:'reorg' }); }
+  log(`Reorg complete. +${fmt(gain)} Equity. You are now a ${RANKS[S.rank].t}, which HR calls "a lateral move."`, 'reorg');
+  return gain;
+}
+function doIPO() {
+  const gain = seatsFor(); if (gain < 1) return 0;
+  const mem = 0.1 * (S.board.mem || 0), kc = Math.floor(S.totalEq * mem);
+  const st = Object.assign({}, S.stats, { ipos:(S.stats.ipos || 0) + 1 }), first = S.tier < 2;
+  S = fresh(keepFor({ eq:kc, totalEq:kc, stats:st, perks:S.board.lock ? S.perks : { autoOn:true, rebuildOn:true }, seats:S.seats + gain, seatsTotal:S.seatsTotal + gain, tier:2, training:{} }));
+  S.ghost = true; resetRuntime(); starter(S); reindex();
+  if (first) { S.story.ipo = 1; S.pending.push({ type:'story', id:'ipo' }); }
+  log(`IPO! +${fmt(gain)} Board Seats. The bell has been rung. Nobody knows who has the bell now.`, 'reorg');
+  return gain;
+}
+function rebuild(quiet) {
+  if (!S.layout) return 0;
+  let n = 0;
+  const pri = t => t === 'esc' ? -1 : ORDER.indexOf(t);
+  const sorted = S.layout.slice().sort((a, b) => a.f - b.f || pri(a.type) - pri(b.type));
+  for (const g of sorted) {
+    if (g.type === 'arr') { const a = S.fl[g.f] && S.fl[g.f][key(g.x, g.y)]; if (a && a.type === 'arr') a.dir = g.dir; continue; }
+    if (placeBlock(g.f, g.x, g.y, g.type)) continue;
+    const c = partCostL(g.type); if (!afford(c)) continue;
+    S.cash = lSub(S.cash, c); place(S, g.f, g.x, g.y, g.type, g.dir); n++;
+  }
+  // arrivals placed by escalations take the blueprint's direction
+  for (const g of S.layout) if (g.type === 'arr') { const a = S.fl[g.f][key(g.x, g.y)]; if (a && a.type === 'arr') a.dir = g.dir; }
+  return n;
+}
+const pkLv = k => S.perks[k] || 0, pkMax = k => PERKS[k].max || 1, pkCost = k => PERKS[k].cost * Math.pow(PERKS[k].grow || 1, pkLv(k));
+const bdLv = k => S.board[k] || 0, bdMax = k => BOARD[k].max || 1, bdCost = k => BOARD[k].cost * Math.pow(BOARD[k].grow || 1, bdLv(k));
+function buyPerk(k) { const c = pkCost(k); if (S.eq < c || pkLv(k) >= pkMax(k)) return false; S.eq -= c; S.perks[k] = pkLv(k) + 1; return true; }
+function buyBoard(k) { const c = bdCost(k); if (S.seats < c || bdLv(k) >= bdMax(k)) return false; S.seats -= c; S.board[k] = bdLv(k) + 1; return true; }
+
+// ---------------------------------------------------------------------
+// TUTORIAL + ACHIEVEMENTS
+// ---------------------------------------------------------------------
+function tutCheck() {
+  if (S.tut === 0 && S.owned.add) S.tut = 1;
+  if (S.tut === 1 && Object.values(S.fl[0]).some(t => t.lvl > 0)) S.tut = 2;
+  if (S.tut === 2 && S.rank >= 1) S.tut = 3;
+  if (S.tut === 3 && (S.owned.mul || S.owned.gen > 1)) S.tut = 4;
+  if (S.tut === 4 && S.lifetime > 3.5) S.tut = 99;
+}
+function award(id) { if (S.ach[id]) return; S.ach[id] = 1; S.pending.push({ type:'ach', id }); }
+function checkAch() {
+  if (S.stats.orbs > 0) award('ship');
+  if (S.maxRank >= 1) award('promo');
+  if (S.maxRank >= 4) award('manager');
+  if (S.stats.esc > 0) award('esc');
+  if (S.shipF2) award('floor3');
+  if (S.maxRank >= 8) award('ceo');
+  if ((S.owned.split || 0) >= 5) award('reply');
+  if (S.fullMeet) award('meet');
+  if ((S.owned.cons || 0) >= 3) award('cons');
+  if (S.stats.crunch >= 10) award('crunch');
+  if (S.morale < 15) award('burnout');
+  if (S.stats.walks >= 15) award('walk');
+  if (S.stats.mails >= 25) award('inbox');
+  const d = decodedN(); if (d >= 50) award('dec50'); if (d >= JARGON.length) award('decall');
+  if (S.stats.reorgs >= 1) award('reorg'); if (S.stats.reorgs >= 10) award('reorg10');
+  if (S.runEarned >= 100) award('b100');
+  if (S.stats.ipos >= 1) award('ipo');
+  if (S.stats.seals > 0) award('seal');
+  if (S.usedAI) award('ai');
+  if (S.runEarned >= 1000) { award('e1000'); if (!S.story.e1000) { S.story.e1000 = 1; S.pending.push({ type:'story', id:'e1000' }); } }
+}
+
+// ---------------------------------------------------------------------
+// SAVE / LOAD
+// ---------------------------------------------------------------------
+const SAVE_KEY = 'valuechain_v1';
+function serialize() {
+  const tiles = []; for (let f = 0; f < 4; f++) for (const k in S.fl[f]) { const t = S.fl[f][k]; tiles.push([f, t.x, t.y, t.type, t.dir, t.lvl]); }
+  const d = Object.assign({}, S, { fl:null, tiles, rate:INC, walk:null, pending:[] });
+  delete d.fl;
+  return JSON.stringify(d);
+}
+function deserialize(raw) {
+  let d = null; try { d = JSON.parse(raw); } catch (e) { return null; }
+  if (!d || d.v !== 1 || !Array.isArray(d.tiles)) return null;
+  const s = fresh(null);
+  for (const k in s) if (k !== 'fl' && d[k] !== undefined) s[k] = d[k];
+  s.fl = [{}, {}, {}, {}]; s.pending = []; s.walk = null; s.nextId = 1;
+  const W = RANKS[s.rank].grid[0], H = RANKS[s.rank].grid[1];
+  for (const [f, x, y, type, dir, lvl] of d.tiles) { if (!PARTS[type] || f < 0 || f > 3 || x >= W || y >= H) continue; s.fl[f][key(x, y)] = { id:s.nextId++, type, dir, lvl, x, y, f, cd:0, store:LZ, storeN:0, flash:0 }; }
+  return { s, rate:typeof d.rate === 'number' ? d.rate : LZ, saved:d.saved || Date.now() };
+}
+function offlineGain(rate, saved) {
+  const away = Math.max(0, (Date.now() - saved) / 1000);
+  const eff = S.totalEq >= 10 ? 1 : trLv('t_remote') ? 0.8 : 0.4;
+  return away > 60 && rate > -30 ? { L:rate + lg(Math.min(away, 12 * 3600) * eff), away } : null;
+}
+// =====================================================================
+// VALUE CHAIN — RENDERING (static art is cached; only motion is drawn)
+// =====================================================================
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let DPR = 1, CW = 0, CH = 0, TS = 64, OX = 0, OY = 0;
+function fitWrap() {   // on phones the board's box follows the floor plan's shape
+  const w = $('cvWrap'); if (!w) return;
+  if (innerWidth < 860) { const W = w.clientWidth; const h = Math.round(Math.min(innerHeight * 0.62, (W - 16) * GH() / GW() + 18)); if (Math.abs(w.clientHeight - h) > 2) w.style.height = h + 'px'; }
+  else if (w.style.height) w.style.height = '';
+}
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); const r = cv.getBoundingClientRect(); CW = Math.floor(r.width); CH = Math.floor(r.height); cv.width = Math.max(1, CW * DPR); cv.height = Math.max(1, CH * DPR); if (CW > 0 && CH > 0) layoutBoard(); }
+if (window.ResizeObserver) new ResizeObserver(() => resize()).observe(cv);
+let LAYOUT_KEY = '';
+function layoutBoard() { fitWrap(); TS = Math.floor(Math.min((CW - 16) / GW(), (CH - 16) / GH())); TS = clamp(TS, 22, 92); OX = Math.floor((CW - TS * GW()) / 2); OY = Math.floor((CH - TS * GH()) / 2); PCACHE.clear(); OCACHE.clear(); BLAYER = null; LAYOUT_KEY = GW() + 'x' + GH(); }
+addEventListener('resize', resize);
+const orbHue = v => Math.round(((200 + Math.max(0, v) * 38) % 360) / 10) * 10;
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+function mkC(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w * DPR)); c.height = Math.max(1, Math.ceil(h * DPR)); const g = c.getContext('2d'); g.scale(DPR, DPR); return [c, g]; }
+const HEAD = '"Space Grotesk", system-ui, sans-serif';
+
+// part glyphs ---------------------------------------------------------
+function glyph(c, type, dir, s) {
+  const g = s * 0.2, col = PARTS[type].col;
+  c.fillStyle = col; c.strokeStyle = col; c.lineWidth = s * 0.055; c.lineCap = 'round'; c.lineJoin = 'round';
+  switch (type) {
+    case 'core':      // a stakeholder: head and shoulders
+      c.beginPath(); c.arc(0, -g * 0.55, g * 0.42, 0, 6.28); c.stroke();
+      c.beginPath(); c.arc(0, g * 0.95, g * 0.85, Math.PI * 1.08, Math.PI * 1.92); c.stroke(); break;
+    case 'add':       // a speech bubble with a plus
+      rr(c, -g * 1.05, -g * 0.85, g * 2.1, g * 1.5, g * 0.4); c.stroke();
+      c.beginPath(); c.moveTo(-g * 0.4, g * 0.65); c.lineTo(-g * 0.7, g * 1.1); c.lineTo(-g * 0.05, g * 0.65); c.stroke();
+      c.beginPath(); c.moveTo(-g * 0.45, -g * 0.1); c.lineTo(g * 0.45, -g * 0.1); c.moveTo(0, -g * 0.55); c.lineTo(0, g * 0.35); c.stroke(); break;
+    case 'mul':       // a slide with a bar chart
+      rr(c, -g * 1.1, -g * 0.8, g * 2.2, g * 1.5, g * 0.15); c.stroke();
+      c.fillRect(-g * 0.6, g * 0.2, g * 0.3, g * 0.3); c.fillRect(-g * 0.15, -g * 0.15, g * 0.3, g * 0.65); c.fillRect(g * 0.3, -g * 0.45, g * 0.3, g * 0.95);
+      c.beginPath(); c.moveTo(0, g * 0.7); c.lineTo(0, g * 1.1); c.stroke(); break;
+    case 'split':     // an envelope
+      c.save(); c.rotate(dir * Math.PI / 2);
+      rr(c, -g * 1.0, -g * 0.7, g * 2.0, g * 1.4, g * 0.12); c.stroke();
+      c.beginPath(); c.moveTo(-g * 1.0, -g * 0.7); c.lineTo(0, g * 0.15); c.lineTo(g * 1.0, -g * 0.7); c.stroke(); c.restore(); break;
+    case 'prism':     // a four-point sparkle
+      c.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 - Math.PI / 2, r = i % 2 ? g * 0.35 : g * 1.15; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.stroke(); c.fillStyle = col + '44'; c.fill(); break;
+    case 'comp':      // a round table with four chairs
+      c.beginPath(); c.arc(0, 0, g * 0.6, 0, 6.28); c.stroke();
+      for (const [dx, dy] of DIRS) { c.beginPath(); c.arc(dx * g * 1.05, dy * g * 1.05, g * 0.2, 0, 6.28); c.fill(); } break;
+    case 'esc':       // an up arrow over an elevator door
+      rr(c, -g * 0.85, -g * 0.15, g * 1.7, g * 1.15, g * 0.1); c.stroke(); c.beginPath(); c.moveTo(0, -g * 0.15); c.lineTo(0, g * 1.0); c.stroke();
+      c.beginPath(); c.moveTo(-g * 0.55, -g * 0.55); c.lineTo(0, -g * 1.1); c.lineTo(g * 0.55, -g * 0.55); c.stroke(); break;
+    case 'meet':      // a clock
+      c.beginPath(); c.arc(0, 0, g * 0.95, 0, 6.28); c.stroke();
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -g * 0.6); c.moveTo(0, 0); c.lineTo(g * 0.45, g * 0.2); c.stroke(); break;
+    case 'cons':      // a briefcase
+      rr(c, -g * 1.05, -g * 0.45, g * 2.1, g * 1.35, g * 0.18); c.stroke();
+      rr(c, -g * 0.4, -g * 0.85, g * 0.8, g * 0.4, g * 0.1); c.stroke(); c.beginPath(); c.moveTo(-g * 1.05, g * 0.1); c.lineTo(g * 1.05, g * 0.1); c.stroke(); break;
+    case 'stamp':     // a signature check in a box
+      rr(c, -g, -g, g * 2, g * 2, g * 0.2); c.stroke(); c.beginPath(); c.moveTo(-g * 0.5, 0); c.lineTo(-g * 0.1, g * 0.45); c.lineTo(g * 0.6, -g * 0.45); c.stroke(); break;
+    case 'fuse':      // two overlapping documents
+      c.lineWidth = s * 0.05; rr(c, -g * 1.05, -g * 0.85, g * 1.2, g * 1.2, g * 0.15); c.stroke(); rr(c, -g * 0.15, -g * 0.35, g * 1.2, g * 1.2, g * 0.15); c.stroke(); break;
+    case 'reso':      // circle-back arrow
+      c.beginPath(); c.arc(0, 0, g * 0.85, -0.3, Math.PI * 1.55); c.stroke();
+      c.beginPath(); const ax = Math.cos(-0.3) * g * 0.85, ay = Math.sin(-0.3) * g * 0.85; c.moveTo(ax - g * 0.45, ay - g * 0.1); c.lineTo(ax, ay); c.lineTo(ax + g * 0.05, ay - g * 0.5); c.stroke(); break;
+    case 'cat':       // a necktie
+      c.beginPath(); c.moveTo(-g * 0.35, -g * 1.0); c.lineTo(g * 0.35, -g * 1.0); c.lineTo(g * 0.15, -g * 0.6); c.lineTo(g * 0.45, g * 0.75); c.lineTo(0, g * 1.15); c.lineTo(-g * 0.45, g * 0.75); c.lineTo(-g * 0.15, -g * 0.6); c.closePath(); c.stroke();
+      for (const [dx, dy] of DIRS) { c.beginPath(); c.arc(dx * s * 0.34, dy * s * 0.34, s * 0.03, 0, 6.28); c.fill(); } break;
+    case 'exp':
+      c.font = `700 ${Math.round(s * 0.3)}px ${HEAD}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('AI', -g * 0.15, g * 0.15);
+      c.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, r = i % 2 ? g * 0.12 : g * 0.35; c.lineTo(g * 0.9 + Math.cos(a) * r, -g * 0.75 + Math.sin(a) * r); } c.closePath(); c.fill(); c.textBaseline = 'alphabetic'; break;
+    case 'arr':
+      c.beginPath(); c.arc(0, 0, g * 0.95, 0, 6.28); c.setLineDash([s * 0.05, s * 0.05]); c.stroke(); c.setLineDash([]);
+      c.beginPath(); c.moveTo(-g * 0.4, -g * 0.1); c.lineTo(0, g * 0.35); c.lineTo(g * 0.4, -g * 0.1); c.moveTo(0, -g * 0.6); c.lineTo(0, g * 0.35); c.stroke(); break;
+  }
+}
+function paintPartStatic(c, type, dir, s, lvl) {
+  const P = PARTS[type], col = P.col, m = s * 0.08;
+  if (type === 'belt') { c.fillStyle = '#132038'; rr(c, -s / 2 + m, -s / 2 + m, s - m * 2, s - m * 2, s * 0.12); c.fill(); return; }
+  c.shadowColor = col; c.shadowBlur = s * 0.12;
+  c.fillStyle = type === 'arr' ? '#0a1a26' : '#0c1424'; rr(c, -s / 2 + m, -s / 2 + m, s - m * 2, s - m * 2, s * 0.16); c.fill();
+  c.shadowBlur = 0;
+  c.strokeStyle = col; c.lineWidth = s * 0.05; rr(c, -s / 2 + m, -s / 2 + m, s - m * 2, s - m * 2, s * 0.16); c.stroke();
+  const chev = d => { c.save(); c.rotate(d * Math.PI / 2); c.fillStyle = col; c.beginPath(); c.moveTo(s * 0.46, 0); c.lineTo(s * 0.34, -s * 0.09); c.lineTo(s * 0.34, s * 0.09); c.closePath(); c.fill(); c.restore(); };
+  if (type === 'split') { chev((dir + 3) % 4); chev((dir + 1) % 4); }
+  else if (type === 'reso') { chev(dir); c.globalAlpha = 0.45; chev((dir + 1) % 4); c.globalAlpha = 1; }
+  else if (type !== 'core' && type !== 'cat' && type !== 'gen') chev(dir);
+  else if (type === 'gen') chev(dir);
+  if (type !== 'gen') glyph(c, type, dir, s);
+  if (lvl > 0 && s > 34) { c.fillStyle = '#ffffffcc'; c.font = `600 ${Math.round(s * 0.17)}px ${HEAD}`; c.textAlign = 'right'; c.fillText(lvl, s * 0.38, -s * 0.24); }
+}
+const PCACHE = new Map();
+function partSprite(type, dir, s, lvl, flashy) {
+  const k = type + dir + '|' + s + '|' + lvl + (flashy ? 'f' : '');
+  let e = PCACHE.get(k); if (e) return e;
+  if (PCACHE.size > 800) PCACHE.clear();
+  const pad = Math.ceil(s * 0.4), [c, g] = mkC(s + pad * 2, s + pad * 2);
+  g.translate(pad + s / 2, pad + s / 2);
+  if (flashy) { g.shadowColor = PARTS[type].col; g.shadowBlur = s * 0.5; g.strokeStyle = PARTS[type].col; g.lineWidth = s * 0.09; rr(g, -s / 2 + s * 0.08, -s / 2 + s * 0.08, s * 0.84, s * 0.84, s * 0.16); g.stroke(); g.stroke(); }
+  else paintPartStatic(g, type, dir, s, lvl);
+  e = { c, pad }; PCACHE.set(k, e); return e;
+}
+function paintPartLive(c, t, type, dir, s, now) {
+  const col = PARTS[type].col, g = s * 0.2;
+  c.fillStyle = col; c.strokeStyle = col;
+  if (type === 'gen') {                       // a lightbulb with turning rays
+    const rot = now / 1100;
+    c.lineWidth = s * 0.05; c.lineCap = 'round';
+    c.beginPath(); c.arc(0, -g * 0.2, g * 0.6, Math.PI * 0.8, Math.PI * 2.2); c.lineTo(g * 0.25, g * 0.65); c.lineTo(-g * 0.25, g * 0.65); c.closePath(); c.fill();
+    c.fillRect(-g * 0.25, g * 0.75, g * 0.5, g * 0.18);
+    c.globalAlpha = 0.7; c.beginPath();
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + rot; c.moveTo(Math.cos(a) * g * 0.95, -g * 0.2 + Math.sin(a) * g * 0.95); c.lineTo(Math.cos(a) * g * 1.25, -g * 0.2 + Math.sin(a) * g * 1.25); }
+    c.stroke(); c.globalAlpha = 1;
+    if (t && t.st) { const f = 1 - clamp(t.cd / t.st.period, 0, 1); c.strokeStyle = '#ffffff55'; c.lineWidth = s * 0.035; c.beginPath(); c.arc(0, 0, s * 0.34, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); c.stroke(); }
+  } else if (type === 'core') {
+    const p = 1 + Math.sin(now / 300) * 0.06 + (t && t.flash > 0 ? t.flash : 0);
+    c.globalAlpha = 0.85; c.beginPath(); c.arc(0, -g * 0.55, g * 0.28 * p, 0, 6.28); c.fill(); c.globalAlpha = 1;
+  } else if ((type === 'comp' || type === 'fuse') && t && t.storeN) {
+    const f = t.storeN / (type === 'comp' ? 4 : 2); c.globalAlpha = 0.6; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, g * 0.55, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); c.closePath(); c.fill(); c.globalAlpha = 1;
+  } else if (type === 'meet' && t && t.q && t.q.length) {
+    for (let i = 0; i < 3; i++) { c.globalAlpha = i < t.q.length ? 0.95 : 0.2; c.beginPath(); c.arc((i - 1) * g * 0.75, g * 1.45, g * 0.2, 0, 6.28); c.fill(); }
+    c.globalAlpha = 1;
+    const h = t.q[0], f = 1 - clamp(h.left / t.st.hold, 0, 1); c.strokeStyle = '#ffffffaa'; c.lineWidth = s * 0.035; c.beginPath(); c.arc(0, 0, g * 0.95, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); c.stroke();
+  } else if (type === 'cat') {
+    const p = (now / 1400) % 1; c.globalAlpha = (1 - p) * 0.5; c.lineWidth = s * 0.03; rr(c, -s * (0.2 + p * 0.3), -s * (0.2 + p * 0.3), s * (0.4 + p * 0.6), s * (0.4 + p * 0.6), s * 0.1); c.stroke(); c.globalAlpha = 1;
+  } else if (type === 'esc' || type === 'arr') {
+    const p = (now / 900) % 1; c.globalAlpha = (1 - p) * 0.6; c.lineWidth = s * 0.03;
+    c.beginPath(); const y0 = type === 'esc' ? g * 0.8 - p * g * 1.8 : -g * 0.9 + p * g * 1.6; c.moveTo(-g * 0.5, y0); c.lineTo(g * 0.5, y0); c.stroke(); c.globalAlpha = 1;
+  }
+}
+function drawPart(c, type, dir, x, y, s, lvl, flash, ghost, t) {
+  const now = performance.now(), sp = partSprite(type, dir, s, lvl);
+  if (ghost) c.globalAlpha = ghost === 'bp' ? 0.16 : 0.45;
+  c.drawImage(sp.c, x - sp.pad, y - sp.pad, s + sp.pad * 2, s + sp.pad * 2);
+  if (ghost !== 'bp') { c.save(); c.translate(x + s / 2, y + s / 2); if (type === 'belt') paintBelt(c, dir, s, now); else paintPartLive(c, t, type, dir, s, now); c.restore(); }
+  if (ghost) c.globalAlpha = 1;
+}
+function paintBelt(c, dir, s, now) {
+  c.rotate(dir * Math.PI / 2);
+  const off = ((now / 1000) * orbSpeed() * s) % (s / 3);
+  c.strokeStyle = '#4a6a9a'; c.lineWidth = s * 0.07; c.lineCap = 'round';
+  c.beginPath();
+  for (let k = -1; k < 3; k++) { const px = -s / 2 + k * s / 3 + off; if (px < -s * 0.42 || px > s * 0.32) continue; c.moveTo(px - s * 0.08, -s * 0.14); c.lineTo(px + s * 0.06, 0); c.lineTo(px - s * 0.08, s * 0.14); }
+  c.stroke();
+}
+// deliverables: glowing Ideas before the IPO, paperwork after
+const OCACHE = new Map();
+function orbSprite(hue, r, doc) {
+  const k = hue + '|' + r + (doc ? 'd' : ''); let e = OCACHE.get(k); if (e) return e;
+  const R = r * 3.2, [c, g] = mkC(R * 2, R * 2), col = `hsl(${hue},100%,65%)`;
+  const gr = g.createRadialGradient(R, R, 0, R, R, R); gr.addColorStop(0, `hsla(${hue},100%,70%,.55)`); gr.addColorStop(0.35, `hsla(${hue},100%,60%,.22)`); gr.addColorStop(1, `hsla(${hue},100%,60%,0)`);
+  g.fillStyle = gr; g.fillRect(0, 0, R * 2, R * 2);
+  g.fillStyle = col;
+  if (doc) { g.beginPath(); g.moveTo(R - r * 0.8, R - r); g.lineTo(R + r * 0.35, R - r); g.lineTo(R + r * 0.8, R - r * 0.55); g.lineTo(R + r * 0.8, R + r); g.lineTo(R - r * 0.8, R + r); g.closePath(); g.fill(); g.fillStyle = '#ffffffcc'; g.fillRect(R - r * 0.5, R - r * 0.25, r * 1.0, r * 0.16); g.fillRect(R - r * 0.5, R + r * 0.15, r * 0.8, r * 0.16); }
+  else { g.beginPath(); g.arc(R, R, r, 0, 6.28); g.fill(); g.fillStyle = '#ffffffcc'; g.beginPath(); g.arc(R - r * 0.3, R - r * 0.3, r * 0.35, 0, 6.28); g.fill(); }
+  e = { c, R }; OCACHE.set(k, e); return e;
+}
+let BLAYER = null;
+function boardLayer() {
+  const f = S.view, F = FLOORS[f];
+  if (BLAYER && BLAYER.w === GW() && BLAYER.h === GH() && BLAYER.cw === CW && BLAYER.ch === CH && BLAYER.f === f) return BLAYER;
+  const W = GW(), H = GH(), [c, g] = mkC(CW, CH);
+  g.fillStyle = F.tint; rr(g, OX - 8, OY - 8, W * TS + 16, H * TS + 16, 14); g.fill();
+  if (f > 0) { g.strokeStyle = F.line; g.lineWidth = 1.5; rr(g, OX - 8.5, OY - 8.5, W * TS + 17, H * TS + 17, 14); g.stroke(); }
+  // carpet tiles: a faint checker under the grid lines
+  g.fillStyle = 'rgba(255,255,255,0.012)';
+  for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) if ((x + y) % 2) g.fillRect(OX + x * TS, OY + y * TS, TS, TS);
+  g.strokeStyle = F.line; g.lineWidth = 1; g.beginPath();
+  for (let x = 0; x <= W; x++) { g.moveTo(OX + x * TS + 0.5, OY); g.lineTo(OX + x * TS + 0.5, OY + H * TS); }
+  for (let y = 0; y <= H; y++) { g.moveTo(OX, OY + y * TS + 0.5); g.lineTo(OX + W * TS, OY + y * TS + 0.5); }
+  g.stroke();
+  BLAYER = { c, w:W, h:H, cw:CW, ch:CH, f }; return BLAYER;
+}
+let HOVER = null, SEL = null, TOOL = 'belt', TOOL_DIR = 0, DRAG = null;
+function render() {
+  if (CW < 8 || CH < 8) { resize(); if (CW < 8 || CH < 8) return; }
+  if (LAYOUT_KEY !== GW() + 'x' + GH()) layoutBoard();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, CW, CH);
+  const W = GW(), H = GH(), now = performance.now(), doc = S.tier >= 2, f = S.view, tiles = S.fl[f];
+  ctx.drawImage(boardLayer().c, 0, 0, CW, CH);
+  if (S.layout && S.ghost) { ctx.setLineDash([4, 4]); ctx.strokeStyle = '#3ee6ff33'; ctx.lineWidth = 1; for (const gh of S.layout) if (gh.f === f && gh.type !== 'arr' && !tileXY(f, gh.x, gh.y) && gh.x < W && gh.y < H) { drawPart(ctx, gh.type, gh.dir, OX + gh.x * TS, OY + gh.y * TS, TS, 0, 0, 'bp'); rr(ctx, OX + gh.x * TS + 4, OY + gh.y * TS + 4, TS - 8, TS - 8, TS * 0.14); ctx.stroke(); } ctx.setLineDash([]); }
+  for (const k in tiles) {
+    const t = tiles[k], sp = partSprite(t.type, t.dir, TS, t.lvl), x = OX + t.x * TS, y = OY + t.y * TS;
+    ctx.drawImage(sp.c, x - sp.pad, y - sp.pad, TS + sp.pad * 2, TS + sp.pad * 2);
+    if (t.flash > 0 && t.type !== 'belt') { const fl = partSprite(t.type, t.dir, TS, 0, true); ctx.globalAlpha = Math.min(1, t.flash * 6); ctx.drawImage(fl.c, x - fl.pad, y - fl.pad, TS + fl.pad * 2, TS + fl.pad * 2); ctx.globalAlpha = 1; }
+  }
+  // belts: one batched path of moving chevrons
+  const off = ((now / 1000) * orbSpeed() * TS) % (TS / 3);
+  ctx.strokeStyle = '#4a6a9a'; ctx.lineWidth = TS * 0.07; ctx.lineCap = 'round'; ctx.beginPath();
+  for (const k in tiles) {
+    const t = tiles[k]; if (t.type !== 'belt') continue;
+    const cx = OX + (t.x + 0.5) * TS, cy = OY + (t.y + 0.5) * TS, [dx, dy] = DIRS[t.dir], nx = -dy, ny = dx;
+    for (let j = -1; j < 3; j++) {
+      const u = -TS / 2 + j * TS / 3 + off; if (u < -TS * 0.42 || u > TS * 0.32) continue;
+      const a = u - TS * 0.08, b = u + TS * 0.06, w = TS * 0.14;
+      ctx.moveTo(cx + dx * a - nx * w, cy + dy * a - ny * w); ctx.lineTo(cx + dx * b, cy + dy * b); ctx.lineTo(cx + dx * a + nx * w, cy + dy * a + ny * w);
+    }
+  }
+  ctx.stroke();
+  for (const k in tiles) { const t = tiles[k]; if (!LIVE[t.type]) continue; ctx.save(); ctx.translate(OX + (t.x + 0.5) * TS, OY + (t.y + 0.5) * TS); paintPartLive(ctx, t, t.type, t.dir, TS, now); ctx.restore(); }
+  // deliverables
+  const orbs = FL[f].orbs;
+  for (let i = 0; i < orbs.length; i++) {
+    const o = orbs[i], fx = o.x + (o.tx - o.x) * Math.min(1, o.k), fy = o.y + (o.ty - o.y) * Math.min(1, o.k);
+    const r = Math.max(2, Math.round(TS * (0.09 + Math.min(0.09, Math.max(0, o.v) * 0.012)) * (o.big ? 1.5 : 1)));
+    const sp = orbSprite(orbHue(o.v), r, doc), px = OX + (fx + 0.5) * TS, py = OY + (fy + 0.5) * TS;
+    ctx.drawImage(sp.c, px - sp.R, py - sp.R, sp.R * 2, sp.R * 2);
+    if (o.prism) { ctx.strokeStyle = '#ff9a3a'; ctx.lineWidth = 1.5; if (doc) ctx.strokeRect(px - r - 2.5, py - r - 2.5, r * 2 + 5, r * 2 + 5); else { ctx.beginPath(); ctx.arc(px, py, r + 2.5, 0, 6.28); ctx.stroke(); } }
+    if (doc && (o.fc || o.gr)) {
+      if (o.sl) { ctx.strokeStyle = '#ffe14a'; ctx.lineWidth = 2.5; ctx.strokeRect(px - r - 1, py - r - 1, r * 2 + 2, r * 2 + 2); }
+      else if (o.fc) {
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath();
+        if (o.fc & 1) { ctx.moveTo(px + r, py - r); ctx.lineTo(px + r, py + r); }
+        if (o.fc & 2) { ctx.moveTo(px - r, py + r); ctx.lineTo(px + r, py + r); }
+        if (o.fc & 4) { ctx.moveTo(px - r, py - r); ctx.lineTo(px - r, py + r); }
+        if (o.fc & 8) { ctx.moveTo(px - r, py - r); ctx.lineTo(px + r, py - r); }
+        ctx.stroke();
+      }
+      if (o.gr) { ctx.strokeStyle = '#0c1424'; ctx.lineWidth = 1.2; for (let g2 = 1; g2 <= o.gr; g2++) { const q = r * (1 - g2 * 0.2); ctx.strokeRect(px - q, py - q, q * 2, q * 2); } }
+    }
+  }
+  // a coworker dropping by
+  if (S.walk && S.walk.f === f) {
+    const w = WALKBYS.find(x => x.id === S.walk.id), px = OX + (S.walk.x + 0.5) * TS, py = OY + (S.walk.y + 0.5) * TS + Math.sin(now / 220) * TS * 0.05;
+    const r = TS * 0.3, fade = Math.min(1, S.walk.life / 2);
+    ctx.globalAlpha = fade;
+    ctx.shadowColor = w.col; ctx.shadowBlur = 22; ctx.fillStyle = w.col; ctx.beginPath(); ctx.arc(px, py, r, 0, 6.28); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(TS * 0.3)}px ${HEAD}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(w.n[0], px, py + 1);
+    ctx.font = `600 ${Math.max(10, Math.round(TS * 0.2))}px ${HEAD}`; ctx.textBaseline = 'alphabetic';
+    const lbl = w.n + ' stopped by', tw = ctx.measureText(lbl).width + 12, ly = py - r - 8;
+    ctx.fillStyle = '#0c1424ee'; rr(ctx, px - tw / 2, ly - TS * 0.22, tw, TS * 0.28, 6); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(lbl, px, ly);
+    ctx.globalAlpha = 1;
+  }
+  for (const e of FX) { if (e.f !== f) continue; ctx.globalAlpha = e.life / 0.3; ctx.strokeStyle = e.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(OX + e.x * TS, OY + e.y * TS, TS * 0.25 * (1.3 - e.life / 0.3), 0, 6.28); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#000a';
+  for (const p of POPS) {
+    if (p.f !== f) continue;
+    ctx.globalAlpha = clamp(p.life * 1.6, 0, 1);
+    ctx.font = `700 ${Math.round(TS * (p.big ? 0.3 : 0.22))}px ${HEAD}`;
+    const px = OX + (p.x + 0.5) * TS, py = OY + (p.y + 0.15) * TS - (1 - p.life) * TS * 0.6;
+    ctx.strokeText(p.text, px, py); ctx.fillStyle = p.big ? '#fff3a0' : '#ffcf4a'; ctx.fillText(p.text, px, py);
+  }
+  ctx.globalAlpha = 1;
+  if (HOVER && !IS_TOUCH) {
+    const { x, y } = HOVER, t = tileXY(f, x, y);
+    const ok = TOOL && !placeBlock(f, x, y, TOOL) && afford(partCostL(TOOL));
+    if (!t && TOOL && ok) drawPart(ctx, TOOL, TOOL_DIR, OX + x * TS, OY + y * TS, TS, 0, 0, true);
+    ctx.strokeStyle = t ? '#3ee6ff' : (TOOL && !ok ? '#ff5a5a' : '#ffffff55'); ctx.lineWidth = 2; rr(ctx, OX + x * TS + 2, OY + y * TS + 2, TS - 4, TS - 4, TS * 0.16); ctx.stroke();
+  }
+  if (SEL && SEL.f === f && tileXY(f, SEL.x, SEL.y) === SEL) {
+    ctx.strokeStyle = '#ffcf4a'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]); rr(ctx, OX + SEL.x * TS + 1, OY + SEL.y * TS + 1, TS - 2, TS - 2, TS * 0.16); ctx.stroke(); ctx.setLineDash([]);
+    if (SEL.type === 'cat') { ctx.strokeStyle = '#e8ecff66'; ctx.lineWidth = 1.5; for (const [dx, dy] of DIRS) { const x = SEL.x + dx, y = SEL.y + dy; if (x >= 0 && y >= 0 && x < W && y < H) { rr(ctx, OX + x * TS + 5, OY + y * TS + 5, TS - 10, TS - 10, TS * 0.14); ctx.stroke(); } } }
+  }
+}
+// =====================================================================
+// VALUE CHAIN — UI, INPUT, LOOP
+// =====================================================================
+const $ = id => document.getElementById(id);
+let TAB = 'build', IS_TOUCH = false, SOUND = true, DQ = '', WIPED = false;
+try { SOUND = localStorage.getItem('vc_sound') !== 'off'; } catch (e) {}
+
+// jargon you've decoded is highlighted; hover (or tap) to read the translation
+function jz(text) {
+  const s = String(text); let out = '', last = 0, m;
+  J.all.lastIndex = 0;
+  while ((m = J.all.exec(s))) {
+    const i = J.which(m[0]);
+    out += esc(s.slice(last, m.index));
+    out += i >= 0 && S.dec[i] ? `<mark class="jg" tabindex="0" data-j="${i}">${esc(m[0])}</mark>` : esc(m[0]);
+    last = J.all.lastIndex;
+  }
+  return out + esc(s.slice(last));
+}
+let TIP_EL = null;
+function showTip(el) {
+  const i = +el.dataset.j; if (!JARGON[i]) return; TIP_EL = el;
+  const tip = $('jtip'); tip.innerHTML = `<b>${esc(JARGON[i][0])}</b>${esc(JARGON[i][1])}`; tip.hidden = false;
+  const r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+  const x = Math.min(innerWidth - tw - 8, Math.max(8, r.left + r.width / 2 - tw / 2)); let y = r.top - th - 8; if (y < 8) y = r.bottom + 8;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideTip() { $('jtip').hidden = true; TIP_EL = null; }
+
+// ---------------------------------------------------------------------
+// AUDIO
+// ---------------------------------------------------------------------
+let AC = null;
+function audio() { if (AC) { if (AC.state === 'suspended') AC.resume(); return; } try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+function tone(f, d, type = 'sine', v = 0.05, slide = 0, delay = 0) {
+  if (!AC || !SOUND) return; const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d + 0.03);
+}
+let lastShip = 0;
+function sfx(n) {
+  switch (n) {
+    case 'place': tone(420, 0.06, 'triangle', 0.06); tone(640, 0.06, 'triangle', 0.04, 0, 0.03); break;
+    case 'click': tone(800, 0.03, 'square', 0.025); break;
+    case 'sell': tone(500, 0.08, 'triangle', 0.05, -200); break;
+    case 'up': [523, 659, 784].forEach((f, i) => tone(f, 0.08, 'triangle', 0.05, 0, i * 0.04)); break;
+    case 'nope': tone(150, 0.1, 'square', 0.04); break;
+    case 'walk': [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.12, 'triangle', 0.06, 0, i * 0.06)); break;
+    case 'crunch': tone(110, 0.6, 'sawtooth', 0.06, 300); tone(220, 0.6, 'triangle', 0.05, 600); break;
+    case 'mail': tone(1318, 0.12, 'sine', 0.05); tone(1760, 0.18, 'sine', 0.04, 0, 0.07); break;
+    case 'promo': [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'triangle', 0.06, 0, i * 0.07)); break;
+    case 'reorg': [196, 262, 330, 392, 523, 659].forEach((f, i) => tone(f, 0.2, 'triangle', 0.06, 0, i * 0.08)); break;
+    case 'ship': if (performance.now() - lastShip > 70) { lastShip = performance.now(); tone(1100 + rnd() * 300, 0.035, 'sine', 0.016); } break;
+  }
+}
+
+// ---------------------------------------------------------------------
+// TOASTS + MODALS
+// ---------------------------------------------------------------------
+function toast(html, cls = '', ms = 3200) { const el = document.createElement('div'); el.className = 'toast ' + cls; el.innerHTML = html; $('toasts').appendChild(el); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); setTimeout(() => el.remove(), ms); }
+const MQ = []; let MODAL = false;
+function modal(html, bind) { MQ.push({ html, bind }); if (!MODAL) nextModal(); }
+function nextModal() {
+  const m = MQ.shift(); if (!m) { MODAL = false; $('ov').hidden = true; return; }
+  MODAL = true; $('mo').innerHTML = m.html; $('ov').hidden = false; hideTip();
+  m.bind && m.bind();
+  const b = $('mo').querySelector('.btn.gold, .btn.violet, .btn.doc, .btn'); if (b) setTimeout(() => { try { b.focus({ preventScroll:true }); } catch (e) {} }, 30);
+}
+function closeModal() { nextModal(); }
+function ask(title, text, okLabel, cls, cb) {
+  modal(`<div class="kick">Please confirm</div><h2>${esc(title)}</h2><p>${jz(text)}</p><div class="acts"><button type="button" class="btn" id="aNo">Cancel</button><button type="button" class="btn ${cls}" id="aYes">${esc(okLabel)}</button></div>`,
+    () => { $('aNo').onclick = closeModal; $('aYes').onclick = () => { closeModal(); cb(); }; });
+}
+function storyModal(id) {
+  const st = STORY[id]; if (!st) return;
+  hear(st.p);
+  modal(`<div class="kick">${esc(st.k)}</div><h2>${esc(st.t)}</h2><p>${jz(st.p)}</p><div class="acts"><button type="button" class="btn ${id === 'ipo' ? 'doc' : id === 'reorg' ? 'violet' : 'gold'}" id="mOk">Back to work</button></div>`, () => { $('mOk').onclick = closeModal; });
+}
+function promoModal(p) {
+  const R = RANKS[p.rank];
+  hear(p.line);
+  const fl = FLOORS.find(F => F.rank === p.rank && F.rank > 0);
+  modal(`<div class="kick">Promotion</div><h2>${esc(R.t)}</h2><p class="quote">${jz(p.line)}</p>
+    <p>${R.unlock ? `Unlocked: <b>${esc(R.unlock)}</b>.` : ''} Your floors grow to ${R.grid[0]}×${R.grid[1]}, and Stakeholders pay ×${R.pay} for your title.</p>
+    ${fl ? `<p>Take the elevator to <b>${esc(fl.n)}</b>: Stakeholders there pay ×${fmtL(fl.pay)}. Use an <b>Escalation</b> to send deliverables up.</p>` : ''}
+    <div class="acts"><button type="button" class="btn gold" id="mOk">Thank you, ${esc(R.boss)}</button></div>`, () => { $('mOk').onclick = closeModal; });
+}
+function helpModal() {
+  modal(`<div class="kick">Employee handbook</div><h2>How the Value Chain works</h2>
+    <ul>
+      <li><b>Brainstorms</b> make Ideas. <b>Workflows</b> carry them. <b>Stakeholders</b> ship them for Value. Everything in between adds Value: <b>Buzzwords</b> add, <b>Slide Decks</b> multiply, and the parts you unlock later get stranger.</li>
+      <li>Pick a part, then click the floor to place it. Click a part on the floor to upgrade, rotate or sell it. <b>Drag</b> to lay workflows. <b>R</b> or the wheel rotates; right-click sells.</li>
+      <li><b>Career:</b> when your run-rate hits the target, ask for a promotion. Promotions unlock parts, bigger floors and new floors.</li>
+      <li><b>Floors:</b> Stakeholders on higher floors pay far more, but Brainstorms only work on Floor 1. An <b>Escalation</b> sends a deliverable to the same spot on the floor above.</li>
+      <li><b>Morale</b> speeds up Brainstorms. <b>Crunch Time</b> triples them for a while and costs morale. Meetings and Consultants wear morale down.</li>
+      <li><b>Coworkers</b> drop by: click them for favors. <b>Email</b> arrives every couple of minutes; every choice has a trade-off.</li>
+      <li><b>Decoder:</b> every piece of jargon you read is collected. Each phrase adds +0.5% Value.</li>
+      <li><b>Reorg</b> wipes your run for <b>Equity</b>: +10% Value each, forever, plus head starts and Perks. Much later, there's an <b>IPO</b>.</li>
+      <li>Keys: <b>1–0</b> pick a part · <b>Q / E</b> floor down / up · <b>Space</b> Crunch Time · <b>U</b> upgrade · <b>X</b> sell · <b>Esc</b> deselect.</li>
+    </ul><div class="acts"><button type="button" class="btn gold" id="mOk">Got it</button></div>`, () => { $('mOk').onclick = closeModal; });
+}
+function introModal() {
+  modal(`<div class="kick">Offer letter · ${esc(COMPANY)}</div><h2>Welcome to the Value Chain</h2>
+    <p>Congratulations on your new role as <b>Unpaid Intern</b>. Your job is to turn Ideas into Value: a <b>Brainstorm</b> produces them, a <b>Workflow</b> moves them, and a <b>Stakeholder</b> ships them.</p>
+    <p>Everything you put in between makes them worth more. Work your way up to the top floor. The ladder is tall, and the numbers get very large.</p>
+    <div class="acts"><button type="button" class="btn gold" id="mOk">Start Monday</button></div>`, () => { $('mOk').onclick = () => { audio(); sfx('promo'); closeModal(); }; });
+}
+
+// ---------------------------------------------------------------------
+// HEADER, FLOORS, TOOLBAR
+// ---------------------------------------------------------------------
+function promoProgress() {
+  if (S.rank >= RANKS.length - 1) return 1;
+  const lo = S.rank ? needL(S.rank) : 0, hi = needL(S.rank + 1);
+  return clamp((INC - lo) / Math.max(0.01, hi - lo), 0, 1);
+}
+function renderTop() {
+  $('cash').textContent = fmtV(S.cash);
+  $('rate').textContent = `${fmtV(INC)}/s`;
+  const m = Math.round(S.morale); $('moraleBar').style.width = m + '%'; $('moraleBar').style.background = m < 25 ? 'var(--red)' : m < 50 ? 'var(--gold)' : 'var(--green)'; $('moraleTxt').textContent = m;
+  const ready = canPromote(), top = S.rank >= RANKS.length - 1;
+  $('rankTitle').textContent = RANKS[S.rank].t;
+  $('rankSmall').textContent = top ? 'Career · the top' : ready ? 'Promotion ready!' : `Career · next at ${fmtV(needL(S.rank + 1))}/s`;
+  $('rankChip').classList.toggle('ready', ready);
+  $('promoBar').style.width = Math.round(promoProgress() * 100) + '%';
+  const e = [];
+  if (S.totalEq) e.push(`◆ ${fmt(S.totalEq)} Equity · ${S.totalEq < 1000 ? '+' + fmt(S.totalEq * 10) + '%' : '×' + fmt(1 + 0.1 * S.totalEq)}`);
+  if (S.eq && S.eq < S.totalEq) e.push(`◆ ${fmt(S.eq)} to spend`);
+  if (S.seatsTotal) e.push(`<span class="seats">⬢ ${fmt(S.seatsTotal)} Board Seat${S.seatsTotal === 1 ? '' : 's'}${S.seats ? ` · ${fmt(S.seats)} to spend` : ''}</span>`);
+  const eh = e.join('<br>'); if ($('eqLine').innerHTML !== eh) $('eqLine').innerHTML = eh;
+  // crunch
+  const cb = $('bCrunch'), open = crunchOpen();
+  cb.hidden = !open;
+  cb.classList.toggle('live', S.crT > 0);
+  cb.disabled = S.crT <= 0 && (S.crCD > 0 || S.morale < 25);
+  cb.textContent = S.crT > 0 ? `CRUNCHING ${Math.ceil(S.crT)}s` : S.crCD > 0 ? `RECHARGING ${Math.ceil(S.crCD)}s` : S.morale < 25 ? 'TOO TIRED' : 'CRUNCH TIME';
+  const sel = SEL && tileXY(SEL.f, SEL.x, SEL.y) === SEL ? SEL : null;
+  $('bUpg').disabled = !sel || !PARTS[sel.type].up || !afford(upCostL(sel));
+  $('bSellSel').disabled = !sel || sel.type === 'arr';
+  // buffs
+  const bs = S.buffs.map(b => `<div class="buff ${b.m < 1 ? 'bad' : ''}">${esc(b.src || '')} · ${{ gen:'Brainstorms', sales:'Stakeholders', speed:'Workflows' }[b.k]} <i>×${b.m}</i> · ${Math.ceil(b.t)}s</div>`);
+  if (S.crT > 0) bs.unshift(`<div class="buff">Crunch Time · Brainstorms <i>×${crunchMul()}</i></div>`);
+  if (S.morale < 25) bs.push(`<div class="buff bad">Quiet quitting · Brainstorms <i>×${moraleMul().toFixed(2)}</i></div>`);
+  const bh = bs.join(''); if ($('buffs').innerHTML !== bh) $('buffs').innerHTML = bh;
+  // ticker
+  const L = S.log[0]; const th = L ? jz(L.text) : ''; if ($('ticker').innerHTML !== th) $('ticker').innerHTML = th;
+}
+let FLOOR_SIG = '';
+function renderFloors() {
+  const open = floorsOpen();
+  const sig = S.view + '|' + open + '|' + (S.walk ? S.walk.f : -1) + '|' + FLOORS.map((F, f) => f < open ? fmtL(floorRate(f)) : '').join(',');
+  if (sig === FLOOR_SIG) return; FLOOR_SIG = sig;
+  $('floors').innerHTML = FLOORS.map((F, f) => {
+    const lock = f >= open, r = floorRate(f);
+    return `<button type="button" class="fl ${f === S.view ? 'on' : ''} ${lock ? 'locked' : ''}" data-floor="${f}" ${lock ? 'aria-disabled="true"' : ''} title="${esc(F.n + ': ' + F.sub)}">
+      <div class="btn-n">${F.n.replace('Floor ', '')}</div><span><b>${esc(F.sub)}</b><small>${lock ? '🔒 ' + esc(RANKS[F.rank].t) : f > 0 ? `×${fmtL(F.pay)} pay · ${r > -5 ? fmtV(r) + '/s' : 'quiet'}` : r > -5 ? fmtV(r) + '/s' : 'quiet'}</small></span>
+      ${S.walk && S.walk.f === f && f !== S.view ? '<i class="ping"></i>' : ''}</button>`;
+  }).join('');
+}
+function setView(f) {
+  if (f < 0 || f >= floorsOpen() || f === S.view) return;
+  S.view = f; SEL = null; BLAYER = null; FLOOR_SIG = ''; sfx('click'); renderFloors(); renderPane(); renderHint();
+}
+
+// ---------------------------------------------------------------------
+// SIDE PANEL
+// ---------------------------------------------------------------------
+function tabList() {
+  const t = [['build', 'Build'], ['train', 'Train'], ['career', 'Career'], ['inbox', 'Inbox'], ['decoder', 'Decoder']];
+  if (S.totalEq > 0 || S.runEarned >= 5 || S.stats.reorgs) t.push(['reorg', 'Reorg']);
+  if (S.totalEq > 0 || S.seatsTotal) t.push(['perks', 'Perks']);
+  if (S.tier >= 2 || S.runEarned >= 100) t.push(['ipo', 'IPO']);
+  return t;
+}
+let TABS_SIG = '';
+function renderTabs() {
+  const canTr = Object.entries(TRAINING).some(([k, R]) => trOpen(k) && trLv(k) < (R.lv || 1) && afford(trCostL(R, trLv(k))));
+  const dot = c => `<span class="dot" style="background:${c}"></span>`;
+  const unread = S.inbox.length;
+  const h = tabList().map(([id, l]) => {
+    let extra = '';
+    if (id === 'train' && canTr) extra = dot('var(--gold)');
+    if (id === 'career' && canPromote()) extra = dot('var(--gold)');
+    if (id === 'inbox' && unread) extra = `<span class="badge">${unread}</span>`;
+    if (id === 'reorg' && equityFor() > 0) extra = dot('var(--violet)');
+    if (id === 'perks' && Object.keys(PERKS).some(k => pkLv(k) < pkMax(k) && S.eq >= pkCost(k))) extra = dot('var(--violet)');
+    if (id === 'ipo' && (seatsFor() > 0 || Object.keys(BOARD).some(k => bdLv(k) < bdMax(k) && S.seats >= bdCost(k)))) extra = dot('var(--doc)');
+    return `<button type="button" data-tab="${id}" class="${TAB === id ? 'on' : ''}">${l}${extra}</button>`;
+  }).join('');
+  if (h !== TABS_SIG) { $('tabs').innerHTML = h; TABS_SIG = h; }
+  if (!tabList().some(([id]) => id === TAB)) { TAB = 'build'; renderPane(); }
+}
+const ICON = {};
+function partIcon(type) { if (ICON[type]) return ICON[type]; const c = document.createElement('canvas'); c.width = 84; c.height = 84; const g = c.getContext('2d'); g.scale(2, 2); drawPart(g, type, 0, 1, 1, 40, 0, 0, false); ICON[type] = c.toDataURL(); return ICON[type]; }
+const trOpen = k => { const R = TRAINING[k]; return (!R.t2 || S.tier >= 2); };
+function lockReason(type) { const P = PARTS[type]; return `Unlocks at ${RANKS[P.rank || 0].t}`; }
+function paneBuild() {
+  let h = '';
+  const f = S.view;
+  if (SEL && tileXY(SEL.f, SEL.x, SEL.y) === SEL) {
+    const t = SEL, P = PARTS[t.type], eff = t.lvl + (t.boost || 0);
+    h += `<div class="card"><h3 style="color:${P.col}">${esc(P.n)}${t.lvl ? `<small>level ${t.lvl}</small>` : ''}${t.boost ? `<small style="color:#e8ecff">+${t.boost} from a Middle Manager</small>` : ''}</h3><p>${jz(P.d)}</p><p class="st">${esc(statText(t.type, eff))}</p>`;
+    if (t.type === 'esc') h += `<p>Arrives on <b>${esc(FLOORS[t.f + 1].n)}</b> at the same spot, heading the way the Arrivals arrow points.</p>`;
+    if (P.up) { const c = upCostL(t); h += `<p class="st" style="color:var(--green)">Next: ${esc(statText(t.type, eff + 1))}</p><div class="row"><button type="button" class="btn gold" id="bUp"${!afford(c) ? ' disabled' : ''}>UPGRADE · ${fmtV(c)}</button>`; }
+    else h += '<div class="row">';
+    h += `<button type="button" class="btn" id="bRot">ROTATE</button>${t.type === 'arr' ? '' : `<button type="button" class="btn red" id="bSell">SELL · ${fmtV(refundL(t))}</button>`}</div></div>`;
+  }
+  if (f > 0) h += `<div class="card"><p>You're on <b>${esc(FLOORS[f].n)}: ${esc(FLOORS[f].sub)}</b>. Stakeholders here pay <b>×${fmtL(FLOORS[f].pay)}</b>. Nothing starts up here: deliverables arrive through <b>Escalations</b> on the floor below.</p></div>`;
+  for (const type of ORDER) if (visible(type)) hear(PARTS[type].d);
+  h += '<div class="sec"><span>Parts</span><span style="letter-spacing:0;text-transform:none">pick, then click the floor</span></div><div class="parts">';
+  let n = 0;
+  for (const type of ORDER) {
+    if (!visible(type)) continue; n++;
+    const P = PARTS[type], lock = !unlocked(type), c = partCostL(type), bad = type === 'gen' && f > 0;
+    h += `<button type="button" class="part${TOOL === type ? ' sel' : ''}${lock ? ' locked' : ''}${!lock && !afford(c) ? ' cant' : ''}" data-p="${type}"><img src="${partIcon(type)}" width="40" height="40" alt=""><span><b>${esc(P.n)}${n <= 10 ? `<i>[${n % 10}]</i>` : ''}</b><span class="cost">${lock ? esc(lockReason(type)) : bad ? 'Floor 1 only' : c <= LZ ? 'free' : fmtV(c)}</span><small>${esc(P.d)}</small></span></button>`;
+  }
+  h += '</div>';
+  if (S.layout && S.ghost) h += `<div class="sec">Old layout (from before the Reorg)</div><div class="row"><button type="button" class="btn" id="bRebuild">REBUILD WHAT I CAN AFFORD</button><button type="button" class="btn" id="bHide">HIDE IT</button></div>`;
+  return h;
+}
+function paneTrain() {
+  let h = '<div class="sec">Training · bought with Value</div>';
+  for (const [k, R] of Object.entries(TRAINING)) {
+    if (!trOpen(k)) continue;
+    const lv = trLv(k), max = R.lv || 1, done = lv >= max, c = trCostL(R, lv), rk = R.rank && S.rank < R.rank;
+    h += `<div class="res${done ? ' done' : ''}"><div><b${R.t2 ? ' class="tess"' : ''}>${esc(R.n)} ${max > 1 ? `<span class="lv">${lv}/${max}</span>` : ''}</b><small>${jz(R.d)}</small></div>${done ? '<span class="lv">DONE</span>' : rk ? `<span class="lv">${esc(RANKS[R.rank].t)}</span>` : `<button type="button" class="btn${afford(c) ? ' gold' : ''}" data-tr="${k}"${!afford(c) ? ' disabled' : ''}>${fmtV(c)}</button>`}</div>`;
+  }
+  h += `<p style="font-size:12px;color:var(--dim)">Training resets when you Reorg${S.perks.keepRes ? ', except you own Tribal Knowledge, so it stays' : ''}.</p>`;
+  return h;
+}
+function paneCareer() {
+  const R = RANKS[S.rank], top = S.rank >= RANKS.length - 1, N = top ? null : RANKS[S.rank + 1], ready = canPromote();
+  let h = `<div class="card"><h3>${esc(R.t)}<small>reports to ${esc(R.boss)}</small></h3>`;
+  if (top) h += `<p>You're at the top. There is nobody left to ask. You can still Reorg, which is like asking yourself.</p>`;
+  else h += `<p>Next: <b>${esc(N.t)}</b>${N.unlock ? ` · unlocks ${esc(N.unlock)}` : ''}.</p><div class="pbar"><span id="pbar" style="width:${Math.round(promoProgress() * 100)}%"></span></div><p class="st" id="pneed">Run-rate ${fmtV(INC)}/s of ${fmtV(needL(S.rank + 1))}/s</p><div class="row"><button type="button" class="btn${ready ? ' gold' : ''}" id="bPromo">ASK FOR A PROMOTION</button></div>`;
+  h += '</div>';
+  h += `<div class="card"><h3 style="color:var(--gold)">Crunch Time</h3><p>Brainstorms run ×${3 + (S.perks.oc || 0)} for ${trLv('t_crunch') ? 25 : 15}s. Costs 25 morale, and needs at least 25. ${crunchOpen() ? '' : '<b>Unlocks at Senior Associate.</b>'}</p><p class="st">Morale ${Math.round(S.morale)} · settles toward ${Math.round(moraleTarget())}</p></div>`;
+  h += '<div class="sec">The ladder</div><div class="ladder">';
+  RANKS.forEach((r, i) => { h += `<div class="lad ${i < S.rank ? 'done' : i === S.rank ? 'now' : 'future'}"><b>${i < S.rank ? '✓ ' : ''}${esc(r.t)}</b><span>${r.need === null ? 'where everyone starts' : esc(r.unlock || '')}${i > 0 ? ` · ${fmtV(needL(i))}/s` : ''}</span></div>`; });
+  h += '</div><div class="sec">Office feed</div><div class="feed">';
+  h += S.log.slice(0, 30).map(l => `<div class="${l.kind}">${jz(l.text)}</div>`).join('') || '<div>Quiet. Too quiet. Someone is about to schedule a meeting.</div>';
+  return h + '</div>';
+}
+function paneInbox() {
+  if (!S.inbox.length) return `<div class="card"><h3>Inbox zero</h3><p>No new email. Enjoy it. This is the only moment of peace you will ever have here.</p><p class="st">${S.stats.mails} answered so far</p></div>`;
+  let h = `<div class="sec"><span>Inbox · ${S.inbox.length}</span><span style="letter-spacing:0;text-transform:none">new mail every couple of minutes</span></div>`;
+  S.inbox.forEach((m, i) => {
+    const e = EMAILS.find(x => x.id === m.id); if (!e) return;
+    if (!m.read) { m.read = true; hear(e.subj + ' ' + e.body + ' ' + e.choices.map(c => c.l).join(' ')); }
+    h += `<div class="mail"><div class="mh"><b>${esc(e.from)}</b><span>${Math.max(0, Math.round((S.t - m.at) / 60))}m ago</span></div><div class="ms2">${jz(e.subj)}</div><p>${jz(e.body)}</p>${e.choices.map((c, ci) => `<button type="button" class="choice" data-mail="${i}" data-ch="${ci}">${jz(c.l)}</button>`).join('')}</div>`;
+  });
+  return h;
+}
+function paneDecoder() {
+  const n = decodedN(), all = JARGON.length;
+  let h = `<div class="card"><h3 style="color:var(--hl)">The Decoder</h3><p>Every bit of corporate jargon you read is decoded here. Highlighted phrases show their real meaning when you hover or tap them.</p><div class="pbar"><span style="width:${Math.round(n / all * 100)}%;background:linear-gradient(90deg,#8a7a20,var(--hl))"></span></div><p class="st" style="color:var(--hl)">${n} of ${all} decoded · fluency bonus +${(n * 0.5).toFixed(1)}% Value</p></div>
+    <input class="search" id="decQ" placeholder="Search decoded phrases" value="${esc(DQ)}" autocomplete="off">`;
+  const q = DQ.trim().toLowerCase();
+  const list = Object.keys(S.dec).map(Number).filter(i => JARGON[i]).sort((a, b) => JARGON[a][0].localeCompare(JARGON[b][0]));
+  h += list.filter(i => !q || JARGON[i][0].toLowerCase().includes(q) || JARGON[i][1].toLowerCase().includes(q)).map(i => `<div class="dec"><b>${esc(JARGON[i][0])}</b><span>${esc(JARGON[i][1])}</span></div>`).join('');
+  if (n < all) h += `<p style="font-size:12px;color:var(--dim);margin-top:10px">${all - n} phrases still undecoded. They're out there: in email, in the office feed, in the fine print.</p>`;
+  return h;
+}
+function paneReorg() {
+  const gain = equityFor();
+  let h = `<div class="card"><h3 style="color:var(--violet)">Reorg</h3><p>Restructure the whole operation into <b style="color:var(--violet)">Equity</b>. Every share you've ever earned adds <b>+10%</b> to all Value and counts toward the milestones below. Spending Equity on Perks never lowers that bonus. Your title resets; your layout is kept as a blueprint.</p>
+    <p class="st">Earned this run: ${fmtV(S.runEarned)} · Reorg from ${fmtV(REORG_AT)}</p><div class="big" style="color:var(--violet)">+${fmt(gain)} Equity</div>
+    <button type="button" class="btn violet" id="bReorg"${gain < 1 ? ' disabled' : ''}>REORG</button></div>
+    <div class="sec">Equity milestones (you have ${fmt(S.totalEq)})</div>`;
+  for (const [n, d] of MILESTONES) { if (n >= 1e6 && S.tier < 2 && S.totalEq < n) continue; h += `<div class="ms${S.totalEq >= n ? ' on' : ''}"><span class="n">${fmt(n)} ◆</span><span>${esc(d)}</span></div>`; }
+  h += `<div class="sec">Stats</div><div class="card"><p>Deliverables shipped: ${fmt(S.stats.orbs)}<br>Escalations: ${fmt(S.stats.esc)}<br>Lifetime Value: ${fmtV(S.lifetime)}<br>Reorgs: ${S.stats.reorgs}${S.stats.ipos ? `<br>IPOs: ${S.stats.ipos}<br>Fully Aligned: ${fmt(S.stats.seals || 0)}` : ''}<br>Emails answered: ${S.stats.mails} · Favors: ${S.stats.walks}<br>Trophies: ${Object.keys(S.ach).length} of ${ACHIEVEMENTS.length}</p></div>
+    <div class="sec">Trophies</div>${ACHIEVEMENTS.map(a => `<div class="ms${S.ach[a.id] ? ' on' : ''}"><span class="n">${S.ach[a.id] ? '★' : '☆'}</span><span><b style="font-weight:600">${esc(a.n)}</b> · ${esc(a.d)}</span></div>`).join('')}
+    <div class="row" style="margin-top:14px"><button type="button" class="btn red" id="bWipe">WIPE SAVE</button></div>`;
+  return h;
+}
+function panePerks() {
+  let h = `<div class="card"><h3 style="color:var(--violet)">Perks</h3><p>Spend banked Equity on things that survive every Reorg. Spending never lowers your Equity bonus: that comes from every share you've ever earned.</p><p class="st" style="color:var(--violet)">To spend: ◆ ${fmt(S.eq)}</p></div>`;
+  for (const [k, W] of Object.entries(PERKS)) {
+    const lv = pkLv(k), max = pkMax(k), done = lv >= max, c = pkCost(k), ok = S.eq >= c;
+    h += `<div class="res${done && !W.tog ? ' done' : ''}"><div><b>${esc(W.n)} ${max > 1 ? `<span class="lv">${lv}/${max}</span>` : ''}</b><small>${jz(W.d)}</small></div>`;
+    if (done && W.tog) { const on = S.perks[k + 'On'] !== false; h += `<button type="button" class="tog${on ? ' on' : ''}" data-tog="${k}">${on ? 'ON' : 'OFF'}</button>`; }
+    else h += done ? '<span class="lv">OWNED</span>' : `<button type="button" class="btn${ok ? ' violet' : ''}" data-perk="${k}"${ok ? '' : ' disabled'}>◆ ${fmt(c)}</button>`;
+    h += '</div>';
+  }
+  return h;
+}
+function paneIPO() {
+  const gain = seatsFor(), ready = gain >= 1;
+  let h = `<div class="card" style="border-color:#5e2a5a"><h3 class="tess">IPO</h3>`;
+  if (S.tier < 2 && !ready) h += `<p>Finance says the spreadsheet stops working somewhere around <b>${fmtV(IPO_AT)}</b>. When that happens, the only option left is to go public.</p><p class="st">Earned this run: ${fmtV(S.runEarned)}</p></div>`;
+  else {
+    h += `<p>Fold everything (Value, Training, Equity${S.board.lock ? '' : ' and Perks'}) into <b class="tess">Board Seats</b>. ${S.tier < 2 ? 'Deliverables come back as <b>paperwork</b>, with new parts to match.' : 'Board Seats buy permanent upgrades below.'} Your layout is kept as a blueprint.</p>
+      <p class="st">Earned this run: ${fmtV(S.runEarned)} · IPO from ${fmtV(IPO_AT)}</p><div class="big tess">+${fmt(gain)} ⬢</div><button type="button" class="btn doc" id="bIPO"${ready ? '' : ' disabled'}>RING THE BELL</button></div>`;
+  }
+  if (S.tier >= 2 || S.seatsTotal) {
+    h += `<div class="sec tess">Board upgrades · ⬢ ${fmt(S.seats)} to spend</div>`;
+    for (const [k, T] of Object.entries(BOARD)) {
+      const lv = bdLv(k), max = bdMax(k), done = lv >= max, c = bdCost(k), ok = S.seats >= c;
+      h += `<div class="res${done ? ' done' : ''}" style="border-color:#4a2a5e"><div><b class="tess">${esc(T.n)} ${max > 1 ? `<span class="lv">${lv}/${max}</span>` : ''}</b><small>${jz(T.d)}</small></div>${done ? '<span class="lv">OWNED</span>' : `<button type="button" class="btn${ok ? ' doc' : ''}" data-board="${k}"${ok ? '' : ' disabled'}>⬢ ${fmt(c)}</button>`}</div>`;
+    }
+  }
+  return h;
+}
+let PANE_SIG = '';
+function renderPane() {
+  const P = $('pane'), keepScroll = P.scrollTop;
+  const h = TAB === 'build' ? paneBuild() : TAB === 'train' ? paneTrain() : TAB === 'career' ? paneCareer() : TAB === 'inbox' ? paneInbox() : TAB === 'decoder' ? paneDecoder() : TAB === 'reorg' ? paneReorg() : TAB === 'perks' ? panePerks() : paneIPO();
+  const hadFocus = document.activeElement && document.activeElement.id === 'decQ';
+  P.innerHTML = h; P.scrollTop = keepScroll;
+  if (hadFocus && $('decQ')) { $('decQ').focus(); $('decQ').setSelectionRange(DQ.length, DQ.length); }
+  PANE_SIG = paneSig();
+}
+function paneSig() {
+  const sel = SEL && tileXY(SEL.f, SEL.x, SEL.y) === SEL ? SEL.id + ':' + SEL.lvl + ':' + SEL.dir + ':' + (SEL.boost || 0) + ':' + (PARTS[SEL.type].up ? +afford(upCostL(SEL)) : 0) : '';
+  switch (TAB) {
+    case 'build': return S.view + S.rank + S.tier + ORDER.map(t => visible(t) ? +unlocked(t) + '' + +afford(partCostL(t)) : '').join('') + sel + !!(S.layout && S.ghost) + TOOL;
+    case 'train': return S.rank + Object.entries(TRAINING).map(([k, R]) => trLv(k) + ':' + +afford(trCostL(R, trLv(k)))).join('');
+    case 'career': return S.rank + ':' + canPromote() + ':' + S.log.length + ':' + (S.log[0] && S.log[0].t) + ':' + crunchOpen() + Math.round(S.morale / 5);
+    case 'inbox': return S.inbox.map(m => m.id).join(',') + S.stats.mails + ':' + Math.floor(S.t / 60) + ':' + decodedN();
+    case 'decoder': return decodedN() + DQ;
+    case 'reorg': return equityFor() + ':' + S.totalEq + ':' + Math.floor(S.runEarned) + Object.keys(S.ach).length;
+    case 'perks': return S.eq + Object.keys(PERKS).map(k => pkLv(k) + ':' + +(S.eq >= pkCost(k)) + ':' + S.perks[k + 'On']).join('');
+    default: return seatsFor() + ':' + S.seats + ':' + S.tier + ':' + Math.floor(S.runEarned) + Object.keys(BOARD).map(bdLv).join('');
+  }
+}
+function renderHint() {
+  const h = $('hint');
+  if (S.tut < TUT.length) {
+    const i = S.tut === 0 ? (S.t > 10 ? 1 : 0) : S.tut === 1 ? 2 : S.tut === 2 ? 3 : 4;
+    h.innerHTML = TUT[i];
+  } else if (S.view > 0 && !Object.keys(S.fl[S.view]).length) h.innerHTML = `Nothing up here yet. On the floor below, place an <b>Escalation</b> in a workflow: deliverables pop up here, at the same spot.`;
+  else if (S.tier >= 2 && !S.stats.seals) h.innerHTML = 'Paperwork has 4 sides: route one through <b>Sign-offs</b> moving right, down, left <i>and</i> up to make it <b>Fully Aligned</b>.';
+  else h.innerHTML = IS_TOUCH ? 'Tap a part, then tap the floor · tap a placed part to upgrade, rotate or sell · drag to lay workflows' : '<b>R</b>/wheel rotate · <b>right-click</b> sell · <b>U</b> upgrade · <b>1–0</b> pick part · <b>Q/E</b> change floor · <b>Space</b> Crunch · drag to lay workflows';
+}
+let HINT_SIG = '';
+
+// ---------------------------------------------------------------------
+// ACTIONS
+// ---------------------------------------------------------------------
+function placeAt(x, y, type, dir) {
+  const why = tryPlace(S.view, x, y, type, dir);
+  if (why) { toast(esc(why), 'bad', 2200); sfx('nope'); return false; }
+  sfx('place'); return true;
+}
+function doUpgrade(t) { if (!t) return; if (upgrade(t)) { sfx('up'); renderPane(); } else sfx('nope'); }
+function doSell(t) { if (!t || t.type === 'arr') return; const r = sell(t); toast(`Sold ${esc(PARTS[t.type].n)} for ${fmtV(r)}`); sfx('sell'); if (SEL === t) SEL = null; renderPane(); }
+function doRotate(by = 1) { if (SEL && tileXY(SEL.f, SEL.x, SEL.y) === SEL) { rotateTile(SEL, by); sfx('click'); renderPane(); } else { TOOL_DIR = (TOOL_DIR + by) % 4; } }
+function doCrunch() { audio(); const why = crunch(); if (why) { toast(esc(why), 'bad', 2200); sfx('nope'); } else sfx('crunch'); }
+function doPromote() {
+  if (!canPromote()) { toast(`${esc(RANKS[Math.min(S.rank + 1, RANKS.length - 1)].boss)}: ${jz(pick(PROMO_DENY))}`, 'bad', 4200); sfx('nope'); return; }
+  promote(); sfx('promo'); BLAYER = null; renderPane(); flush();
+}
+function doClaim() { const r = claimWalk(); if (!r) return; sfx('walk'); toast(`<b>${esc(r.w.n)}:</b> ${jz(r.say)}<br>${esc(r.res)}`, 'good', 4500); }
+
+// ---------------------------------------------------------------------
+// ENGINE NOTIFICATIONS
+// ---------------------------------------------------------------------
+let DEC_N = 0, DEC_T = 0;
+function flush() {
+  if (S.newDec) { DEC_N += S.newDec; S.newDec = 0; }
+  if (DEC_N && performance.now() - DEC_T > 2500) { toast(`Decoded <b>${DEC_N}</b> new phrase${DEC_N > 1 ? 's' : ''}. Hover the highlighted text.`, 'decn', 2600); DEC_N = 0; DEC_T = performance.now(); }
+  if (!S.pending.length) return;
+  const L = S.pending; S.pending = [];
+  for (const p of L) {
+    if (p.type === 'ach') { const a = ACHIEVEMENTS.find(x => x.id === p.id); if (a) toast(`Trophy: <b>${esc(a.n)}</b><br>${esc(a.d)}`, 'good', 4200); }
+    else if (p.type === 'mail') { const e = EMAILS.find(x => x.id === p.id); if (e) { toast(`New email from <b>${esc(e.from)}</b><br>${esc(e.subj)}`, '', 3600); sfx('mail'); } }
+    else if (p.type === 'promo') promoModal(p);
+    else if (p.type === 'story') storyModal(p.id);
+  }
+}
+
+// ---------------------------------------------------------------------
+// INPUT
+// ---------------------------------------------------------------------
+function tileAt(e) { const r = cv.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left - OX) / TS), y = Math.floor((e.clientY - r.top - OY) / TS); return x >= 0 && y >= 0 && x < GW() && y < GH() ? { x, y } : null; }
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('pointerdown', e => {
+  audio(); IS_TOUCH = e.pointerType !== 'mouse';
+  const p = tileAt(e); if (!p) return;
+  const f = S.view;
+  if (S.walk && S.walk.f === f && S.walk.x === p.x && S.walk.y === p.y && e.button === 0) { doClaim(); return; }
+  const t = tileXY(f, p.x, p.y);
+  if (e.button === 2) { if (t) doSell(t); return; }
+  if (t && TOOL && TOOL !== 'belt' && t.type === 'belt' && unlocked(TOOL) && !(TOOL === 'gen' && f > 0)) {
+    if (lAdd(S.cash, refundL(t)) < partCostL(TOOL) - 1e-9) { toast('Not enough Value.', 'bad', 1800); sfx('nope'); return; }
+    if (TOOL === 'esc') { const why = f + 1 >= floorsOpen() ? 'There\'s no open floor above this one yet.' : tileAtF(f + 1, p.x, p.y) ? 'The same spot on the floor above is taken.' : ''; if (why) { toast(esc(why), 'bad', 2400); sfx('nope'); return; } }
+    const d = t.dir; sell(t);
+    placeAt(p.x, p.y, TOOL, d); renderPane(); return;
+  }
+  if (t) { SEL = t; renderPane(); sfx('click'); DRAG = null; if (IS_TOUCH && innerWidth < 860) { TAB = 'build'; } return; }
+  SEL = null;
+  if (TOOL) { if (placeAt(p.x, p.y, TOOL, TOOL_DIR)) { DRAG = { last:p, id:e.pointerId }; try { cv.setPointerCapture(e.pointerId); } catch (er) {} renderPane(); } }
+  else renderPane();
+});
+addEventListener('pointerup', () => { DRAG = null; });
+addEventListener('pointercancel', () => { DRAG = null; });
+cv.addEventListener('pointermove', e => {
+  const p = tileAt(e); HOVER = p;
+  if (DRAG && p && TOOL === 'belt' && (p.x !== DRAG.last.x || p.y !== DRAG.last.y)) {
+    const dx = p.x - DRAG.last.x, dy = p.y - DRAG.last.y;
+    if (Math.abs(dx) + Math.abs(dy) === 1) {
+      const d = dx === 1 ? 0 : dy === 1 ? 1 : dx === -1 ? 2 : 3;
+      const prev = tileXY(S.view, DRAG.last.x, DRAG.last.y); if (prev && prev.type === 'belt') prev.dir = d;
+      TOOL_DIR = d; if (!tileXY(S.view, p.x, p.y)) placeAt(p.x, p.y, 'belt', d); DRAG.last = p; renderPane();
+    } else DRAG.last = p;
+  }
+});
+cv.addEventListener('pointerleave', () => { HOVER = null; });
+cv.addEventListener('wheel', e => { e.preventDefault(); doRotate(e.deltaY > 0 ? 1 : 3); }, { passive:false });
+addEventListener('keydown', e => {
+  if (MODAL) { if (e.key === 'Escape') closeModal(); return; }
+  if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'r') doRotate(e.shiftKey ? 3 : 1);
+  else if (k === 'escape') { SEL = null; TOOL = null; renderPane(); }
+  else if (k === ' ') { e.preventDefault(); doCrunch(); }
+  else if (k === 'u' && SEL) doUpgrade(SEL);
+  else if ((k === 'delete' || k === 'backspace' || k === 'x') && SEL) doSell(SEL);
+  else if (k === 'q') setView(S.view - 1);
+  else if (k === 'e') setView(S.view + 1);
+  else if (/^[0-9]$/.test(k)) { const vis = ORDER.filter(visible), t = vis[k === '0' ? 9 : +k - 1]; if (t && unlocked(t)) { TOOL = t; SEL = null; renderPane(); } }
+});
+document.addEventListener('click', e => {
+  const mk = e.target.closest && e.target.closest('mark.jg');
+  if (mk && !mk.closest('button')) { if (TIP_EL === mk) hideTip(); else showTip(mk); e.stopPropagation(); return; }
+  const b = e.target.closest('button'); if (!b) return;
+  audio();
+  if (b.dataset.tab) { TAB = b.dataset.tab; sfx('click'); renderTabs(); TABS_SIG = ''; renderTabs(); renderPane(); $('pane').scrollTop = 0; return; }
+  if (b.dataset.floor !== undefined) { const f = +b.dataset.floor; if (f >= floorsOpen()) { toast(`${esc(FLOORS[f].n)} opens at ${esc(RANKS[FLOORS[f].rank].t)}.`, 'bad', 2200); sfx('nope'); } else setView(f); return; }
+  if (b.dataset.p) { const t = b.dataset.p; if (!unlocked(t)) { toast(esc(lockReason(t)) + '.', 'bad', 1800); sfx('nope'); return; } TOOL = TOOL === t ? null : t; SEL = null; sfx('click'); renderPane(); return; }
+  if (b.dataset.tr) { if (buyTraining(b.dataset.tr)) { sfx('up'); toast(`Training complete: <b>${esc(TRAINING[b.dataset.tr].n)}</b>`); renderPane(); } else sfx('nope'); return; }
+  if (b.dataset.perk) { if (buyPerk(b.dataset.perk)) { sfx('up'); toast(`Perk: <b>${esc(PERKS[b.dataset.perk].n)}</b>`); renderPane(); } return; }
+  if (b.dataset.board) { if (buyBoard(b.dataset.board)) { sfx('reorg'); toast(`Board: <b>${esc(BOARD[b.dataset.board].n)}</b>`); renderPane(); } return; }
+  if (b.dataset.tog) { const k = b.dataset.tog + 'On'; S.perks[k] = S.perks[k] === false; sfx('click'); renderPane(); return; }
+  if (b.dataset.mail !== undefined) {
+    const r = answerMail(+b.dataset.mail, +b.dataset.ch); if (!r) return;
+    sfx('up'); toast(`${jz(r.t)}${r.fx ? `<br><b>${esc(r.fx)}</b>` : ''}`, 'good', 5200); renderPane(); return;
+  }
+  switch (b.id) {
+    case 'bUp': return doUpgrade(SEL);
+    case 'bRot': return doRotate(1);
+    case 'bSell': return doSell(SEL);
+    case 'bRebuild': { const n = rebuild(); toast(n ? `Rebuilt ${n} parts` : 'Nothing affordable yet'); renderPane(); return; }
+    case 'bHide': S.ghost = false; renderPane(); return;
+    case 'bPromo': return doPromote();
+    case 'bReorg': { const g = equityFor(); if (g < 1) return; ask(`Reorg for ${fmt(g)} Equity?`, `Your floors are wiped back to a single starter line, and Value${S.perks.keepRes ? '' : ' and Training'} reset. Your title resets too. Equity is permanent: +10% Value each, plus milestone head starts. Your old layout stays as a faint blueprint${S.perks.rebuild && S.perks.rebuildOn !== false ? ', and Process Documentation will rebuild it' : ''}.`, 'REORG', 'violet', () => { doReorg(); SEL = null; S.view = 0; BLAYER = null; layoutBoard(); sfx('reorg'); TAB = 'build'; FLOOR_SIG = ''; renderPane(); save(); flush(); }); return; }
+    case 'bIPO': { const g = seatsFor(); if (g < 1) return; ask(`Go public for ${fmt(g)} Board Seat${g > 1 ? 's' : ''}?`, `Everything folds: Value, Training, ${S.board.mem ? `${100 - 10 * S.board.mem}% of your` : 'all your'} Equity${S.board.lock ? '' : ' and Perks'}. Board Seats and their upgrades are forever${S.tier < 2 ? ', and from here on every deliverable is paperwork' : ''}.`, 'RING THE BELL', 'doc', () => { doIPO(); SEL = null; S.view = 0; BLAYER = null; layoutBoard(); sfx('reorg'); TAB = 'build'; FLOOR_SIG = ''; renderPane(); save(); flush(); }); return; }
+    case 'bWipe': ask('Wipe your save?', 'This erases every bit of Value, Equity, Board Seats and progress. There is no undo. Not even Legal can help.', 'WIPE', 'red', () => { WIPED = true; try { localStorage.removeItem(SAVE_KEY); } catch (e) {} location.reload(); }); return;
+    case 'bRotate': return doRotate(1);
+    case 'bUpg': return doUpgrade(SEL);
+    case 'bSellSel': return doSell(SEL);
+    case 'bCrunch': return doCrunch();
+    case 'rankChip': TAB = 'career'; renderTabs(); renderPane(); return;
+    case 'bHelp': return helpModal();
+    case 'bSound': SOUND = !SOUND; try { localStorage.setItem('vc_sound', SOUND ? 'on' : 'off'); } catch (er) {} $('bSound').style.opacity = SOUND ? 1 : 0.4; toast(`Sound ${SOUND ? 'on' : 'off'}`); return;
+  }
+});
+document.addEventListener('input', e => { if (e.target.id === 'decQ') { DQ = e.target.value; renderPane(); } });
+document.addEventListener('mouseover', e => { const m = e.target.closest && e.target.closest('mark.jg'); if (m) showTip(m); else if (TIP_EL) hideTip(); });
+document.addEventListener('focusin', e => { const m = e.target.closest && e.target.closest('mark.jg'); if (m) showTip(m); });
+document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('mark.jg')) hideTip(); });
+addEventListener('scroll', () => { if (TIP_EL) hideTip(); }, true);
+
+// ---------------------------------------------------------------------
+// SAVE
+// ---------------------------------------------------------------------
+function save() { if (WIPED || !S) return; S.saved = Date.now(); try { localStorage.setItem(SAVE_KEY, serialize()); } catch (e) {} }
+
+// ---------------------------------------------------------------------
+// LOOP
+// ---------------------------------------------------------------------
+let last = performance.now(), saveT = 0, uiT = 0, autoT = 0, crewT = 0, achT = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const before = S.stats.orbs;
+  let rem = dt; while (rem > 1e-4) { const s = Math.min(rem, 1 / 60); step(s); rem -= s; }
+  if (S.stats.orbs !== before) sfx('ship');
+  fxStep(dt);
+  autoT -= dt; if (autoT <= 0) { autoT = 0.5; autoUpgrade(); }
+  crewT -= dt; if (crewT <= 0) { crewT = 1; if (S.perks.rebuild && S.perks.rebuildOn !== false && S.layout && S.ghost && rebuild(true)) renderPane(); }
+  achT -= dt; if (achT <= 0) { achT = 1; checkAch(); tutCheck(); }
+  try { render(); } catch (err) { console.warn(err); PCACHE.clear(); OCACHE.clear(); BLAYER = null; }
+  uiT -= dt;
+  if (uiT <= 0) {
+    uiT = 0.1;
+    renderTop(); renderFloors(); renderTabs();
+    if (paneSig() !== PANE_SIG) renderPane();
+    else if (TAB === 'career' && $('pbar')) { $('pbar').style.width = Math.round(promoProgress() * 100) + '%'; $('pneed').textContent = `Run-rate ${fmtV(INC)}/s of ${fmtV(needL(S.rank + 1))}/s`; }
+    const hs = S.tut + ':' + (S.tut === 0 && S.t > 10) + ':' + S.view + ':' + Object.keys(S.fl[S.view]).length + ':' + S.tier + ':' + !!S.stats.seals + IS_TOUCH;
+    if (hs !== HINT_SIG) { HINT_SIG = hs; renderHint(); }
+    if (S.view >= floorsOpen()) setView(0);
+    flush();
+  }
+  saveT -= dt; if (saveT <= 0) { saveT = 10; save(); }
+}
+addEventListener('beforeunload', save);
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { save(); hiddenAt = Date.now(); return; }
+  if (!hiddenAt) return;
+  const away = (Date.now() - hiddenAt) / 1000; hiddenAt = 0;
+  if (away > 5 && INC > -30) { const v = INC + lg(Math.min(away, 12 * 3600)); earn(v); toast(`While you were away: +${fmtV(v)}`, 'good'); }
+});
+function boot(data) {
+  let loaded = null, raw = data && data.save;
+  if (!raw) { try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {} }
+  if (raw) loaded = deserialize(raw);
+  if (loaded) { S = loaded.s; reindex(); }
+  else { S = fresh(); starter(S); reindex(); }
+  resize(); renderPane(); renderHint(); renderTop(); renderFloors();
+  $('bSound').style.opacity = SOUND ? 1 : 0.4;
+  if (!loaded) introModal();
+  else {
+    const off = offlineGain(loaded.rate, loaded.saved);
+    if (off && !(data && data.save)) modal(`<div class="kick">While you were out</div><h2>The Value Chain kept moving</h2><p>You were away for ${off.away > 3600 ? (off.away / 3600).toFixed(1) + ' hours' : Math.round(off.away / 60) + ' minutes'}. The interns kept the workflows running. Nobody noticed you were gone, which HR calls "a strength."</p><div class="bigv">+${fmtV(off.L)}</div><div class="acts"><button type="button" class="btn gold" id="mOk">Collect</button></div>`,
+      () => { $('mOk').onclick = () => { earn(off.L); audio(); sfx('walk'); closeModal(); }; });
+  }
+  requestAnimationFrame(frame);
+}
+try { window.claude?.hot?.snapshot?.(() => ({ save:S ? serialize() : null })); } catch (e) {}
+(window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {}));
+</script>
+
+</body></html>

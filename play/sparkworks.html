@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sparkworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#070b14; --panel:#0e1524; --edge:#1f2c45; --edge2:#2e4366; --ink:#e6eefb; --dim:#7f90ad; --cyan:#3ee6ff; --gold:#ffcf4a; --pink:#ff5aa8; --green:#5dffa8; --violet:#a98bff; --red:#ff5a5a;
+  --head:'Chakra Petch', 'Segoe UI', system-ui, sans-serif; --body:'Inter', system-ui, sans-serif; }
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:var(--body); overflow:hidden; user-select:none; -webkit-user-select:none; }
+#app { position:fixed; inset:0; display:flex; }
+#boardWrap { flex:1; position:relative; min-width:0; display:flex; flex-direction:column; }
+#top { display:flex; align-items:baseline; gap:22px; padding:12px 18px 6px; }
+#credits { font-family:var(--head); font-size:40px; font-weight:700; color:var(--gold); text-shadow:0 0 18px #ffcf4a55; font-variant-numeric:tabular-nums; }
+#rate { font-family:var(--head); font-size:18px; color:var(--green); }
+#cores { font-family:var(--head); font-size:16px; color:var(--violet); margin-left:auto; }
+#cv { flex:1; display:block; width:100%; min-height:0; cursor:crosshair; }
+#hint { position:absolute; left:18px; bottom:14px; right:18px; font-size:14px; color:var(--dim); pointer-events:none; }
+#hint b { color:var(--cyan); }
+#od { position:absolute; right:18px; bottom:14px; }
+#side { width:360px; flex:none; background:var(--panel); border-left:1px solid var(--edge); display:flex; flex-direction:column; min-height:0; }
+#tabs { display:flex; border-bottom:1px solid var(--edge); }
+#tabs button { flex:1; background:none; border:0; color:var(--dim); font-family:var(--head); font-size:15px; letter-spacing:1px; padding:12px 0; cursor:pointer; border-bottom:2px solid transparent; }
+#tabs button.on { color:var(--ink); border-color:var(--cyan); }
+#tabs button .dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--gold); margin-left:5px; vertical-align:middle; }
+#pane { flex:1; overflow:auto; padding:12px; }
+.sec { font-family:var(--head); font-size:12px; letter-spacing:2px; color:var(--dim); margin:14px 0 8px; text-transform:uppercase; }
+.parts { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
+.part { background:#0a1120; border:1px solid var(--edge); border-radius:10px; padding:8px; cursor:pointer; display:flex; gap:8px; align-items:center; text-align:left; color:var(--ink); font-family:var(--body); }
+.part:hover { border-color:var(--edge2); }
+.part.sel { border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset, 0 0 14px #3ee6ff33; }
+.part.locked { opacity:.35; cursor:default; }
+.part.cant .cost { color:var(--red); }
+.part canvas { flex:none; }
+.part b { font-family:var(--head); font-size:15px; display:block; }
+.part .cost { font-family:var(--head); font-size:13px; color:var(--gold); }
+.part small { display:block; font-size:11.5px; color:var(--dim); line-height:1.25; }
+.card { background:#0a1120; border:1px solid var(--edge); border-radius:10px; padding:10px 12px; }
+.card h3 { margin:0 0 4px; font-family:var(--head); font-size:18px; }
+.card p { margin:4px 0; font-size:13px; color:var(--dim); line-height:1.4; }
+.card .st { font-family:var(--head); font-size:14px; color:var(--ink); }
+.btn { font-family:var(--head); font-size:14px; letter-spacing:.5px; background:#13203a; color:var(--ink); border:1px solid var(--edge2); border-radius:8px; padding:8px 12px; cursor:pointer; }
+.btn:hover { border-color:var(--cyan); }
+.btn.gold { background:linear-gradient(#ffd96a, #e8a92a); color:#231700; border-color:#ffe9a0; font-weight:700; }
+.btn.violet { background:linear-gradient(#b9a0ff, #7a5af0); color:#120a2a; border-color:#d8c8ff; font-weight:700; }
+.btn[disabled] { opacity:.35; pointer-events:none; }
+.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.res { display:flex; justify-content:space-between; align-items:center; gap:10px; background:#0a1120; border:1px solid var(--edge); border-radius:10px; padding:9px 11px; margin-bottom:7px; }
+.res b { font-family:var(--head); font-size:15px; display:block; }
+.res small { color:var(--dim); font-size:12px; line-height:1.3; display:block; }
+.res .lv { color:var(--cyan); font-family:var(--head); font-size:12px; }
+.res.done { opacity:.45; }
+.ms { display:flex; gap:10px; align-items:center; padding:7px 10px; border:1px solid var(--edge); border-radius:8px; margin-bottom:6px; font-size:13px; }
+.ms.on { border-color:var(--violet); background:#1a1430; }
+.ms .n { font-family:var(--head); color:var(--violet); min-width:44px; }
+#toast { position:fixed; left:50%; top:16px; transform:translate(-50%, -20px); opacity:0; transition:all .35s; z-index:20; background:#13203aee; border:1px solid var(--edge2); border-radius:10px; padding:10px 16px; font-family:var(--head); pointer-events:none; }
+#toast.show { opacity:1; transform:translate(-50%, 0); }
+.ov { position:fixed; inset:0; z-index:30; display:none; align-items:center; justify-content:center; background:#04070dd8; padding:16px; }
+.ov.show { display:flex; }
+.ov .card { max-width:460px; width:100%; padding:20px 22px; text-align:center; }
+.ov h2 { font-family:var(--head); font-size:28px; margin:0 0 6px; color:var(--gold); }
+.big { font-family:var(--head); font-size:34px; color:var(--gold); margin:8px 0; }
+@media (max-width:860px) { #app { flex-direction:column; } #side { width:100%; height:46%; border-left:0; border-top:1px solid var(--edge); } #credits { font-size:28px; } #hint { display:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="boardWrap">
+    <div id="top"><div id="credits">0</div><div id="rate">0 /s</div><div id="cores"></div></div>
+    <canvas id="cv"></canvas>
+    <div id="hint"></div>
+    <div id="od"><button class="btn gold" id="bOD">OVERDRIVE</button></div>
+  </div>
+  <div id="side">
+    <div id="tabs"><button class="on" data-t="build">BUILD</button><button data-t="research">RESEARCH</button><button data-t="reforge">REFORGE</button></div>
+    <div id="pane"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div class="ov" id="ovWelcome"><div class="card"><h2 id="wT">Welcome back</h2><p id="wP"></p><div class="big" id="wV"></div><button class="btn gold" id="wOk">COLLECT</button></div></div>
+<script>
+'use strict';
+// =====================================================================
+// NUMBERS
+// =====================================================================
+const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+function fmt(n, d = 1) {
+  if (!isFinite(n)) return '∞';
+  if (n < 1000) return n < 10 && n % 1 ? n.toFixed(d) : Math.floor(n).toString();
+  const e = Math.floor(Math.log10(n) / 3);
+  if (e < SUF.length) { const v = n / Math.pow(1000, e); return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + SUF[e]; }
+  return n.toExponential(2).replace('+', '');
+}
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rnd = Math.random;
+
+// =====================================================================
+// DATA
+// =====================================================================
+const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+const PARTS = {
+  belt:  { n:'Belt', d:'Carries orbs. Drag to lay a line.', cost:2, grow:1.0, col:'#3a5a8a', up:null },
+  gen:   { n:'Spark Source', d:'Emits an orb. Upgrades: faster & richer.', cost:15, grow:3.2, col:'#3ee6ff', up:{ base:12, grow:1.55 } },
+  core:  { n:'Core', d:'Sells orbs for credits. Upgrades: ×value.', cost:30, grow:4.5, col:'#ffcf4a', up:{ base:60, grow:1.7 } },
+  add:   { n:'Charger', d:'Adds value to every orb that passes.', cost:20, grow:1.35, col:'#5dffa8', up:{ base:25, grow:1.5 } },
+  mul:   { n:'Amplifier', d:'Multiplies orb value.', cost:250, grow:1.6, col:'#ff5aa8', up:{ base:300, grow:1.65 }, req:'r_mul' },
+  split: { n:'Splitter', d:'Splits an orb in two: out left & right.', cost:2500, grow:2.0, col:'#a98bff', up:{ base:3000, grow:1.8 }, req:'r_split' },
+  prism: { n:'Prism', d:'Huge multiplier, but only on orbs that have never touched a prism.', cost:40000, grow:2.2, col:'#ff9a3a', up:{ base:50000, grow:1.85 }, req:'r_prism' },
+  comp:  { n:'Compressor', d:'Swallows 4 orbs, releases one worth their total ×bonus.', cost:350000, grow:2.4, col:'#ff5a5a', up:{ base:400000, grow:1.9 }, req:'r_comp' },
+};
+const ORDER = ['belt', 'gen', 'core', 'add', 'mul', 'split', 'prism', 'comp'];
+function partStat(type, lvl) {
+  switch (type) {
+    case 'gen': return { period:Math.max(0.2, 2.2 * Math.pow(0.88, lvl)), value:1 + lvl * 1.5 };
+    case 'core': return { mult:1 + lvl * 0.3 };
+    case 'add': return { add:2 + lvl * 2 * (1 + lvl * 0.1) };
+    case 'mul': return { mul:1.5 + lvl * 0.15 };
+    case 'split': return { keep:Math.min(0.95, 0.6 + lvl * 0.05) };
+    case 'prism': return { mul:3 + lvl * 0.6 };
+    case 'comp': return { need:4, bonus:1.3 + lvl * 0.12 };
+  }
+  return {};
+}
+function statText(type, lvl) {
+  const s = partStat(type, lvl);
+  switch (type) {
+    case 'gen': return `${fmt(s.value)} value every ${s.period.toFixed(2)}s`;
+    case 'core': return `sells at ×${s.mult.toFixed(1)}`;
+    case 'add': return `+${fmt(s.add)} value`;
+    case 'mul': return `×${s.mul.toFixed(2)} value`;
+    case 'split': return `two orbs at ${Math.round(s.keep * 100)}% each`;
+    case 'prism': return `×${s.mul.toFixed(1)} (once per orb)`;
+    case 'comp': return `4 orbs → 1 at ×${s.bonus.toFixed(2)} total`;
+  }
+  return 'moves orbs';
+}
+const RESEARCH = {
+  r_mul:   { n:'Amplifiers', d:'Unlock the Amplifier.', cost:120 },
+  r_od:    { n:'Overdrive', d:'Unlock Overdrive: sources fire ×3 for 15s.', cost:600 },
+  r_grid1: { n:'Wider Floor I', d:'Board grows to 11×7.', cost:900 },
+  r_speed: { n:'Greased Belts', d:'+25% orb speed per level.', cost:400, lv:6, grow:3.5 },
+  r_split: { n:'Splitters', d:'Unlock the Splitter.', cost:1800 },
+  r_core:  { n:'Market Contacts', d:'+20% all sales per level.', cost:1500, lv:10, grow:3.2 },
+  r_gold:  { n:'Lucky Sparks', d:'Golden sparks appear more often and pay more.', cost:5000, lv:3, grow:6 },
+  r_grid2: { n:'Wider Floor II', d:'Board grows to 13×9.', cost:60000 },
+  r_prism: { n:'Prisms', d:'Unlock the Prism.', cost:25000 },
+  r_comp:  { n:'Compressors', d:'Unlock the Compressor.', cost:250000 },
+  r_grid3: { n:'Wider Floor III', d:'Board grows to 15×10.', cost:4e6 },
+  r_od2:   { n:'Overdrive Mk II', d:'Overdrive lasts 25s and recharges faster.', cost:8e5, req:'r_od' },
+  r_offline:{ n:'Night Shift', d:'Offline earnings rise from 40% to 80%.', cost:2e5 },
+};
+const GRIDS = [[9, 6], [11, 7], [13, 9], [15, 10]];
+const MILESTONES = [
+  [1, 'Start each run with 200 credits and Amplifiers unlocked.'],
+  [3, 'Start with Splitters, Overdrive and Wider Floor I.'],
+  [5, 'Saved layout is rebuilt for free after each Reforge (belts & parts at level 0).'],
+  [10, 'Offline earnings at 100%. Start with Prisms.'],
+  [25, 'Start with Compressors and Wider Floor II.'],
+  [60, 'Orbs move 50% faster.'],
+];
+const REFORGE_AT = 1e6;
+
+// =====================================================================
+// STATE
+// =====================================================================
+let S = null;
+function fresh(keep) {
+  const s = { credits:0, lifetime:0, runEarned:0, cores:0, totalCores:0, research:{}, grid:0, tiles:{}, owned:{}, nextId:1, odT:0, odCD:0, saved:Date.now(), t:0, layout:null, stats:{ orbs:0, reforges:0 }, tut:0 };
+  if (keep) { s.cores = keep.cores; s.totalCores = keep.totalCores; s.layout = keep.layout; s.stats = keep.stats; s.tut = 99; s.lifetime = keep.lifetime; }
+  const c = s.cores;
+  if (c >= 1) { s.credits = 200; s.research.r_mul = 1; }
+  if (c >= 3) { s.research.r_split = 1; s.research.r_od = 1; s.research.r_grid1 = 1; s.grid = Math.max(s.grid, 1); }
+  if (c >= 10) s.research.r_prism = 1;
+  if (c >= 25) { s.research.r_comp = 1; s.research.r_grid2 = 1; s.grid = 2; }
+  return s;
+}
+function starter(s) {
+  place(s, 1, 2, 'gen', 0, true); for (let x = 2; x <= 5; x++) place(s, x, 2, 'belt', 0, true); place(s, 6, 2, 'core', 0, true);
+  s.credits += 10;
+}
+const key = (x, y) => x + ',' + y;
+const GW = () => GRIDS[S.grid][0], GH = () => GRIDS[S.grid][1];
+function partCost(type) { const P = PARTS[type]; return Math.ceil(P.cost * Math.pow(P.grow, S.owned[type] || 0)); }
+function upCost(t) { const U = PARTS[t.type].up; return Math.ceil(U.base * Math.pow(U.grow, t.lvl)); }
+function place(s, x, y, type, dir, free) {
+  const t = { id:s.nextId++, type, dir, lvl:0, x, y, cd:0, store:0, storeN:0, flash:0 };
+  s.tiles[key(x, y)] = t; if (!free) s.owned[type] = (s.owned[type] || 0) + 1; else s.owned[type] = (s.owned[type] || 0) + (type === 'belt' ? 0 : 1);
+  return t;
+}
+function refundOf(t) {
+  let spent = 0; const P = PARTS[t.type];
+  if (P.up) for (let l = 0; l < t.lvl; l++) spent += Math.ceil(P.up.base * Math.pow(P.up.grow, l));
+  const n = Math.max(0, (S.owned[t.type] || 1) - 1);
+  return Math.floor((Math.ceil(P.cost * Math.pow(P.grow, n)) + spent) * (t.type === 'belt' ? 1 : 0.5));
+}
+function sell(t) {
+  const r = refundOf(t);
+  delete S.tiles[key(t.x, t.y)];
+  S.owned[t.type] = Math.max(0, (S.owned[t.type] || 1) - 1);
+  S.credits += r;
+  ORBS = ORBS.filter(o => !(o.tx === t.x && o.ty === t.y));
+  return r;
+}
+const hasR = k => (S.research[k] || 0) > 0;
+function salesMult() { return (1 + 0.2 * (S.research.r_core || 0)) * (1 + 0.1 * S.cores); }
+function orbSpeed() { return 2.4 * (1 + 0.25 * (S.research.r_speed || 0)) * (S.totalCores >= 60 ? 1.5 : 1); }
+
+// =====================================================================
+// SIMULATION
+// =====================================================================
+let ORBS = [], POPS = [], PARTS_FX = [], GOLD = null, goldT = 40, incomeLog = [], INC = 0;
+function emit(t, val, dir, extra) {
+  ORBS.push({ x:t.x, y:t.y, tx:t.x + DIRS[dir][0], ty:t.y + DIRS[dir][1], dir, k:0, v:val, seen:new Set([t.id]), prism:extra && extra.prism, hops:0 });
+}
+function earn(v, x, y) {
+  S.credits += v; S.lifetime += v; S.runEarned += v; incomeLog.push([S.t, v]);
+  if (x !== undefined) POPS.push({ x, y, text:'+' + fmt(v), life:1, big:v > INC * 3 && INC > 0 });
+}
+function step(dt) {
+  S.t += dt;
+  // overdrive
+  if (S.odT > 0) S.odT -= dt; else if (S.odCD > 0) S.odCD -= dt;
+  const od = S.odT > 0 ? 3 : 1;
+  // generators
+  for (const k in S.tiles) {
+    const t = S.tiles[k]; if (t.flash > 0) t.flash -= dt;
+    if (t.type !== 'gen') continue;
+    const st = partStat('gen', t.lvl);
+    t.cd -= dt * od;
+    if (t.cd <= 0) { t.cd += st.period; emit(t, st.value, t.dir); t.flash = 0.15; }
+  }
+  // orbs
+  const sp = orbSpeed() * dt;
+  const next = [];
+  for (const o of ORBS) {
+    o.k += sp;
+    if (o.k < 1) { next.push(o); continue; }
+    o.k -= 1; o.x = o.tx; o.y = o.ty; o.hops++;
+    const t = S.tiles[key(o.x, o.y)];
+    if (!t || o.hops > 200 || t.type === 'gen') { fizzle(o); continue; }
+    let out = t.dir, alive = true;
+    if (!o.seen.has(t.id)) {
+      const st = partStat(t.type, t.lvl);
+      switch (t.type) {
+        case 'add': o.v += st.add; t.flash = 0.15; break;
+        case 'mul': o.v *= st.mul; t.flash = 0.15; break;
+        case 'prism': if (!o.prism) { o.v *= st.mul; o.prism = true; t.flash = 0.2; } break;
+        case 'core': earn(o.v * st.mult * salesMult(), o.x, o.y); t.flash = 0.2; S.stats.orbs++; alive = false; break;
+        case 'split': {
+          t.flash = 0.15; alive = false;
+          for (const d of [(t.dir + 3) % 4, (t.dir + 1) % 4]) { const c = { x:o.x, y:o.y, tx:o.x + DIRS[d][0], ty:o.y + DIRS[d][1], dir:d, k:o.k, v:o.v * st.keep, seen:new Set(o.seen), prism:o.prism, hops:o.hops }; c.seen.add(t.id); next.push(c); }
+          break;
+        }
+        case 'comp': {
+          t.store += o.v; t.storeN++; alive = false; t.flash = 0.1;
+          if (t.storeN >= st.need) { const v = t.store * st.bonus; t.store = 0; t.storeN = 0; const c = { x:o.x, y:o.y, tx:o.x + DIRS[t.dir][0], ty:o.y + DIRS[t.dir][1], dir:t.dir, k:0, v, seen:new Set([t.id]), prism:false, hops:o.hops, big:true }; next.push(c); t.flash = 0.3; }
+          break;
+        }
+      }
+      if (alive && t.type !== 'belt') o.seen.add(t.id);
+    } else if (t.type === 'core') { earn(o.v * partStat('core', t.lvl).mult * salesMult(), o.x, o.y); alive = false; }
+    else if (t.type === 'comp' || t.type === 'split') { fizzle(o); continue; }
+    if (!alive) continue;
+    o.dir = out; o.tx = o.x + DIRS[out][0]; o.ty = o.y + DIRS[out][1];
+    if (o.tx < 0 || o.ty < 0 || o.tx >= GW() || o.ty >= GH()) { fizzle(o); continue; }
+    next.push(o);
+  }
+  ORBS = next.length > 1500 ? next.slice(next.length - 1500) : next;
+  // income rate (10s window)
+  while (incomeLog.length && incomeLog[0][0] < S.t - 10) incomeLog.shift();
+  INC = incomeLog.reduce((a, b) => a + b[1], 0) / Math.min(10, Math.max(1, S.t));
+  S.rate = INC;
+  // golden spark
+  goldT -= dt;
+  if (!GOLD && goldT <= 0) { GOLD = { x:Math.floor(rnd() * GW()), y:Math.floor(rnd() * GH()), life:10 }; }
+  if (GOLD) { GOLD.life -= dt; if (GOLD.life <= 0) { GOLD = null; goldT = nextGold(); } }
+}
+function nextGold() { return (70 + rnd() * 60) / (1 + 0.35 * (S.research.r_gold || 0)); }
+function fizzle(o) { PARTS_FX.push({ x:o.x + 0.5 - DIRS[o.dir][0] * 0.0, y:o.y + 0.5, life:0.3, col:'#7f90ad' }); }
+
+// =====================================================================
+// RENDER
+// =====================================================================
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let DPR = 1, CW = 0, CH = 0, TS = 64, OX = 0, OY = 0;
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); const r = cv.getBoundingClientRect(); CW = r.width; CH = r.height; cv.width = CW * DPR; cv.height = CH * DPR; layoutBoard(); }
+function layoutBoard() { TS = Math.floor(Math.min((CW - 30) / GW(), (CH - 40) / GH())); TS = clamp(TS, 28, 96); OX = Math.floor((CW - TS * GW()) / 2); OY = Math.floor((CH - TS * GH()) / 2); }
+addEventListener('resize', resize);
+const orbCol = v => { const h = (200 + Math.log10(Math.max(1, v)) * 38) % 360; return `hsl(${h},100%,65%)`; };
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+function drawPart(c, type, dir, x, y, s, lvl, flash, ghost, t) {
+  const P = PARTS[type], col = P.col, m = s * 0.08;
+  c.save(); c.translate(x + s / 2, y + s / 2);
+  if (ghost) c.globalAlpha = 0.45;
+  if (type === 'belt') {
+    c.fillStyle = '#132038'; rr(c, -s / 2 + m, -s / 2 + m, s - m * 2, s - m * 2, s * 0.12); c.fill();
+    c.rotate(dir * Math.PI / 2);
+    const off = ((performance.now() / 1000) * orbSpeed() * s) % (s / 3);
+    c.strokeStyle = '#3a5a8a'; c.lineWidth = s * 0.07; c.lineCap = 'round';
+    for (let k = -1; k < 3; k++) { const px = -s / 2 + k * s / 3 + off; if (px < -s * 0.42 || px > s * 0.32) continue; c.beginPath(); c.moveTo(px - s * 0.08, -s * 0.14); c.lineTo(px + s * 0.06, 0); c.lineTo(px - s * 0.08, s * 0.14); c.stroke(); }
+    c.restore(); return;
+  }
+  const glow = flash > 0 ? Math.min(1, flash * 6) : 0;
+  c.shadowColor = col; c.shadowBlur = s * (0.12 + glow * 0.4);
+  c.fillStyle = '#0c1424'; rr(c, -s / 2 + m, -s / 2 + m, s - m * 2, s - m * 2, s * 0.16); c.fill();
+  c.shadowBlur = 0;
+  c.strokeStyle = col; c.lineWidth = s * (0.05 + glow * 0.04); rr(c, -s / 2 + m, -s / 2 + m, s - m * 2, s - m * 2, s * 0.16); c.stroke();
+  // exit chevron(s)
+  const chev = d => { c.save(); c.rotate(d * Math.PI / 2); c.fillStyle = col; c.beginPath(); c.moveTo(s * 0.46, 0); c.lineTo(s * 0.34, -s * 0.09); c.lineTo(s * 0.34, s * 0.09); c.closePath(); c.fill(); c.restore(); };
+  if (type === 'split') { chev((dir + 3) % 4); chev((dir + 1) % 4); } else if (type !== 'core') chev(dir);
+  // glyph
+  c.fillStyle = col; c.strokeStyle = col; c.lineWidth = s * 0.06; c.lineCap = 'round'; c.lineJoin = 'round';
+  const g = s * 0.2;
+  switch (type) {
+    case 'gen': { c.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + (performance.now() / 900), r = i % 2 ? g * 0.55 : g * 1.1; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.fill();
+      if (t) { const st = partStat('gen', t.lvl), f = 1 - clamp(t.cd / st.period, 0, 1); c.strokeStyle = '#ffffff55'; c.lineWidth = s * 0.04; c.beginPath(); c.arc(0, 0, s * 0.32, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); c.stroke(); } break; }
+    case 'core': { const p = 1 + Math.sin(performance.now() / 300) * 0.06 + glow * 0.25; c.beginPath(); c.arc(0, 0, g * 1.2 * p, 0, 6.28); c.stroke(); c.beginPath(); c.arc(0, 0, g * 0.55 * p, 0, 6.28); c.fill(); break; }
+    case 'add': c.beginPath(); c.moveTo(-g, 0); c.lineTo(g, 0); c.moveTo(0, -g); c.lineTo(0, g); c.stroke(); break;
+    case 'mul': c.beginPath(); c.moveTo(-g * 0.8, -g * 0.8); c.lineTo(g * 0.8, g * 0.8); c.moveTo(g * 0.8, -g * 0.8); c.lineTo(-g * 0.8, g * 0.8); c.stroke(); break;
+    case 'split': c.save(); c.rotate(dir * Math.PI / 2); c.beginPath(); c.moveTo(-g, 0); c.lineTo(0, 0); c.lineTo(g * 0.6, -g); c.moveTo(0, 0); c.lineTo(g * 0.6, g); c.stroke(); c.restore(); break;
+    case 'prism': c.beginPath(); c.moveTo(0, -g * 1.1); c.lineTo(g, g * 0.8); c.lineTo(-g, g * 0.8); c.closePath(); c.stroke(); c.fillStyle = '#ff9a3a55'; c.fill(); break;
+    case 'comp': { c.beginPath(); c.arc(0, 0, g, 0, 6.28); c.stroke(); if (t) { const f = t.storeN / 4; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, g * 0.8, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); c.closePath(); c.fill(); } break; }
+  }
+  if (lvl > 0 && s > 36) { c.fillStyle = '#ffffffcc'; c.font = `600 ${Math.round(s * 0.17)}px Chakra Petch, sans-serif`; c.textAlign = 'right'; c.fillText(lvl, s * 0.38, -s * 0.24); }
+  c.restore();
+}
+let HOVER = null, SEL = null, TOOL = 'belt', TOOL_DIR = 0, DRAG = null;
+function render() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, CW, CH);
+  const W = GW(), H = GH();
+  // board
+  ctx.fillStyle = '#0a1222'; rr(ctx, OX - 8, OY - 8, W * TS + 16, H * TS + 16, 14); ctx.fill();
+  ctx.strokeStyle = '#16233c'; ctx.lineWidth = 1;
+  for (let x = 0; x <= W; x++) { ctx.beginPath(); ctx.moveTo(OX + x * TS + 0.5, OY); ctx.lineTo(OX + x * TS + 0.5, OY + H * TS); ctx.stroke(); }
+  for (let y = 0; y <= H; y++) { ctx.beginPath(); ctx.moveTo(OX, OY + y * TS + 0.5); ctx.lineTo(OX + W * TS, OY + y * TS + 0.5); ctx.stroke(); }
+  // layout ghosts (after reforge)
+  if (S.layout && S.ghost) for (const g of S.layout) if (!S.tiles[key(g.x, g.y)] && g.x < W && g.y < H) drawPart(ctx, g.type, g.dir, OX + g.x * TS, OY + g.y * TS, TS, 0, 0, true);
+  for (const k in S.tiles) { const t = S.tiles[k]; drawPart(ctx, t.type, t.dir, OX + t.x * TS, OY + t.y * TS, TS, t.lvl, t.flash, false, t); }
+  // orbs
+  for (const o of ORBS) {
+    const fx = o.x + (o.tx - o.x) * o.k, fy = o.y + (o.ty - o.y) * o.k;
+    const px = OX + (fx + 0.5) * TS, py = OY + (fy + 0.5) * TS, r = TS * (0.09 + Math.min(0.09, Math.log10(Math.max(1, o.v)) * 0.012)) * (o.big ? 1.5 : 1);
+    const col = orbCol(o.v);
+    ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = r * 2.5;
+    ctx.beginPath(); ctx.arc(px, py, r, 0, 6.28); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = '#ffffffcc'; ctx.beginPath(); ctx.arc(px - r * 0.3, py - r * 0.3, r * 0.35, 0, 6.28); ctx.fill();
+    if (o.prism) { ctx.strokeStyle = '#ff9a3a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(px, py, r + 2.5, 0, 6.28); ctx.stroke(); }
+  }
+  // golden spark
+  if (GOLD) {
+    const px = OX + (GOLD.x + 0.5) * TS, py = OY + (GOLD.y + 0.5) * TS, p = 1 + Math.sin(performance.now() / 120) * 0.15;
+    ctx.save(); ctx.translate(px, py); ctx.rotate(performance.now() / 600);
+    ctx.fillStyle = '#ffd84a'; ctx.shadowColor = '#ffd84a'; ctx.shadowBlur = 24;
+    ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, r = (i % 2 ? TS * 0.14 : TS * 0.32) * p; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.restore(); ctx.shadowBlur = 0;
+  }
+  // fx
+  for (const f of PARTS_FX) { ctx.globalAlpha = f.life / 0.3; ctx.strokeStyle = f.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(OX + f.x * TS, OY + f.y * TS, TS * 0.25 * (1.3 - f.life / 0.3), 0, 6.28); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  // pops
+  ctx.textAlign = 'center';
+  for (const p of POPS) {
+    ctx.globalAlpha = clamp(p.life * 1.6, 0, 1);
+    ctx.font = `700 ${Math.round(TS * (p.big ? 0.32 : 0.22))}px Chakra Petch, sans-serif`;
+    const px = OX + (p.x + 0.5) * TS, py = OY + (p.y + 0.15) * TS - (1 - p.life) * TS * 0.6;
+    ctx.lineWidth = 3; ctx.strokeStyle = '#000a'; ctx.strokeText(p.text, px, py); ctx.fillStyle = p.big ? '#fff3a0' : '#ffcf4a'; ctx.fillText(p.text, px, py);
+  }
+  ctx.globalAlpha = 1;
+  // hover/ghost
+  if (HOVER) {
+    const { x, y } = HOVER, t = S.tiles[key(x, y)];
+    if (!t && TOOL && canBuy(TOOL)) drawPart(ctx, TOOL, TOOL_DIR, OX + x * TS, OY + y * TS, TS, 0, 0, true);
+    ctx.strokeStyle = t ? '#3ee6ff' : (TOOL && !canBuy(TOOL) ? '#ff5a5a' : '#ffffff55'); ctx.lineWidth = 2; rr(ctx, OX + x * TS + 2, OY + y * TS + 2, TS - 4, TS - 4, TS * 0.16); ctx.stroke();
+  }
+  if (SEL && S.tiles[key(SEL.x, SEL.y)] === SEL) { ctx.strokeStyle = '#ffcf4a'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]); rr(ctx, OX + SEL.x * TS + 1, OY + SEL.y * TS + 1, TS - 2, TS - 2, TS * 0.16); ctx.stroke(); ctx.setLineDash([]); }
+}
+function fxStep(dt) {
+  for (const p of POPS) p.life -= dt * 0.9; POPS = POPS.filter(p => p.life > 0); if (POPS.length > 60) POPS = POPS.slice(-60);
+  for (const f of PARTS_FX) f.life -= dt; PARTS_FX = PARTS_FX.filter(f => f.life > 0); if (PARTS_FX.length > 80) PARTS_FX = PARTS_FX.slice(-80);
+}
+
+// =====================================================================
+// INPUT
+// =====================================================================
+function tileAt(e) { const r = cv.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left - OX) / TS), y = Math.floor((e.clientY - r.top - OY) / TS); return x >= 0 && y >= 0 && x < GW() && y < GH() ? { x, y } : null; }
+function unlocked(type) { const r = PARTS[type].req; return !r || hasR(r); }
+function canBuy(type) { return unlocked(type) && S.credits >= partCost(type); }
+function tryPlace(x, y, type, dir) {
+  if (S.tiles[key(x, y)]) return false;
+  if (!unlocked(type)) return false;
+  const c = partCost(type); if (S.credits < c) { toast('Not enough credits'); return false; }
+  S.credits -= c; place(S, x, y, type, dir); sfx('place'); tut(); return true;
+}
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('mousedown', e => {
+  audio();
+  const p = tileAt(e); if (!p) return;
+  if (GOLD && GOLD.x === p.x && GOLD.y === p.y && e.button === 0) { claimGold(); return; }
+  const t = S.tiles[key(p.x, p.y)];
+  if (e.button === 2) { if (t) { const r = sell(t); toast(`Sold for ${fmt(r)}`); sfx('sell'); if (SEL === t) SEL = null; renderPane(); } return; }
+  if (t) { SEL = t; renderPane(); sfx('click'); DRAG = null; return; }
+  SEL = null;
+  if (TOOL) { if (tryPlace(p.x, p.y, TOOL, TOOL_DIR)) { DRAG = { last:p }; renderPane(); } }
+});
+addEventListener('mouseup', () => { DRAG = null; });
+cv.addEventListener('mousemove', e => {
+  const p = tileAt(e); HOVER = p;
+  if (DRAG && p && TOOL === 'belt' && (p.x !== DRAG.last.x || p.y !== DRAG.last.y)) {
+    const dx = p.x - DRAG.last.x, dy = p.y - DRAG.last.y;
+    if (Math.abs(dx) + Math.abs(dy) === 1) {
+      const d = dx === 1 ? 0 : dy === 1 ? 1 : dx === -1 ? 2 : 3;
+      const prev = S.tiles[key(DRAG.last.x, DRAG.last.y)]; if (prev && prev.type === 'belt') prev.dir = d;
+      TOOL_DIR = d; tryPlace(p.x, p.y, 'belt', d); DRAG.last = p; renderPane();
+    } else DRAG.last = p;
+  }
+});
+cv.addEventListener('mouseleave', () => { HOVER = null; });
+cv.addEventListener('wheel', e => { e.preventDefault(); rotate(e.deltaY > 0 ? 1 : 3); }, { passive:false });
+function rotate(by = 1) {
+  if (SEL && S.tiles[key(SEL.x, SEL.y)] === SEL) { SEL.dir = (SEL.dir + by) % 4; sfx('click'); }
+  else TOOL_DIR = (TOOL_DIR + by) % 4;
+}
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'r') rotate(e.shiftKey ? 3 : 1);
+  else if (k === 'escape') { SEL = null; TOOL = null; renderPane(); }
+  else if (k === ' ') { e.preventDefault(); overdrive(); }
+  else if (k === 'u' && SEL) upgrade(SEL);
+  else if ((k === 'delete' || k === 'backspace' || k === 'x') && SEL) { sell(SEL); SEL = null; sfx('sell'); renderPane(); }
+  else if (/^[1-8]$/.test(k)) { const t = ORDER[+k - 1]; if (unlocked(t)) { TOOL = t; SEL = null; renderPane(); } }
+});
+function claimGold() {
+  const v = Math.max(50, INC * (30 + 15 * (S.research.r_gold || 0)));
+  earn(v, GOLD.x, GOLD.y); POPS[POPS.length - 1].big = true;
+  GOLD = null; goldT = nextGold(); sfx('gold'); toast(`Golden spark! +${fmt(v)}`);
+}
+function upgrade(t) {
+  if (!PARTS[t.type].up) return;
+  const c = upCost(t); if (S.credits < c) { sfx('nope'); return; }
+  S.credits -= c; t.lvl++; t.flash = 0.4; sfx('up'); renderPane(); tut();
+}
+function overdrive() {
+  if (!hasR('r_od') || S.odT > 0 || S.odCD > 0) return;
+  S.odT = hasR('r_od2') ? 25 : 15; S.odCD = hasR('r_od2') ? 60 : 90; sfx('od'); toast('OVERDRIVE!');
+}
+document.getElementById('bOD').addEventListener('click', () => { audio(); overdrive(); });
+
+// =====================================================================
+// SIDE PANEL
+// =====================================================================
+let TAB = 'build';
+const $ = id => document.getElementById(id);
+document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; TAB = b.dataset.t; for (const x of document.querySelectorAll('#tabs button')) x.classList.toggle('on', x === b); renderPane(); sfx('click'); });
+const ICON = {};
+function partIcon(type) { if (ICON[type]) return ICON[type]; const c = document.createElement('canvas'); c.width = 84; c.height = 84; const g = c.getContext('2d'); g.scale(2, 2); drawPart(g, type, 0, 1, 1, 40, 0, 0, false); ICON[type] = c.toDataURL(); return ICON[type]; }
+function renderPane() {
+  const P = $('pane'); let h = '';
+  if (TAB === 'build') {
+    if (SEL && S.tiles[key(SEL.x, SEL.y)] === SEL) {
+      const t = SEL, Pt = PARTS[t.type];
+      h += `<div class="card"><h3 style="color:${Pt.col}">${Pt.n}${t.lvl ? ` <span style="color:var(--dim);font-size:14px">level ${t.lvl}</span>` : ''}</h3><p>${Pt.d}</p><p class="st">${statText(t.type, t.lvl)}</p>`;
+      if (Pt.up) { const c = upCost(t); h += `<p class="st" style="color:var(--green)">Next: ${statText(t.type, t.lvl + 1)}</p><div class="row"><button class="btn gold" id="bUp"${S.credits < c ? ' disabled' : ''}>UPGRADE · ${fmt(c)}</button>`; }
+      else h += '<div class="row">';
+      h += `<button class="btn" id="bRot">ROTATE (R)</button><button class="btn" id="bSell">SELL · ${fmt(refundOf(t))}</button></div></div>`;
+    }
+    h += '<div class="sec">Parts — click a tile to build · R or wheel rotates</div><div class="parts">';
+    ORDER.forEach((type, i) => {
+      const Pt = PARTS[type], lock = !unlocked(type), c = partCost(type);
+      h += `<button class="part${TOOL === type ? ' sel' : ''}${lock ? ' locked' : ''}${!lock && S.credits < c ? ' cant' : ''}" data-p="${type}"><img src="${partIcon(type)}" width="42" height="42"><span><b>${Pt.n} <span style="color:var(--dim);font-size:11px">[${i + 1}]</span></b><span class="cost">${lock ? 'locked — research' : fmt(c)}</span><small>${Pt.d}</small></span></button>`;
+    });
+    h += '</div>';
+    if (S.layout && S.ghost) h += `<div class="sec">Saved layout</div><div class="row"><button class="btn" id="bRebuild">REBUILD WHAT I CAN AFFORD</button><button class="btn" id="bHide">HIDE GHOSTS</button></div>`;
+  } else if (TAB === 'research') {
+    for (const [k, R] of Object.entries(RESEARCH)) {
+      const lv = S.research[k] || 0, max = R.lv || 1, done = lv >= max;
+      if (R.req && !hasR(R.req)) continue;
+      const c = Math.ceil(R.cost * Math.pow(R.grow || 1, lv));
+      h += `<div class="res${done ? ' done' : ''}"><div><b>${R.n} ${max > 1 ? `<span class="lv">${lv}/${max}</span>` : ''}</b><small>${R.d}</small></div>${done ? '<span class="lv">DONE</span>' : `<button class="btn${S.credits >= c ? ' gold' : ''}" data-r="${k}"${S.credits < c ? ' disabled' : ''}>${fmt(c)}</button>`}</div>`;
+    }
+  } else {
+    const gain = coresFor();
+    h += `<div class="card"><h3 style="color:var(--violet)">Reforge</h3><p>Melt the whole factory down into <b style="color:var(--violet)">Cores</b>. Each Core permanently adds <b>+10%</b> to all sales, and Core milestones unlock head starts. Your layout is saved as a blueprint you can rebuild.</p>
+      <p class="st">Earned this run: ${fmt(S.runEarned)} · Reforge from ${fmt(REFORGE_AT)}</p><div class="big" style="color:var(--violet)">+${gain} Cores</div>
+      <button class="btn violet" id="bReforge"${gain < 1 ? ' disabled' : ''}>REFORGE</button></div>
+      <div class="sec">Core milestones (you have ${S.totalCores})</div>`;
+    for (const [n, d] of MILESTONES) h += `<div class="ms${S.totalCores >= n ? ' on' : ''}"><span class="n">${n} ◆</span><span>${d}</span></div>`;
+    h += `<div class="sec">Stats</div><div class="card"><p>Orbs sold: ${fmt(S.stats.orbs)}<br>Lifetime earnings: ${fmt(S.lifetime)}<br>Reforges: ${S.stats.reforges}</p><div class="row"><button class="btn" id="bReset" style="border-color:#5a2030">WIPE SAVE</button></div></div>`;
+  }
+  P.innerHTML = h;
+  const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  on('bUp', () => upgrade(SEL)); on('bRot', () => rotate(1)); on('bSell', () => { const r = sell(SEL); toast(`Sold for ${fmt(r)}`); SEL = null; sfx('sell'); renderPane(); });
+  on('bRebuild', rebuild); on('bHide', () => { S.ghost = false; renderPane(); });
+  on('bReforge', reforge); on('bReset', () => { if (confirm('Wipe all progress?')) { try { localStorage.removeItem('sparkworks'); } catch (e) {} location.reload(); } });
+  for (const b of P.querySelectorAll('[data-p]')) b.onclick = () => { if (!unlocked(b.dataset.p)) return; TOOL = b.dataset.p; SEL = null; sfx('click'); renderPane(); };
+  for (const b of P.querySelectorAll('[data-r]')) b.onclick = () => buyResearch(b.dataset.r);
+  PANE_SIG = paneSig();
+}
+let PANE_SIG = '';
+function paneSig() {   // re-render when affordability changes
+  if (TAB === 'build') return ORDER.map(t => +canBuy(t)).join('') + (SEL ? SEL.id + ':' + SEL.lvl + ':' + (S.credits >= (PARTS[SEL.type].up ? upCost(SEL) : 1e99)) : '');
+  if (TAB === 'research') return Object.entries(RESEARCH).map(([k, R]) => (S.research[k] || 0) + ':' + +(S.credits >= Math.ceil(R.cost * Math.pow(R.grow || 1, S.research[k] || 0)))).join('');
+  return coresFor() + ':' + S.totalCores;
+}
+function buyResearch(k) {
+  const R = RESEARCH[k], lv = S.research[k] || 0, c = Math.ceil(R.cost * Math.pow(R.grow || 1, lv));
+  if (S.credits < c || lv >= (R.lv || 1)) return;
+  S.credits -= c; S.research[k] = lv + 1; sfx('up');
+  if (k.startsWith('r_grid')) { S.grid = Math.max(S.grid, +k.slice(6)); layoutBoard(); }
+  toast(`Researched: ${R.n}`); renderPane(); renderHint();
+}
+function coresFor() { return S.runEarned < REFORGE_AT ? 0 : Math.floor(Math.pow(S.runEarned / REFORGE_AT, 0.5)); }
+function reforge() {
+  const gain = coresFor(); if (gain < 1) return;
+  if (!confirm(`Reforge for ${gain} Cores? Your factory, credits and research reset.`)) return;
+  const layout = Object.values(S.tiles).map(t => ({ x:t.x, y:t.y, type:t.type, dir:t.dir }));
+  const keep = { cores:S.cores + gain, totalCores:S.totalCores + gain, layout, stats:Object.assign({}, S.stats, { reforges:S.stats.reforges + 1 }), lifetime:S.lifetime };
+  S = fresh(keep); S.ghost = true; ORBS = []; POPS = []; incomeLog = [];
+  starter(S);
+  if (S.totalCores >= 5) rebuild(true);
+  layoutBoard(); sfx('reforge'); toast(`Reforged! ${S.cores} Cores: +${S.cores * 10}% sales`); renderPane(); save();
+}
+function rebuild(free) {
+  if (!S.layout) return;
+  let n = 0;
+  const sorted = S.layout.slice().sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type));
+  for (const g of sorted) {
+    if (S.tiles[key(g.x, g.y)] || g.x >= GW() || g.y >= GH() || !unlocked(g.type)) continue;
+    if (free) { place(S, g.x, g.y, g.type, g.dir); n++; continue; }
+    const c = partCost(g.type); if (S.credits < c) continue;
+    S.credits -= c; place(S, g.x, g.y, g.type, g.dir); n++;
+  }
+  // starter pieces may sit where the layout wanted something else — fine
+  if (!free) toast(n ? `Rebuilt ${n} parts` : 'Nothing affordable yet');
+  renderPane();
+}
+
+// =====================================================================
+// TUTORIAL HINTS
+// =====================================================================
+const TUT = [
+  () => 'Your <b>Spark Source</b> fires orbs down the <b>Belts</b> into the <b>Core</b>, which sells them. Watch the credits climb.',
+  () => 'Buy a <b>Charger (+)</b> [4] and drop it into the belt line — every orb passing through gains value.',
+  () => 'Click a part on the board to <b>upgrade</b> it. Upgraded Spark Sources fire faster and richer orbs.',
+  () => 'Open <b>Research</b> to unlock <b>Amplifiers</b> (×). Multipliers late in the line are worth more.',
+  () => 'Tip: add a second Spark Source with its own path, or <b>drag</b> to lay belts quickly. Golden sparks appear now and then — click them!',
+];
+function tut() {
+  if (S.tut === 0 && S.owned.add) S.tut = 1;
+  if (S.tut === 1 && Object.values(S.tiles).some(t => t.lvl > 0)) S.tut = 2;
+  if (S.tut === 2 && hasR('r_mul')) S.tut = 3;
+  if (S.tut === 3 && S.owned.mul) S.tut = 4;
+  if (S.tut === 4 && S.lifetime > 3000) S.tut = 99;
+  renderHint();
+}
+function renderHint() {
+  const h = $('hint');
+  if (S.tut < TUT.length && S.tut < 99) {
+    const i = S.tut === 0 ? (S.t > 8 ? 1 : 0) : S.tut === 1 ? 2 : S.tut === 2 ? 3 : S.tut === 3 ? 3 : 4;
+    h.innerHTML = TUT[i]();
+  } else h.innerHTML = '<b>R</b>/wheel rotate · <b>right-click</b> sell · <b>U</b> upgrade selected · <b>1–8</b> pick part · <b>Space</b> overdrive · drag to lay belts';
+}
+
+// =====================================================================
+// AUDIO
+// =====================================================================
+let AC = null, MUTE = false;
+function audio() { if (AC) { if (AC.state === 'suspended') AC.resume(); return; } try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+function tone(f, d, type = 'sine', v = 0.05, slide = 0, delay = 0) {
+  if (!AC || MUTE) return; const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d + 0.03);
+}
+let lastSell = 0;
+function sfx(n) {
+  switch (n) {
+    case 'place': tone(420, 0.06, 'triangle', 0.06); tone(640, 0.06, 'triangle', 0.04, 0, 0.03); break;
+    case 'click': tone(800, 0.03, 'square', 0.025); break;
+    case 'sell': tone(500, 0.08, 'triangle', 0.05, -200); break;
+    case 'up': [523, 659, 784].forEach((f, i) => tone(f, 0.08, 'triangle', 0.05, 0, i * 0.04)); break;
+    case 'nope': tone(150, 0.1, 'square', 0.04); break;
+    case 'gold': [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.12, 'triangle', 0.06, 0, i * 0.06)); break;
+    case 'od': tone(110, 0.6, 'sawtooth', 0.06, 300); tone(220, 0.6, 'triangle', 0.05, 600); break;
+    case 'reforge': [196, 262, 330, 392, 523, 659].forEach((f, i) => tone(f, 0.2, 'triangle', 0.06, 0, i * 0.08)); break;
+    case 'core': if (performance.now() - lastSell > 70) { lastSell = performance.now(); tone(1100 + rnd() * 300, 0.035, 'sine', 0.018); } break;
+  }
+}
+let TOASTT = 0;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(TOASTT); TOASTT = setTimeout(() => el.classList.remove('show'), 1800); }
+
+// =====================================================================
+// SAVE / LOAD / OFFLINE
+// =====================================================================
+function save() {
+  S.saved = Date.now();
+  const tiles = Object.values(S.tiles).map(t => [t.x, t.y, t.type, t.dir, t.lvl]);
+  const data = Object.assign({}, S, { tiles, rate:INC });
+  try { localStorage.setItem('sparkworks', JSON.stringify(data)); } catch (e) {}
+}
+function load() {
+  let d = null; try { d = JSON.parse(localStorage.getItem('sparkworks') || 'null'); } catch (e) {}
+  if (!d) { S = fresh(); starter(S); return 0; }
+  S = fresh({ cores:d.cores || 0, totalCores:d.totalCores || 0, layout:d.layout || null, stats:d.stats || { orbs:0, reforges:0 }, lifetime:d.lifetime || 0 });
+  Object.assign(S, { credits:d.credits || 0, runEarned:d.runEarned || 0, research:d.research || {}, grid:d.grid || 0, owned:d.owned || {}, tut:d.tut === undefined ? 99 : d.tut, ghost:!!d.ghost, odCD:d.odCD || 0, nextId:1 });
+  S.tiles = {};
+  for (const [x, y, type, dir, lvl] of d.tiles || []) { const t = { id:S.nextId++, type, dir, lvl, x, y, cd:0, store:0, storeN:0, flash:0 }; S.tiles[key(x, y)] = t; }
+  const away = Math.max(0, (Date.now() - (d.saved || Date.now())) / 1000);
+  const eff = S.totalCores >= 10 ? 1 : hasR('r_offline') ? 0.8 : 0.4;
+  return away > 60 && d.rate > 0 ? Math.min(away, 12 * 3600) * d.rate * eff : 0;
+}
+
+// =====================================================================
+// LOOP
+// =====================================================================
+let last = performance.now(), saveT = 0, uiT = 0;
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const before = S.stats.orbs;
+  let rem = dt; while (rem > 1e-4) { const s = Math.min(rem, 1 / 60); step(s); rem -= s; }
+  if (S.stats.orbs !== before) sfx('core');
+  fxStep(dt); render();
+  uiT -= dt;
+  if (uiT <= 0) {
+    uiT = 0.1;
+    $('credits').textContent = fmt(S.credits);
+    $('rate').textContent = `${fmt(INC)} /s`;
+    $('cores').textContent = S.cores ? `◆ ${S.cores} Cores · +${S.cores * 10}%` : '';
+    const od = $('bOD'); od.style.display = hasR('r_od') ? '' : 'none';
+    od.disabled = S.odT > 0 || S.odCD > 0; od.textContent = S.odT > 0 ? `OVERDRIVE ${Math.ceil(S.odT)}s` : S.odCD > 0 ? `RECHARGING ${Math.ceil(S.odCD)}s` : 'OVERDRIVE [SPACE]';
+    if (paneSig() !== PANE_SIG) renderPane();
+    const canRes = Object.entries(RESEARCH).some(([k, R]) => (S.research[k] || 0) < (R.lv || 1) && (!R.req || hasR(R.req)) && S.credits >= Math.ceil(R.cost * Math.pow(R.grow || 1, S.research[k] || 0)));
+    document.querySelector('[data-t="research"]').innerHTML = 'RESEARCH' + (canRes ? '<span class="dot"></span>' : '');
+    document.querySelector('[data-t="reforge"]').innerHTML = 'REFORGE' + (coresFor() > 0 ? '<span class="dot" style="background:var(--violet)"></span>' : '');
+    if (S.tut === 0 && S.t > 8) renderHint();
+    if (S.tut === 4 && S.lifetime > 3000) tut();
+  }
+  saveT -= dt; if (saveT <= 0) { saveT = 10; save(); }
+  requestAnimationFrame(frame);
+}
+addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+function boot() {
+  const off = load();
+  resize(); renderPane(); renderHint();
+  if (off > 0) {
+    $('wP').textContent = `Your machines kept humming while you were away.`; $('wV').textContent = '+' + fmt(off);
+    $('ovWelcome').classList.add('show');
+    $('wOk').onclick = () => { S.credits += off; S.lifetime += off; S.runEarned += off; $('ovWelcome').classList.remove('show'); audio(); sfx('gold'); };
+  }
+  requestAnimationFrame(frame);
+}
+boot();
+</script>
+</body>
+</html>

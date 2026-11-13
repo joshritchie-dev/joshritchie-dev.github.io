@@ -1,0 +1,1701 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Waggle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  /* Layout: one-screen hive console. Comb (dance floor) | meadow map | field notes; stacks on phones.
+     A single deliberate look: the dark inside of an oak hollow, lit by honey. */
+  --ink:#16100a; --panel:#201710; --raise:#2b2016; --line:#4d3b27; --line-soft:#32261a;
+  --text:#ece2c8; --muted:#a8987b; --wax:#f4e4b6;
+  --honey:#f2a91d; --honey-deep:#c27a0b; --leaf:#93b858; --sky:#78bfdc; --warn:#ec6d45; --plum:#c08ad0;
+  --display:'IM Fell English SC','IM Fell English',Georgia,'Times New Roman',serif;
+  --serif:'IM Fell English',Georgia,'Times New Roman',serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html{box-sizing:border-box;height:100%;background:var(--ink)}
+*,*::before,*::after{box-sizing:inherit}
+body{height:100%;background:var(--ink);color:var(--text);font:14px/1.45 var(--body);overflow-x:hidden}
+button{font:inherit;color:inherit}
+#app{height:100%;display:flex;flex-direction:column;gap:10px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* HUD */
+#hud{display:flex;align-items:center;flex-wrap:wrap;gap:10px 22px;padding:8px 14px;background:var(--panel);border:1px solid var(--line-soft);border-radius:10px}
+.brand{font-family:var(--display);font-size:28px;line-height:1;color:var(--honey);letter-spacing:.01em}
+.when{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.when .day{font-family:var(--serif);font-size:17px;color:var(--wax)}
+.when .clock{font:500 17px var(--mono);font-variant-numeric:tabular-nums;color:var(--text)}
+.wx{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.wx svg{width:18px;height:18px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-left:auto}
+.stat{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.stat b{font:500 16px var(--mono);font-variant-numeric:tabular-nums;color:var(--wax)}
+.stat span{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.stat em{font-style:normal;font-size:11px;color:var(--muted)}
+.stat em.low{color:var(--warn)} .stat em.ok{color:var(--leaf)}
+.ctrls{display:flex;gap:6px;align-items:center}
+.btn{background:var(--raise);border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--honey-deep)}
+.btn:focus-visible,.choice:focus-visible,.tabs button:focus-visible,.row:focus-visible{outline:2px solid var(--honey);outline-offset:2px}
+.btn.on{background:var(--honey);color:#2a1a05;border-color:var(--honey)}
+.btn.icon{padding:5px 8px;min-width:34px}
+
+/* Play area */
+#play{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.38fr) minmax(250px,288px);grid-template-rows:minmax(0,1fr);gap:12px}
+#combPane{grid-column:1;grid-row:1} #mapPane{grid-column:2;grid-row:1} #side{grid-column:3;grid-row:1}
+.pane{position:relative;min-width:0;min-height:0;background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;overflow:hidden}
+.stage{display:flex;align-items:center;justify-content:center}
+.stage canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.cap{position:absolute;left:12px;top:9px;pointer-events:none;font-family:var(--display);font-size:15px;color:var(--wax);opacity:.85;letter-spacing:.02em}
+.cap small{display:block;font:11px var(--body);letter-spacing:.04em;color:var(--muted);text-transform:none;opacity:.95}
+#toasts{position:absolute;left:50%;top:44px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92%,420px)}
+.toast{background:rgba(22,16,10,.88);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12.5px;text-align:center;transition:opacity .5s}
+.toast.bad{border-color:var(--warn);color:#ffd6c6}
+.toast.good{border-color:var(--honey-deep)}
+
+/* Side */
+#side{display:flex;flex-direction:column;overflow:auto;padding:12px 12px 14px;gap:12px}
+.h{font-family:var(--display);font-size:16px;color:var(--wax);letter-spacing:.02em}
+.sub{font-size:12px;color:var(--muted)}
+.bar{height:8px;border-radius:5px;background:#3a2c1c;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--honey)}
+.bar i.b2{background:#8a6a3c}
+.bar i.g{background:#a2495a}
+.card{background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:10px 11px;display:flex;flex-direction:column;gap:5px}
+.card .t{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--wax)}
+.card .t .x{margin-left:auto}
+.cbody{display:flex;flex-direction:column;gap:5px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px}
+.kv span:nth-child(odd){color:var(--muted)}
+.hint{font-size:12.5px;color:var(--honey)}
+.warnline{font-size:12.5px;color:var(--warn)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line-soft)}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:6px 8px;cursor:pointer;color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.04em}
+.tabs button.on{color:var(--wax);border-bottom-color:var(--honey)}
+.list{display:flex;flex-direction:column;gap:6px;min-height:40px}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 8px;align-items:center;padding:7px 8px;border-radius:8px;background:var(--raise);border:1px solid transparent;font-size:12.5px;cursor:default}
+.row.click{cursor:pointer}
+.row.click:hover{border-color:var(--line)}
+.row .nm{font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .meta{grid-column:2/4;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.row .mini{grid-column:2/4;height:4px}
+.row .rx{background:none;border:1px solid var(--line);border-radius:6px;padding:1px 7px;cursor:pointer;color:var(--muted);font-size:11.5px}
+.row .rx:hover{color:var(--warn);border-color:var(--warn)}
+.row.bad .nm{color:#ffbfa8}
+.chip{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:9px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.open{color:#2a1a05;background:var(--honey);border-color:var(--honey)}
+.chip.wait{color:var(--wax)}
+.chip.bad{color:var(--warn);border-color:var(--warn)}
+.logline{font-size:12px;color:var(--muted);padding:4px 2px;border-bottom:1px solid var(--line-soft)}
+.logline b{font:500 11px var(--mono);color:var(--text);margin-right:6px}
+.logline.bad{color:#f3b39d} .logline.good{color:var(--wax)}
+.empty{font-size:12.5px;color:var(--muted);padding:6px 2px}
+
+/* Coach */
+#coach{grid-column:1;grid-row:1;align-self:end;margin:10px;position:relative;z-index:3;background:rgba(24,17,10,.94);border:1px solid var(--honey-deep);border-radius:9px;padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:7px}
+#coach .ct{font-family:var(--display);color:var(--honey);font-size:15px}
+#coach .cb{display:flex;gap:8px;justify-content:flex-end}
+
+/* Modal */
+#modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(10,7,4,.72);backdrop-filter:blur(3px);padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));overflow:auto}
+.sheet{width:min(600px,100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sheet h2{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-height:1.05;color:var(--honey);text-wrap:balance}
+.sheet h3{margin:0;font-family:var(--serif);font-weight:400;font-size:19px;color:var(--wax)}
+.sheet p{margin:0;max-width:62ch}
+.sheet .eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sheet ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.choices{display:grid;gap:10px}
+.choice{text-align:left;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.choice:hover{border-color:var(--honey)}
+.choice b{color:var(--wax);font-weight:600}
+.choice span{font-size:12.5px;color:var(--muted)}
+.perks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.perks .choice{min-height:120px}
+.perks .choice b{font-family:var(--serif);font-size:17px;font-weight:400}
+.ledger{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:13.5px;font-variant-numeric:tabular-nums}
+.ledger b{font-family:var(--mono);font-weight:500;text-align:right;color:var(--wax)}
+.ledger .neg{color:#f3b39d!important}
+.ledger .sep{grid-column:1/3;border-top:1px solid var(--line-soft);margin:3px 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.big{background:var(--honey);color:#2a1a05;border:0;border-radius:9px;padding:10px 18px;font-weight:700;cursor:pointer}
+.big:hover{filter:brightness(1.07)}
+.big.ghost{background:var(--raise);color:var(--text);border:1px solid var(--line)}
+.big:focus-visible{outline:2px solid var(--wax);outline-offset:2px}
+.title-word{font-family:var(--display);font-size:72px;line-height:.9;color:var(--honey);margin:0}
+.lede{font-family:var(--serif);font-size:19px;color:var(--wax);font-style:italic}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result{font-family:var(--serif);font-size:24px;color:var(--wax)}
+
+@media (max-width:980px){
+  #app{height:auto;min-height:100%}
+  #play{grid-template-columns:minmax(0,1fr);grid-template-rows:none}
+  .stage{aspect-ratio:1/1;width:100%;max-width:100%}
+  #combPane,#mapPane,#side{grid-column:auto;grid-row:auto}
+  #mapPane{order:1} #combPane{order:2;aspect-ratio:1/1.12} #coach{order:3;grid-column:auto;grid-row:auto;margin:0} #side{order:4;overflow:visible}
+  .stats{margin-left:0}
+}
+@media (max-width:560px){
+  .perks{grid-template-columns:1fr}
+  .perks .choice{min-height:0}
+  .modes{grid-template-columns:1fr}
+  .title-word{font-size:56px}
+  .brand{font-size:24px}
+  .stats{gap:12px}
+  .sheet{padding:18px 16px}
+  #combPane .cap small{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .toast{transition:none} }
+</style>
+
+<div id="app">
+  <header id="hud">
+    <div class="brand">Waggle</div>
+    <div class="when"><span class="day" id="hDay">Day 1 · Spring</span><span class="clock" id="hClock">06:00</span></div>
+    <div class="wx" id="hWx"></div>
+    <div class="stats">
+      <div class="stat"><span>Honey</span><b id="sHoney">0.0 kg</b><em id="sNeed">winter needs ~ kg</em></div>
+      <div class="stat"><span>Pollen</span><b id="sPollen">0.0 kg</b><em id="sPollenNote">brood food</em></div>
+      <div class="stat"><span>Bees</span><b id="sBees">0</b><em id="sBrood">brood 0</em></div>
+      <div class="stat" id="waterStat" hidden><span>Water</span><b id="sWater">0 / 0 L</b><em>hot day</em></div>
+    </div>
+    <div class="ctrls" role="group" aria-label="Speed">
+      <button class="btn icon" id="bPause" title="Pause (Space)" aria-label="Pause">❚❚</button>
+      <button class="btn" data-speed="1" title="Normal speed (1)">1×</button>
+      <button class="btn" data-speed="2" title="Double speed (2)">2×</button>
+      <button class="btn" data-speed="4" title="Fast (3)">4×</button>
+      <button class="btn icon" id="bSound" title="Sound on/off" aria-label="Sound">♪</button>
+      <button class="btn icon" id="bMenu" title="Help and menu" aria-label="Menu">?</button>
+    </div>
+  </header>
+  <main id="play">
+    <section class="pane stage" id="combPane" aria-label="The comb, where you dance">
+      <canvas id="comb"></canvas>
+      <div class="cap">The comb<small>top of the comb = toward the sun</small></div>
+    </section>
+    <div id="coach" hidden></div>
+    <section class="pane stage" id="mapPane" aria-label="The meadow map">
+      <canvas id="map"></canvas>
+      <div class="cap">The meadow<small>3 km around the old oak</small></div>
+      <div id="toasts"></div>
+    </section>
+    <aside class="pane" id="side">
+      <div>
+        <div class="h">Foragers</div>
+        <div class="bar" style="margin-top:6px"><i id="fBarBusy"></i><i class="b2" id="fBarWait"></i><i class="g" id="fBarGuard"></i></div>
+        <div class="sub" id="fTxt" style="margin-top:4px"></div>
+      </div>
+      <div id="selCard" class="card" hidden></div>
+      <div class="tabs" role="tablist">
+        <button class="on" data-tab="routes" role="tab">Routes</button>
+        <button data-tab="flowers" role="tab">Flowers</button>
+        <button data-tab="log" role="tab">Log</button>
+      </div>
+      <div id="tabRoutes" class="list"></div>
+      <div id="tabFlowers" class="list" hidden></div>
+      <div id="tabLog" class="list" hidden></div>
+    </aside>
+  </main>
+</div>
+<div id="modal" hidden></div>
+
+<script>
+(function(){
+'use strict';
+
+/* =========================================================
+   CONSTANTS & DATA
+   ========================================================= */
+const C = {
+  RANGE:3000, HALF:3300, FOG_N:66, FOG_CELL:100,
+  DAY0:6, DAY1:20, DAYS:22, MIN_PER_SEC:10,
+  SPEED:50, FORAGE:18, UNLOAD:8, SQUAD:100, FOR_FRAC:0.4,
+  LOAD:0.012, PLOAD:0.005, WLOAD:0.12, FUEL:0.0003, SEARCH:110,
+  REV_LAND:230, REV_SCOUT:330, REV_HOME:650,
+  SPREAD0:35, SPREADK:0.075,
+  MORT:0.03, EGG_P:0.0003, EGG_H:0.00015, EAT:0.000018,
+  START_BEES:6000, START_HONEY:3, START_POLLEN:0.6,
+  CLUSTER:6000, W_BASE:5, W_BEE:0.0007, COLLAPSE:1500,
+};
+const TAU = Math.PI*2, D2R = Math.PI/180;
+
+// d: bloom days (inclusive), h: open hours, q: nectar quality, p: pollen, sup: squads it can feed, r: radius (m)
+const TYPES = {
+  willow:   {name:'Pussy willow',     d:[1,6],  h:[8,18],   q:.6, p:1.6, sup:8,  r:110, col:['#e3df62','#c4cc52','#f3ec96']},
+  dandelion:{name:'Dandelions',       d:[1,9],  h:[9,17],   q:1.0,p:1.0, sup:10, r:190, col:['#f7c71a','#ffd94c','#e9aa0c']},
+  hawthorn: {name:'Hawthorn hedge',   d:[5,10], h:[8,18],   q:1.2,p:.5,  sup:8,  r:150, col:['#f6f2e8','#ecdade','#ffffff']},
+  orchard:  {name:'Apple orchard',    d:[3,8],  h:[9,17],   q:1.4,p:.8,  sup:18, r:240, col:['#f8d6de','#ffffff','#f0b6c6']},
+  rapeseed: {name:'Oilseed rape',     d:[4,10], h:[8,18],   q:1.5,p:.7,  sup:30, r:360, col:['#f3e11a','#ffea3c','#d8c510'], spray:true, field:true},
+  clover:   {name:'White clover',     d:[8,17], h:[9,18],   q:1.1,p:.5,  sup:14, r:250, col:['#f4f0e6','#eccbd6','#ffffff']},
+  lavender: {name:'Lavender rows',    d:[10,17],h:[10,18],  q:1.3,p:.4,  sup:10, r:150, col:['#9c80d4','#b69de6','#7e64ba'], field:true},
+  linden:   {name:'Lime avenue',      d:[11,14],h:[6,12],   q:2.0,p:.3,  sup:30, r:170, col:['#e8ea8c','#d5de6e','#f6f4b2']},
+  bramble:  {name:'Bramble thicket',  d:[11,17],h:[8,19],   q:1.0,p:.6,  sup:10, r:190, col:['#f3eaf2','#e7d1e2','#ffffff']},
+  primrose: {name:'Evening primrose', d:[10,18],h:[17,20.5],q:1.6,p:.6,  sup:10, r:140, col:['#fff37c','#f6e45c','#fffbb2']},
+  phacelia: {name:'Phacelia strip',   d:[12,18],h:[8,17],   q:1.5,p:.9,  sup:16, r:210, col:['#91a5ea','#abb9f2','#7388d8'], field:true},
+  sunflower:{name:'Sunflowers',       d:[14,19],h:[10,16],  q:1.2,p:1.4, sup:26, r:330, col:['#f7ba1b','#e59b0f','#5c3b13'], spray:true, field:true},
+  heather:  {name:'Heather moor',     d:[17,22],h:[9,17],   q:1.4,p:.6,  sup:24, r:430, col:['#b6609f','#cb7cb6','#954980']},
+  ivy:      {name:'Flowering ivy',    d:[19,22],h:[10,16],  q:1.3,p:.9,  sup:12, r:150, col:['#d1d96c','#bac656','#e2e88c']},
+  goldenrod:{name:'Goldenrod',        d:[16,21],h:[10,17],  q:1.1,p:.9,  sup:12, r:210, col:['#eabb25','#f4cd40','#d29f14']},
+  garden:   {name:'Cottage gardens',  d:[1,22], h:[9,18],   q:.8, p:.7,  sup:4,  r:130, col:['#ea5f77','#f4a23f','#9c71d3','#ffffff']},
+  water:    {name:'Pond',             d:[1,22], h:[6,21],   q:0,  p:0,   sup:0,  r:120, col:['#78bfdc'], water:true},
+};
+const ROUTE_COLS = ['#ffd166','#7fd1ff','#ff9f80','#c6a7ff','#9be38a','#ffb3d1','#f6e27a','#8ee6d6'];
+
+const PERKS = [
+  {id:'precise', name:'Precise dancers', text:'Recruits scatter 35% less around the spot you dance.'},
+  {id:'wings',   name:'Strong wings',    text:'Foragers fly 20% faster.'},
+  {id:'crops',   name:'Full crops',      text:'Every trip brings back 20% more nectar.'},
+  {id:'baskets', name:'Pollen baskets',  text:'Every trip brings back 50% more pollen.'},
+  {id:'scent',   name:'Scent marking',   text:'Foragers that land off target search twice as far for flowers.'},
+  {id:'guards',  name:'Fierce guards',   text:'Losses to hornets, spray and rain are cut by 60%.'},
+  {id:'queen',   name:'Prolific queen',  text:'The queen lays 25% more eggs.'},
+  {id:'hardy',   name:'Hardy workers',   text:'Deaths from old age fall by 30%.'},
+  {id:'frugal',  name:'Frugal hive',     text:'The colony eats 25% less and needs 10% less honey for winter.'},
+  {id:'water',   name:'Water carriers',  text:'Water trips carry 2.5 times as much.'},
+  {id:'weather', name:'Weather sense',   text:'Foragers come home before showers with no losses. Overcast days no longer cut nectar.'},
+  {id:'scouts',  name:'Scout corps',     text:'Two extra scouts fly every day, and all scouts see farther.'},
+  {id:'memory',  name:'Hive memory',     text:'Routes survive the night. Squads pick them up again each morning.'},
+  {id:'recruit', name:'Rousing dance',   text:'Each dance circuit recruits two squads instead of one.'},
+  {id:'dusk',    name:'Long days',       text:'Foragers keep flying until 21:00.'},
+  {id:'fuel',    name:'Light fliers',    text:'Flights burn half as much honey.'},
+];
+
+const EVENTS = {
+  swarm:{title:'Swarm fever', text:'The hive is packed wall to wall. Scouts have found a hollow tree, and the old queen is ready to leave with half the colony.', choices:[
+    {label:'Let them swarm', note:'Half the bees, a third of the honey and a fifth of the pollen leave. +1 daughter colony at year end. The new queen lays from the third night, a little faster.',
+      fx:S=>{const b=Math.round(S.bees*0.5); S.bees-=b; S.honey*=0.66; S.pollen*=0.8; S.layPause=Math.max(S.layPause,2); S.mods.lay*=1.1; S.swarms++; S.swarmCool=S.day+5; return `A swarm of ${fmtN(b)} bees left for the hollow tree.`;}},
+    {label:'Build more comb', note:'Costs 1.5 kg honey. They settle for a few days.',
+      fx:S=>{S.honey=Math.max(0,S.honey-1.5); S.swarmCool=S.day+4; return 'Wax builders went to work. The colony settled.';}}]},
+  varroa:{title:'Mites in the brood', when:S=>S.day>=7, text:'Varroa mites are riding on young bees. A grooming morning would keep them in check.', choices:[
+    {label:'Grooming morning', note:'No foraging until noon today.', fx:S=>{S.noFlyUntil=12; return 'Workers spent the morning grooming. Foragers fly from noon.';}},
+    {label:'Ignore them', note:'+1% deaths every night for the rest of the year.', fx:S=>{S.mods.mort+=0.01; return 'The mites spread quietly.';}}]},
+  waxmoth:{title:'Wax moths', when:S=>S.day>=4, text:'Moth larvae are tunnelling through old comb at the back of the hive.', choices:[
+    {label:'Clean it out', note:'−0.8 kg honey.', fx:S=>{S.honey=Math.max(0,S.honey-0.8); return 'Old comb was chewed out and rebuilt.';}},
+    {label:'Leave it', note:'Lose a quarter of tonight’s new brood.', fx:S=>{S.flags.moth=true; return 'The moths stayed.';}}]},
+  queen:{title:'The queen is slowing', when:S=>S.day>=11&&S.day<=17, text:'Workers have started a queen cell. They want to replace her with a daughter.', choices:[
+    {label:'Let them supersede', note:'No eggs for 3 nights, then +20% eggs.', fx:S=>{S.layPause=Math.max(S.layPause,3); S.mods.lay*=1.2; return 'A new queen will emerge in three days.';}},
+    {label:'Keep the old queen', note:'−10% eggs from now on.', fx:S=>{S.mods.lay*=0.9; return 'The queen cell was torn down.';}}]},
+  robbers:{title:'Robbers at the entrance', when:S=>S.day>=9&&S.honey>=8, text:'Bees from a wild colony are testing your guards. They can smell the stores.', choices:[
+    {label:'Post guards', note:'8 forager squads stay home today.', fx:S=>{S.guardSquads=8; return '800 foragers are guarding the entrance today.';}},
+    {label:'Risk it', note:'Half the time, robbers take 20% of the honey.', fx:S=>{ if(Math.random()<0.5){const l=S.honey*0.2; S.honey-=l; return `Robbers carried off ${l.toFixed(1)} kg of honey.`;} return 'The robbers gave up and left.';}}]},
+  bear:{title:'Something at the oak', when:S=>S.day>=15, text:'Claws are scraping at the bark below the entrance. It smells of bear.', choices:[
+    {label:'Sting it away', note:'Lose 700 bees.', fx:S=>{S.bees=Math.max(0,S.bees-700); return '700 bees died driving the bear off.';}},
+    {label:'Stay quiet', note:'Half the time it tears out 30% of the honey.', fx:S=>{ if(Math.random()<0.5){const l=S.honey*0.3; S.honey-=l; return `The bear got a paw in and took ${l.toFixed(1)} kg of honey.`;} return 'The bear lost interest and wandered off.';}}]},
+  lemonade:{title:'Spilled lemonade', when:S=>S.day>=8&&S.day<=17, text:'A picnic on the village green left a sticky pool of lemonade. Wasps have found it too.', choices:[
+    {label:'Raid it', note:'+0.6 kg honey, lose 150 bees to wasps.', fx:S=>{S.honey+=0.6; S.bees=Math.max(0,S.bees-150); return 'Foragers brought back lemonade. 150 did not come home.';}},
+    {label:'Leave it', note:'Nothing happens.', fx:()=> 'The wasps can have it.'}]},
+  drought:{title:'Dry spell', when:S=>S.day>=9&&S.day<=19, text:'No rain for a week. For the next three days, flowers give 30% less nectar.', choices:[
+    {label:'Understood', note:'', fx:S=>{S.droughtUntil=S.day+2; return 'Nectar stays thin until the end of day '+(S.day+2)+'.';}}]},
+};
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+function gauss(){let u=0;while(u===0)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*Math.random());}
+function polar(b,d){return [d*Math.sin(b*D2R), d*Math.cos(b*D2R)];}
+function bearingOf(x,y){return (Math.atan2(x,y)/D2R+360)%360;}
+function norm360(a){return ((a%360)+360)%360;}
+function signed180(a){return ((a%360)+540)%360-180;}
+function compass(b){return ['N','NE','E','SE','S','SW','W','NW'][Math.round(norm360(b)/45)%8];}
+function fmtDist(m){return m<950 ? (Math.round(m/10)*10)+' m' : (m/1000).toFixed(1)+' km';}
+function fmtH(h){h=Math.max(0,h);const hh=Math.floor(h),mm=Math.floor((h-hh)*60+1e-6);return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');}
+function fmtN(n){return Math.round(n).toLocaleString('en-US');}
+function relSun(a){a=signed180(a);const r=Math.round(Math.abs(a));if(r<=2)return 'straight toward the sun';if(r>=178)return 'straight away from the sun';return `${r}° ${a>0?'right':'left'} of the sun`;}
+function segDist(ax,ay,bx,by,px,py){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=clamp(t,0,1);return Math.hypot(ax+dx*t-px,ay+dy*t-py);}
+function season(d){return d<=7?'spring':d<=16?'summer':'autumn';}
+function sunAz(h){const x=clamp((h-13)/7,-1,1);return norm360(180+120*Math.sin(x*Math.PI/2));}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function shuffle(a,R){for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function stars(v,a,b){return v<a?'★':v<b?'★★':'★★★';}
+
+/* =========================================================
+   WORLD GENERATION
+   ========================================================= */
+function genWorld(seed){
+  const R=mulberry32(seed>>>0);
+  const rnd=(a,b)=>a+(b-a)*R();
+  const W={seed,patches:[],hornets:[],woods:[],moor:[],fields:[],houses:[],lanes:[],river:[],trees:[]};
+  const taken=[]; let pid=1;
+  const fits=(x,y,r,ign)=>{
+    const d=Math.hypot(x,y);
+    if(d<260+r*0.6||d>C.RANGE-60-r*0.4) return false;
+    for(const t of taken){ if(t.tag&&ign&&ign.includes(t.tag)) continue; if(Math.hypot(t.x-x,t.y-y)<t.r+r+(t.tag?20:80)) return false; }
+    return true;
+  };
+  const add=(type,x,y,r,name)=>{
+    const T=TYPES[type];
+    const q=T.water?0:T.q*rnd(.88,1.12);
+    const Rr=T.water?0:T.sup*q*0.008;
+    const p={id:pid++,type,name:name||T.name,label:'',x,y,r,q,p:T.water?0:T.p*rnd(.85,1.15),R:Rr,Smax:Rr*3,S:Rr*3,known:false,spray:false,spraySeen:false,ang:R()*Math.PI,dots:[]};
+    makeDots(p,R); W.patches.push(p); taken.push({x,y,r}); return p;
+  };
+  const near=(type,cx,cy,spread,ign,dmin=0,dmax=1e9,name)=>{
+    const T=TYPES[type];
+    for(let i=0;i<160;i++){
+      const a=R()*TAU,d=Math.sqrt(R())*spread,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,r=T.r*rnd(.85,1.15),dd=Math.hypot(x,y);
+      if(dd<dmin||dd>dmax) continue;
+      if(fits(x,y,r,ign)) return add(type,x,y,r,name);
+    }
+    return null;
+  };
+  const ring=(type,dmin,dmax,ign,name)=>{
+    const T=TYPES[type];
+    for(let i=0;i<200;i++){
+      const [x,y]=polar(R()*360,rnd(dmin,dmax)); const r=T.r*rnd(.85,1.15);
+      if(fits(x,y,r,ign)) return add(type,x,y,r,name);
+    }
+    return null;
+  };
+  // Regions in four rough quarters
+  const b0=R()*360;
+  const dirs=shuffle([b0, b0+90+rnd(-20,20), b0+180+rnd(-20,20), b0+270+rnd(-20,20)],R);
+  const V=polar(dirs[0],rnd(1100,1550)), F=polar(dirs[1],rnd(1300,1850)), Wd=polar(dirs[2],rnd(1050,1450)), M=polar(dirs[3],rnd(2350,2600));
+  W.village={x:V[0],y:V[1]}; W.farm={x:F[0],y:F[1]}; W.wood={x:Wd[0],y:Wd[1]}; W.moorC={x:M[0],y:M[1]};
+  // River
+  const phi=R()*Math.PI, dx=Math.cos(phi), dy=Math.sin(phi), nx=-dy, ny=dx, off=rnd(480,820)*(R()<.5?-1:1), ph=R()*TAU, ph2=R()*TAU;
+  for(let t=-4200;t<=4200;t+=110){
+    const w=Math.sin(t/650+ph)*150+Math.sin(t/230+ph2)*35;
+    const x=nx*(off+w)+dx*t, y=ny*(off+w)+dy*t;
+    W.river.push([x,y]);
+    if(Math.hypot(x,y)<C.RANGE+200) taken.push({x,y,r:55,tag:'river'});
+  }
+  // Woods
+  for(let i=0;i<7;i++){ const a=R()*TAU,d=R()*420; const c={x:Wd[0]+Math.cos(a)*d,y:Wd[1]+Math.sin(a)*d,r:rnd(230,400)}; if(Math.hypot(c.x,c.y)<c.r+250) continue; W.woods.push(c); taken.push({x:c.x,y:c.y,r:c.r*0.8,tag:'wood'}); }
+  // Moor
+  for(let i=0;i<6;i++){ const a=R()*TAU,d=R()*420; const c={x:M[0]+Math.cos(a)*d,y:M[1]+Math.sin(a)*d,r:rnd(300,500)}; W.moor.push(c); taken.push({x:c.x,y:c.y,r:c.r*0.7,tag:'moor'}); }
+  // Water first: the nearest river point within range, a pond, a second river point
+  let best=null,bd=1e9; for(const [x,y] of W.river){const d=Math.hypot(x,y); if(d>350&&d<bd){bd=d;best=[x,y];}}
+  if(best&&bd<C.RANGE-200) add('water',best[0],best[1],110,'River shallows');
+  ring('water',450,900,null,'Pond');
+  const farPts=W.river.filter(([x,y])=>{const d=Math.hypot(x,y);return d>1300&&d<2600;});
+  if(farPts.length){ const pt=farPts[Math.floor(R()*farPts.length)]; if(fits(pt[0],pt[1],100,['river'])) add('water',pt[0],pt[1],100,'River pool'); }
+  // Willows by the river
+  for(let k=0;k<2;k++){ const pts=W.river.filter(([x,y])=>{const d=Math.hypot(x,y);return d>500&&d<2100;}); for(let i=0;i<40&&pts.length;i++){ const pt=pts[Math.floor(R()*pts.length)]; const r=TYPES.willow.r*rnd(.85,1.15); if(fits(pt[0],pt[1],r,['river'])){add('willow',pt[0],pt[1],r);break;} } }
+  // Guaranteed early food near the oak
+  ring('dandelion',380,620);
+  // Village
+  for(let i=0;i<3;i++) near('garden',V[0],V[1],300,['river']);
+  near('linden',V[0],V[1],420,['river']);
+  near('lavender',V[0],V[1],520,['river']);
+  // Farm
+  near('rapeseed',F[0],F[1],650);
+  near('sunflower',F[0],F[1],700);
+  near('phacelia',F[0],F[1],750);
+  near('orchard',F[0],F[1],850);
+  // Woods & moor
+  for(let i=0;i<2;i++) near('bramble',Wd[0],Wd[1],720,['wood']);
+  for(let i=0;i<2;i++) near('ivy',Wd[0],Wd[1],520,['wood']);
+  for(let i=0;i<2;i++) near('heather',M[0],M[1],480,['moor'],0,C.RANGE-40);
+  // Meadows & hedges
+  for(let i=0;i<2;i++) ring('dandelion',500,1800);
+  for(let i=0;i<3;i++) ring('clover',450,2300);
+  for(let i=0;i<2;i++) ring('hawthorn',450,2100);
+  for(let i=0;i<2;i++) ring('primrose',600,2400);
+  for(let i=0;i<2;i++) ring('goldenrod',700,2600);
+  // Hornets
+  for(let i=0;i<80;i++){ const a=R()*TAU,d=R()*380,x=Wd[0]+Math.cos(a)*d,y=Wd[1]+Math.sin(a)*d; if(Math.hypot(x,y)>850&&Math.hypot(x,y)<C.RANGE-200){W.hornets.push({x,y,r:260,known:false});break;} }
+  for(let i=0;i<120;i++){ const [x,y]=polar(R()*360,rnd(1500,2600)); if(W.hornets.every(h=>Math.hypot(h.x-x,h.y-y)>900)){W.hornets.push({x,y,r:260,known:false});break;} }
+  // Decor: houses, fields, lanes, trees
+  for(let i=0;i<60&&W.houses.length<20;i++){ const a=R()*TAU,d=Math.sqrt(R())*360,x=V[0]+Math.cos(a)*d,y=V[1]+Math.sin(a)*d; if(W.river.some(([rx,ry])=>Math.hypot(rx-x,ry-y)<90)) continue; if(W.houses.some(h=>Math.hypot(h.x-x,h.y-y)<55)) continue; W.houses.push({x,y,w:rnd(26,46),h:rnd(18,30),a:R()*Math.PI,roof:['#9b4a32','#7d3a2a','#8c6a4a','#6d5545'][Math.floor(R()*4)]}); }
+  for(let i=0;i<3;i++){ const a=R()*TAU,d=rnd(500,1000),x=F[0]+Math.cos(a)*d,y=F[1]+Math.sin(a)*d; if(Math.hypot(x,y)<C.RANGE+300) W.fields.push({x,y,w:rnd(380,620),h:rnd(260,420),a:R()*Math.PI,kind:R()<.5?'plough':'stubble'}); }
+  const lane=(ax,ay,bx,by)=>{const pts=[];const n=18;const wob=R()*TAU;for(let i=0;i<=n;i++){const t=i/n;const px=lerp(ax,bx,t),py=lerp(ay,by,t);const s=Math.sin(t*Math.PI)*Math.sin(t*5+wob)*90;pts.push([px+(-(by-ay))/Math.hypot(bx-ax,by-ay)*s,py+(bx-ax)/Math.hypot(bx-ax,by-ay)*s]);}W.lanes.push(pts);};
+  lane(0,0,V[0],V[1]); lane(V[0],V[1],F[0],F[1]);
+  for(let i=0;i<120;i++){ const [x,y]=polar(R()*360,rnd(300,3300)); W.trees.push({x,y,r:rnd(18,32)}); }
+  // Labels: duplicate names get a compass suffix
+  const cnt={}; for(const p of W.patches) cnt[p.name]=(cnt[p.name]||0)+1;
+  for(const p of W.patches){ p.dist=Math.hypot(p.x,p.y); p.bearing=bearingOf(p.x,p.y); p.label = cnt[p.name]>1 ? `${p.name} (${compass(p.bearing)})` : p.name; }
+  // Make duplicate labels unique (same name & same compass)
+  const seen={}; for(const p of W.patches){ if(seen[p.label]){ seen[p.label]++; p.label+=' '+seen[p.label]; } else seen[p.label]=1; }
+  return W;
+}
+function makeDots(p,R){
+  const T=TYPES[p.type]; if(T.water) return;
+  if(T.field){
+    const L=p.r*1.9, Wd=p.r*1.25, rows=Math.max(4,Math.round(Wd/38)), per=Math.max(6,Math.round(L/30));
+    const ca=Math.cos(p.ang), sa=Math.sin(p.ang);
+    for(let i=0;i<rows;i++) for(let j=0;j<per;j++){
+      if(R()<0.25) continue;
+      const u=(j/(per-1)-0.5)*L+(R()-.5)*14, v=(i/(rows-1)-0.5)*Wd+(R()-.5)*8;
+      p.dots.push([u*ca-v*sa,u*sa+v*ca,Math.floor(R()*T.col.length),1.4+R()*1.2]);
+    }
+  } else {
+    const n=Math.round(clamp(p.r/5,22,90));
+    for(let i=0;i<n;i++){ const a=R()*TAU, d=Math.pow(R(),0.6)*p.r; p.dots.push([Math.cos(a)*d,Math.sin(a)*d,Math.floor(R()*T.col.length),1.3+R()*1.4]); }
+  }
+  shuffle(p.dots,R);
+}
+
+/* =========================================================
+   STATE & SIMULATION
+   ========================================================= */
+let W=null, S=null;
+let HEADLESS=false;
+
+function newRun(seed,mode){
+  W=genWorld(seed);
+  S={v:1,seed,mode,day:1,hour:C.DAY0,phase:'morning',
+     bees:C.START_BEES,brood:[800,900,1000],honey:C.START_HONEY,pollen:C.START_POLLEN,water:0,waterNeed:0,
+     weather:{kind:'sunny',rain:null,hot:false},perks:[],mods:{mort:0,lay:1},layPause:0,swarms:0,swarmCool:0,
+     used:[],noFlyUntil:0,guardSquads:0,droughtUntil:0,flags:{},
+     fog:new Uint8Array(C.FOG_N*C.FOG_N),squads:[],routes:[],scouts:[],scoutPlan:[],nid:1,rcol:0,
+     today:blankToday(),log:[],morning:null,pendingPerk:null,stats:{found:0,totalH:0,peakBees:C.START_BEES,trips:0},
+     tut:0};
+  reveal(0,0,C.REV_HOME,true);
+  prepMorning();
+  return S;
+}
+function blankToday(){return {h:0,p:0,w:0,fuel:0,lost_hornet:0,lost_spray:0,lost_rain:0,trips:0};}
+function hasPerk(id){return S.perks.includes(id);}
+function dayEnd(){return hasPerk('dusk')?21:C.DAY1;}
+function isRaining(h){const r=S.weather.rain;return !!r&&h>=r[0]&&h<r[1];}
+function flySpeed(){return C.SPEED*(hasPerk('wings')?1.2:1)*(S.weather.kind==='windy'?0.85:1);}
+function spreadAt(d){return (C.SPREAD0+C.SPREADK*d)*(S.weather.kind==='windy'?1.5:1)*(hasPerk('precise')?0.65:1);}
+function guardMult(){return hasPerk('guards')?0.4:1;}
+function inBloom(p,day){const T=TYPES[p.type];return day>=T.d[0]&&day<=T.d[1];}
+function bloomStr(p,day){const T=TYPES[p.type];if(day<T.d[0]||day>T.d[1])return 0;if(T.water)return 1;if(T.d[1]-T.d[0]>=4&&(day===T.d[0]||day===T.d[1]))return .6;return 1;}
+function isOpen(p,h){const T=TYPES[p.type];return h>=T.h[0]&&h<T.h[1];}
+function patchById(id){return W.patches.find(p=>p.id===id)||null;}
+function routeById(id){return id?S.routes.find(r=>r.id===id)||null:null;}
+function winterNeed(b){return (C.W_BASE+(b===undefined?S.bees:b)*C.W_BEE)*(hasPerk('frugal')?0.9:1);}
+function layCap(d){return d<=7?900+100*d:d<=16?1800:Math.max(400,1800-220*(d-16));}
+function fogIdx(x,y){const n=C.FOG_N,h=n*C.FOG_CELL/2;const i=Math.floor((x+h)/C.FOG_CELL),j=Math.floor((h-y)/C.FOG_CELL);if(i<0||j<0||i>=n||j>=n)return -1;return j*n+i;}
+function fogAt(x,y){const k=fogIdx(x,y);return k<0?1:S.fog[k];}
+function idleSquads(){return S.squads.filter(q=>q.st==='idle');}
+
+let fogDirty=true, fogPaint=null;
+function reveal(x,y,rad,silent){
+  const n=C.FOG_N,cell=C.FOG_CELL,h=n*cell/2;
+  const i0=Math.max(0,Math.floor((x-rad+h)/cell)),i1=Math.min(n-1,Math.floor((x+rad+h)/cell));
+  const j0=Math.max(0,Math.floor((h-(y+rad))/cell)),j1=Math.min(n-1,Math.floor((h-(y-rad))/cell));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const cx=-h+(i+.5)*cell,cy=h-(j+.5)*cell;if(Math.hypot(cx-x,cy-y)<=rad){S.fog[j*n+i]=1;}}
+  if(fogPaint) fogPaint(x,y,rad);
+  for(const p of W.patches){
+    if(p.known) continue;
+    if(Math.hypot(p.x-x,p.y-y)<rad+p.r*0.4){
+      p.known=true; S.stats.found++;
+      if(!silent){ log(`Found ${p.label}, ${fmtDist(p.dist)} ${compass(p.bearing)}.`,'good'); }
+    }
+  }
+  for(const hn of W.hornets){ if(!hn.known&&Math.hypot(hn.x-x,hn.y-y)<rad*0.7){hn.known=true; if(!silent) log(`Spotted a hornet nest ${fmtDist(Math.hypot(hn.x,hn.y))} ${compass(bearingOf(hn.x,hn.y))}. Hornets hunt foragers that pass near it from day 9.`,'bad');} }
+}
+
+function mkSquad(n){return {id:S.nid++,n,st:'idle',route:0,x:0,y:0,lx:0,ly:0,t:0,load:null,pid:0,poor:0,why:'',jit:Math.random()*TAU};}
+function buildSquads(){
+  const foragers=Math.floor(S.bees*C.FOR_FRAC);
+  const ns=Math.floor(foragers/C.SQUAD), rem=foragers-ns*C.SQUAD;
+  S.squads=[];
+  for(let i=0;i<ns;i++) S.squads.push(mkSquad(C.SQUAD));
+  if(rem>=30) S.squads.push(mkSquad(rem));
+  const g=Math.min(S.guardSquads,S.squads.length);
+  for(let i=0;i<g;i++) S.squads[i].st='guard';
+  if(hasPerk('memory')&&S.routes.length){
+    const idle=idleSquads(); let k=0;
+    for(const r of S.routes){ const want=Math.min(r.want||0,idle.length-k); for(let i=0;i<want;i++){const q=idle[k++];q.route=r.id;q.st='wait';q.t=i*2.5;} }
+    S.routes=S.routes.filter(r=>S.squads.some(q=>q.route===r.id));
+  } else S.routes=[];
+  for(const r of S.routes){r.waitUntil=0;r.todayH=0;r.todayP=0;r.todayW=0;r.trips=0;r.poisonWarned=false;r.waitLogged=false;r.lost=0;r.why='';}
+}
+
+function createRoute(bearing,dist,k,srcPid){
+  dist=clamp(dist,60,C.RANGE);
+  const idle=idleSquads(); k=Math.min(k,idle.length); if(k<=0) return null;
+  const [ax,ay]=polar(bearing,dist);
+  let tgt=srcPid?patchById(srcPid):null;
+  if(!tgt){ let bd=1e9; for(const p of W.patches){ if(!p.known) continue; const d=Math.hypot(p.x-ax,p.y-ay)-p.r; if(d<150&&d<bd){bd=d;tgt=p;} } }
+  const r={id:S.nid++,ax,ay,bearing:norm360(bearing),dist,col:ROUTE_COLS[S.rcol++%ROUTE_COLS.length],pid:tgt?tgt.id:0,
+           label:tgt?tgt.label:`Open ground ${fmtDist(dist)} ${compass(bearing)}`,waitUntil:0,todayH:0,todayP:0,todayW:0,trips:0,danger:false,want:0,born:S.hour,lost:0,why:''};
+  S.routes.push(r);
+  idle.slice(0,k).forEach((q,i)=>{q.route=r.id;q.st='wait';q.t=i*2.5;q.poor=0;q.why='';});
+  return r;
+}
+function recallRoute(id){
+  const r=routeById(id); if(!r) return;
+  for(const q of S.squads){ if(q.route!==id) continue; q.route=0; if(q.st==='wait'){q.st='idle';} else if(q.st==='out'||q.st==='forage'){q.st='back';q.load=null;} }
+  S.routes=S.routes.filter(x=>x.id!==id);
+  log(`Recalled the route to ${r.label}.`);
+}
+
+function kill(q,n,cause){n=Math.min(n,q.n);q.n-=n;S.bees=Math.max(0,S.bees-n);S.today['lost_'+cause]+=n;if(q.n<15){S.bees=Math.max(0,S.bees-q.n);S.today['lost_'+cause]+=q.n;q.n=0;q.dead=true;}}
+
+function canDepart(h,r){
+  if(S.phase!=='day') return false;
+  if(h<C.DAY0||h>=dayEnd()-0.5) return false;
+  if(isRaining(h)) return false;
+  if(hasPerk('weather')&&isRaining(h+0.35)) return false;
+  if(h<S.noFlyUntil) return false;
+  if(r&&h<r.waitUntil) return false;
+  return true;
+}
+function depart(q,r){
+  const sg=spreadAt(r.dist);
+  let lx=r.ax+gauss()*sg, ly=r.ay+gauss()*sg; const d=Math.hypot(lx,ly);
+  if(d>C.RANGE+200){lx*=(C.RANGE+200)/d;ly*=(C.RANGE+200)/d;}
+  q.lx=lx;q.ly=ly;q.x=0;q.y=0;q.st='out';q.pid=0;q.load=null;
+  const fuel=C.FUEL*(q.n/C.SQUAD)*2*Math.hypot(lx,ly)/1000*(hasPerk('fuel')?0.5:1);
+  S.honey=Math.max(0,S.honey-fuel); S.today.fuel+=fuel; S.today.trips++; S.stats.trips++;
+}
+function findTarget(x,y){
+  const search=C.SEARCH*(hasPerk('scent')?2:1);
+  let best=null,bd=1e9,closed=null,cd=1e9;
+  for(const p of W.patches){
+    const d=Math.hypot(p.x-x,p.y-y)-p.r; if(d>search) continue;
+    const T=TYPES[p.type];
+    if(T.water){ if(S.weather.hot&&d<bd){bd=d;best=p;} continue; }
+    if(!inBloom(p,S.day)) continue;
+    if(!isOpen(p,S.hour)){ if(d<cd){cd=d;closed=p;} continue; }
+    if(d<bd){bd=d;best=p;}
+  }
+  return {p:best,closed};
+}
+function hornetCheck(q,r){
+  if(S.day<9) return;
+  for(const hn of W.hornets){
+    if(segDist(0,0,q.lx,q.ly,hn.x,hn.y)>=hn.r) continue;
+    if(Math.random()>=0.3) continue;
+    const loss=Math.max(3,Math.round(q.n*0.15*guardMult()));
+    kill(q,loss,'hornet');
+    if(r) r.danger=true;
+    if(!hn.known){ hn.known=true; reveal(hn.x,hn.y,200,true); log(`Hornets ambushed foragers ${fmtDist(Math.hypot(hn.x,hn.y))} ${compass(bearingOf(hn.x,hn.y))}. Their nest is now on the map.`,'bad'); toast('Hornets are hunting your foragers','bad'); }
+    else if(r&&!r.hornetWarned){ r.hornetWarned=true; log(`The route to ${r.label} passes the hornet nest. Foragers are dying on the way.`,'bad'); }
+    if(q.dead) return;
+  }
+}
+function arrive(q){
+  const r=routeById(q.route);
+  reveal(q.lx,q.ly,C.REV_LAND);
+  hornetCheck(q,r); if(q.dead) return;
+  const {p,closed}=findTarget(q.lx,q.ly);
+  if(p){ q.pid=p.id; q.st='forage'; q.t=C.FORAGE; return; }
+  q.st='back'; q.load=null;
+  if(closed){
+    const T=TYPES[closed.type];
+    if(S.hour<T.h[0]){ if(r){ r.waitUntil=Math.max(r.waitUntil,T.h[0]); if(!r.waitLogged){r.waitLogged=true;log(`${closed.label} opens at ${fmtH(T.h[0])}. That route will wait.`);} } return; }
+    q.poor++; q.why='those flowers have closed for the day'; return;
+  }
+  q.poor++; q.why='they found nothing in bloom where you danced';
+}
+function finishForage(q){
+  const p=patchById(q.pid), r=routeById(q.route);
+  q.st='back'; q.load=null; if(!p) return;
+  const T=TYPES[p.type], nf=q.n/C.SQUAD;
+  let h=0,pl=0,w=0;
+  if(T.water){
+    if(S.weather.hot){ w=C.WLOAD*nf*(hasPerk('water')?2.5:1); q.poor=0; }
+    else { q.poor++; q.why='the hive does not need water today'; }
+  } else if(inBloom(p,S.day)&&isOpen(p,S.hour)){
+    const full=Math.min(1,p.S/(p.Smax*0.3));
+    const wx=(S.weather.kind==='cloudy'&&!hasPerk('weather'))?0.8:1;
+    const dr=S.day<=S.droughtUntil?0.7:1;
+    const bs=bloomStr(p,S.day);
+    h=C.LOAD*p.q*bs*full*nf*wx*dr*(hasPerk('crops')?1.2:1);
+    h=Math.min(h,p.S); p.S-=h;
+    pl=C.PLOAD*p.p*bs*Math.max(0.3,full)*nf*(hasPerk('baskets')?1.5:1);
+    if(p.spray){
+      const loss=Math.max(1,Math.round(q.n*0.35*guardMult()));
+      kill(q,loss,'spray'); h=0; pl=0; p.spraySeen=true;
+      if(r&&!r.poisonWarned){r.poisonWarned=true;log(`Poisoned at ${p.label}: ${loss} foragers died. The field was sprayed today.`,'bad');toast(`${p.label} was sprayed. Foragers are dying.`,'bad');}
+      q.poor++; q.why='the field was sprayed';
+    } else if(h<C.LOAD*p.q*nf*0.25){ q.poor++; q.why='the flowers there are drained'; }
+    else q.poor=0;
+  } else { q.poor++; q.why='those flowers have closed for the day'; }
+  q.load={h,p:pl,w};
+}
+let chimeCb=null;
+function unload(q){
+  const r=routeById(q.route);
+  if(q.load){
+    S.honey+=q.load.h; S.pollen+=q.load.p; S.water+=q.load.w;
+    S.today.h+=q.load.h; S.today.p+=q.load.p; S.today.w+=q.load.w; S.stats.totalH+=q.load.h;
+    if(r){r.todayH+=q.load.h;r.todayP+=q.load.p;r.todayW+=q.load.w;r.trips++;}
+    if(chimeCb&&(q.load.h>0.001||q.load.w>0)) chimeCb(q.load.h);
+  }
+  q.load=null;
+  if(!r||S.phase!=='day'){q.st='idle';q.route=0;q.poor=0;return;}
+  if(q.poor>=2){ r.why=q.why; q.st='idle'; q.route=0; q.poor=0; r.lost++; return; }
+  q.st='wait'; q.t=0;
+}
+function moveTo(o,tx,ty,step){
+  const dx=tx-o.x,dy=ty-o.y,d=Math.hypot(dx,dy);
+  if(d<=step){o.x=tx;o.y=ty;return true;}
+  o.x+=dx/d*step;o.y+=dy/d*step;return false;
+}
+function launchScout(){
+  let pick=null;
+  for(let i=0;i<16;i++){ const [x,y]=polar(Math.random()*360,500+Math.sqrt(Math.random())*2400); if(!pick) pick=[x,y]; if(!fogAt(x,y)){pick=[x,y];break;} }
+  S.scouts.push({x:0,y:0,lx:pick[0],ly:pick[1],st:'out',found:0});
+}
+let onScoutDance=null;
+function stepScouts(dt){
+  const v=flySpeed()*1.4*dt;
+  for(const s of S.scouts){
+    if(s.st==='out'){
+      if(moveTo(s,s.lx,s.ly,v)){
+        const rad=C.REV_SCOUT*(hasPerk('scouts')?1.3:1);
+        reveal(s.lx,s.ly,rad);
+        let best=null,bs=0;
+        for(const p of W.patches){ const T=TYPES[p.type]; if(T.water||!inBloom(p,S.day)||!isOpen(p,S.hour)) continue; if(Math.hypot(p.x-s.lx,p.y-s.ly)>rad+p.r*0.5) continue; const sc=p.q*bloomStr(p,S.day)*(0.3+p.S/p.Smax); if(sc>bs){bs=sc;best=p;} }
+        s.found=best?best.id:0; s.st='back';
+      }
+    } else if(s.st==='back'){
+      if(moveTo(s,0,0,v*(S.phase==='dusk'?2:1))){
+        s.st='done';
+        const p=patchById(s.found);
+        if(p&&S.phase==='day'&&inBloom(p,S.day)&&isOpen(p,S.hour)){ log(`A scout is dancing for ${p.label}, ${fmtDist(p.dist)} ${compass(p.bearing)}.`,'good'); if(onScoutDance) onScoutDance(p); }
+      }
+    }
+  }
+  S.scouts=S.scouts.filter(s=>s.st!=='done');
+}
+
+function step(dt){
+  if(S.phase!=='day'&&S.phase!=='dusk') return null;
+  S.hour+=dt/60; const h=S.hour;
+  // scouts launch
+  while(S.scoutPlan.length&&S.scoutPlan[0]<=h){
+    S.scoutPlan.shift();
+    if(S.phase==='day'&&!isRaining(h)&&h<dayEnd()-1) launchScout();
+  }
+  // rain
+  const rainNow=isRaining(h), rainSoon=hasPerk('weather')&&isRaining(h+0.35);
+  if(rainNow&&!S.flags.rainLogged){S.flags.rainLogged=true;log('Rain. Foragers are heading home until it passes.');toast('Rain: foragers are coming home');}
+  if(rainNow||rainSoon){
+    for(const q of S.squads){ if(q.st==='out'||q.st==='forage'){ q.st='back'; q.load=null; if(rainNow&&!hasPerk('weather')){const loss=Math.round(q.n*0.06*guardMult()); if(loss>0) kill(q,loss,'rain');} } }
+    for(const s of S.scouts){ if(s.st==='out'){s.st='back';s.found=0;} }
+  }
+  // dusk
+  if(S.phase==='day'&&h>=dayEnd()){
+    S.phase='dusk';
+    for(const r of S.routes) r.want=S.squads.filter(q=>q.route===r.id).length;
+    for(const q of S.squads){ if(q.st==='wait'){q.st='idle';q.route=0;} else if(q.st==='out'||q.st==='forage'){q.st='back';q.load=null;} }
+    for(const s of S.scouts){ if(s.st==='out'){s.st='back';s.found=0;} }
+    log('Dusk. Foragers are coming home for the night.');
+  }
+  const v=flySpeed()*dt;
+  for(const q of S.squads){
+    switch(q.st){
+      case 'wait':{
+        const r=routeById(q.route);
+        if(!r){q.st='idle';q.route=0;break;}
+        if(q.t>0){q.t-=dt;break;}
+        if(canDepart(h,r)) depart(q,r);
+        break;}
+      case 'out': if(moveTo(q,q.lx,q.ly,v)) arrive(q); break;
+      case 'forage': q.t-=dt; if(q.t<=0) finishForage(q); break;
+      case 'back': if(moveTo(q,0,0,v*(S.phase==='dusk'?2:1))){q.st='unload';q.t=C.UNLOAD;} break;
+      case 'unload': q.t-=dt; if(q.t<=0) unload(q); break;
+    }
+  }
+  if(S.squads.some(q=>q.dead)) S.squads=S.squads.filter(q=>!q.dead);
+  stepScouts(dt);
+  // prune routes with no squads
+  if(S.phase==='day') for(const r of S.routes.slice()){
+    if(!S.squads.some(q=>q.route===r.id)){
+      S.routes=S.routes.filter(x=>x!==r);
+      { log(`Squads gave up on ${r.label}: ${r.why||'the trips stopped paying'}.`, r.why&&r.why.startsWith('they found nothing')?'bad':''); }
+    }
+  }
+  if(S.phase==='dusk'){
+    const busy=S.squads.some(q=>q.st==='out'||q.st==='forage'||q.st==='back'||q.st==='unload')||S.scouts.length>0;
+    if(!busy||h>=dayEnd()+1.5){
+      for(const q of S.squads){ if(q.st!=='guard'){ if(q.st==='unload'&&q.load){S.honey+=q.load.h;S.pollen+=q.load.p;S.water+=q.load.w;S.today.h+=q.load.h;S.today.p+=q.load.p;S.today.w+=q.load.w;} q.st='idle';q.route=0;q.load=null;q.x=0;q.y=0; } }
+      S.scouts=[];
+      return 'dayover';
+    }
+  }
+  return null;
+}
+
+/* ---------- night ---------- */
+function night(){
+  const sm={day:S.day,h:S.today.h,p:S.today.p,w:S.today.w,fuel:S.today.fuel,lostHornet:S.today.lost_hornet,lostSpray:S.today.lost_spray,lostRain:S.today.lost_rain,trips:S.today.trips,hot:S.weather.hot,waterNeed:S.waterNeed,water:S.water};
+  let broodLostW=0;
+  if(S.weather.hot&&S.waterNeed>0){ const short=Math.max(0,S.waterNeed-S.water)/S.waterNeed; if(short>0){ const f=0.5*short; S.brood=S.brood.map(b=>{const l=Math.round(b*f);broodLostW+=l;return b-l;}); } }
+  sm.broodLostW=broodLostW;
+  const emerged=S.brood[0]; S.bees+=emerged; sm.emerged=emerged;
+  let cap=layCap(S.day)*S.mods.lay*(hasPerk('queen')?1.25:1), laid=0, limit='';
+  if(S.layPause>0){ S.layPause--; limit='queenless'; }
+  else {
+    const byP=S.pollen/C.EGG_P, byH=Math.max(0,S.honey-0.3)/C.EGG_H;
+    laid=Math.max(0,Math.floor(Math.min(cap,byP,byH)));
+    if(laid<cap*0.98) limit=byP<byH?'pollen':'honey';
+    S.pollen=Math.max(0,S.pollen-laid*C.EGG_P); S.honey=Math.max(0,S.honey-laid*C.EGG_H);
+  }
+  let mothLoss=0; if(S.flags.moth){ mothLoss=Math.round(laid*0.25); laid-=mothLoss; }
+  S.brood=[S.brood[1],S.brood[2],laid];
+  sm.laid=laid; sm.cap=Math.round(cap); sm.limit=limit; sm.mothLoss=mothLoss;
+  const eat=S.bees*C.EAT*(hasPerk('frugal')?0.75:1);
+  S.honey-=eat; sm.eat=eat; sm.eggHoney=laid*C.EGG_H; sm.starved=0;
+  if(S.honey<0){ sm.starved=Math.round(S.bees*0.2); S.bees-=sm.starved; S.honey=0; }
+  const mort=(C.MORT+S.mods.mort)*(hasPerk('hardy')?0.7:1);
+  const died=Math.round(S.bees*mort); S.bees-=died; sm.died=died;
+  S.stats.peakBees=Math.max(S.stats.peakBees,S.bees);
+  sm.honey=S.honey; sm.pollen=S.pollen; sm.bees=S.bees; sm.brood=S.brood.reduce((a,b)=>a+b,0);
+  S.day++;
+  if(S.bees<C.COLLAPSE){ S.phase='over'; sm.end='collapse'; return sm; }
+  if(S.day>C.DAYS){ S.phase='winter'; sm.end='winter'; return sm; }
+  if(sm.day%3===0){ const pool=PERKS.filter(p=>!S.perks.includes(p.id)); shuffle(pool,Math.random); S.pendingPerk=pool.slice(0,3).map(p=>p.id); }
+  prepMorning();
+  return sm;
+}
+function rollWeather(day){
+  if(day===1) return {kind:'sunny',rain:null,hot:false};
+  const R=mulberry32((S.seed^Math.imul(day,0x9E3779B1))>>>0);
+  const se=season(day);
+  const t= se==='spring'?[['sunny',.38],['cloudy',.27],['showers',.25],['windy',.10]]
+         : se==='summer'?[['sunny',.36],['hot',.30],['cloudy',.10],['showers',.14],['windy',.10]]
+         : [['sunny',.30],['cloudy',.30],['showers',.25],['windy',.15]];
+  let x=R(), kind=t[t.length-1][0];
+  for(const [k,w] of t){ if(x<w){kind=k;break;} x-=w; }
+  const w={kind,rain:null,hot:kind==='hot'};
+  if(kind==='showers'){ const s=9+Math.floor(R()*14)/2, len=1.5+Math.floor(R()*4)/2; w.rain=[s,Math.min(s+len,19.5)]; }
+  return w;
+}
+function weatherText(w){
+  switch(w.kind){
+    case 'sunny': return 'Sunny. Good flying all day.';
+    case 'hot': return 'Hot. The brood needs water carried in to stay cool.';
+    case 'cloudy': return 'Overcast. Flowers give 20% less nectar.';
+    case 'windy': return 'Windy. Recruits scatter more and fly slower.';
+    case 'showers': return `Showers from ${fmtH(w.rain[0])} to ${fmtH(w.rain[1])}. Nobody flies in the rain.`;
+  }
+  return '';
+}
+function prepMorning(){
+  S.hour=C.DAY0; S.phase='morning';
+  S.weather=rollWeather(S.day);
+  S.water=0; S.waterNeed=S.weather.hot?+(1.5+S.bees/12000).toFixed(1):0;
+  S.noFlyUntil=0; S.guardSquads=0; S.flags={}; S.today=blankToday(); S.scouts=[];
+  for(const p of W.patches){ p.S=p.Smax; p.spray=false; p.spraySeen=false; }
+  const notes=[];
+  // spray
+  const sprayables=W.patches.filter(p=>TYPES[p.type].spray&&inBloom(p,S.day));
+  const R=mulberry32((S.seed^Math.imul(S.day+101,0x85EBCA6B))>>>0);
+  if(S.day>=3&&sprayables.length&&R()<0.3){
+    const p=sprayables[Math.floor(R()*sprayables.length)]; p.spray=true;
+    notes.push({t:p.known?`The farmer is spraying the ${p.label} today. Keep foragers away from it.`:`A tractor is spraying a field ${compass(p.bearing)} of the oak today. Foragers who land there will die.`,k:'bad'});
+  }
+  // blooms
+  let hinted=false;
+  for(const p of W.patches){
+    const T=TYPES[p.type]; if(T.water) continue;
+    if(p.known&&T.d[0]===S.day) notes.push({t:`${p.label} is starting to bloom.`,k:'good'});
+    if(p.known&&T.d[1]===S.day&&T.d[0]!==T.d[1]) notes.push({t:`Last day of bloom for ${p.label}.`,k:''});
+  }
+  for(const key of Object.keys(TYPES)){
+    const T=TYPES[key]; if(T.water||T.d[0]!==S.day||S.day===1||hinted) continue;
+    if(W.patches.some(p=>p.type===key)&&!W.patches.some(p=>p.type===key&&p.known)){ notes.push({t:`Returning scouts smell ${T.name.toLowerCase()} somewhere out past the fog.`,k:''}); hinted=true; }
+  }
+  if(S.day===9) notes.push({t:'Hornets are awake. Routes that pass near a nest will lose foragers.',k:'bad'});
+  if(S.day===8) notes.push({t:'Summer begins. The queen lays at full pace now.',k:''});
+  if(S.day===17) notes.push({t:'Autumn begins. The queen lays fewer eggs each night. Fill the stores.',k:''});
+  if(S.day===C.DAYS) notes.push({t:'Last day before the cold. Tonight the colony clusters for winter.',k:'bad'});
+  // event
+  let ev=null;
+  if(S.day>=6&&S.day<=17&&S.bees>=15000&&S.day>=S.swarmCool&&R()<0.6) ev='swarm';
+  else if(S.day>=3&&Math.random()<0.4){
+    const pool=Object.keys(EVENTS).filter(k=>k!=='swarm'&&!S.used.includes(k)&&EVENTS[k].when(S));
+    if(pool.length){ ev=pool[Math.floor(Math.random()*pool.length)]; S.used.push(ev); }
+  }
+  // scouts
+  const ns=2+Math.floor(S.bees/7000)+(hasPerk('scouts')?2:0);
+  S.scoutPlan=[]; for(let i=0;i<ns;i++) S.scoutPlan.push(C.DAY0+1+Math.random()*(dayEnd()-C.DAY0-3));
+  S.scoutPlan.sort((a,b)=>a-b);
+  buildSquads();
+  S.morning={notes,event:ev,result:null};
+}
+function applyEvent(i){
+  const ev=EVENTS[S.morning.event]; if(!ev) return '';
+  const res=ev.choices[i].fx(S);
+  S.morning.result=res; S.morning.event=null;
+  log(res);
+  buildSquads();
+  return res;
+}
+function choosePerk(id){ if(!S.perks.includes(id)) S.perks.push(id); S.pendingPerk=null; if(id==='memory'){} }
+function startDay(){ S.phase='day'; S.hour=C.DAY0; }
+function winterResult(){
+  const need=winterNeed(), survive=S.honey>=need&&S.bees>=C.CLUSTER;
+  const surplus=Math.max(0,S.honey-need);
+  const score=Math.round((survive?1000:0)+S.swarms*400+(survive?surplus*30:0)+S.bees/50+S.stats.found*5);
+  let grade='Lost to the winter';
+  if(survive) grade=surplus<3?'A lean winter':surplus<10?'A good winter':'A golden winter';
+  let why='';
+  if(!survive) why = S.honey<need ? `The stores ran out in February, ${(need-S.honey).toFixed(1)} kg short.` : `The cluster of ${fmtN(S.bees)} bees was too small to keep the queen warm.`;
+  return {need,survive,surplus,score,grade,why};
+}
+
+/* ---------- log ---------- */
+let logCb=null;
+function log(text,kind){ S.log.push({d:S.day,h:S.hour,text,kind:kind||''}); if(S.log.length>80) S.log.shift(); if(logCb) logCb(); }
+
+/* ---------- save ---------- */
+const SAVE_KEY='waggle.save.v1', BEST_KEY='waggle.best.v1', PREF_KEY='waggle.prefs.v1';
+function serialize(){
+  const o={S:Object.assign({},S,{fog:Array.from(S.fog).join('')}),P:W.patches.map(p=>[p.known?1:0,+p.S.toFixed(5),p.spray?1:0,p.spraySeen?1:0]),H:W.hornets.map(h=>h.known?1:0)};
+  return JSON.stringify(o);
+}
+function deserialize(str){
+  const o=JSON.parse(str); if(!o||!o.S||o.S.v!==1) throw new Error('bad save');
+  W=genWorld(o.S.seed); S=o.S;
+  const f=new Uint8Array(C.FOG_N*C.FOG_N); const fs=String(S.fog||''); for(let i=0;i<f.length;i++) f[i]=fs.charCodeAt(i)===49?1:0; S.fog=f;
+  o.P.forEach((a,i)=>{const p=W.patches[i];if(!p)return;p.known=!!a[0];p.S=a[1];p.spray=!!a[2];p.spraySeen=!!a[3];});
+  o.H.forEach((k,i)=>{if(W.hornets[i])W.hornets[i].known=!!k;});
+  fogDirty=true;
+}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+function save(){ if(HEADLESS||!S) return; if(S.phase==='over'||S.phase==='winter'){lsDel(SAVE_KEY);return;} lsSet(SAVE_KEY,serialize()); }
+
+/* =========================================================
+   AUDIO
+   ========================================================= */
+const AU={ctx:null,on:true,master:null,buzz:null,buzzEnv:null,rain:null,rainG:null,lastChime:0,
+  init(){
+    if(this.ctx) return;
+    try{
+      const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
+      this.ctx=new A(); this.master=this.ctx.createGain(); this.master.gain.value=this.on?0.55:0; this.master.connect(this.ctx.destination);
+      // waggle buzz: ~250 Hz pulses, the real sound of a waggle run
+      const o=this.ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=250;
+      const lp=this.ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1100;
+      const am=this.ctx.createGain(); am.gain.value=0.5;
+      const lfo=this.ctx.createOscillator(); lfo.frequency.value=15; const lg=this.ctx.createGain(); lg.gain.value=0.5; lfo.connect(lg); lg.connect(am.gain);
+      this.buzzEnv=this.ctx.createGain(); this.buzzEnv.gain.value=0;
+      o.connect(lp); lp.connect(am); am.connect(this.buzzEnv); this.buzzEnv.connect(this.master);
+      o.start(); lfo.start();
+      // rain: filtered noise
+      const len=this.ctx.sampleRate*2, buf=this.ctx.createBuffer(1,len,this.ctx.sampleRate), d=buf.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+      const src=this.ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+      const bp=this.ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2400; bp.Q.value=0.5;
+      this.rainG=this.ctx.createGain(); this.rainG.gain.value=0;
+      src.connect(bp); bp.connect(this.rainG); this.rainG.connect(this.master); src.start();
+    }catch(e){ this.ctx=null; }
+  },
+  resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume().catch(()=>{}); },
+  setOn(v){ this.on=v; if(this.master) this.master.gain.setTargetAtTime(v?0.55:0,this.ctx.currentTime,0.05); },
+  buzzLevel(v){ if(!this.ctx) return; this.buzzEnv.gain.setTargetAtTime(v*0.07,this.ctx.currentTime,0.02); },
+  rainLevel(v){ if(!this.ctx) return; this.rainG.gain.setTargetAtTime(v*0.05,this.ctx.currentTime,0.3); },
+  blip(freq,dur,vol,type){
+    if(!this.ctx||!this.on) return;
+    const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type||'sine'; o.frequency.value=freq; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.008); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+0.02);
+  },
+  tick(i){ this.blip(520+Math.min(i,20)*22,0.06,0.05,'triangle'); },
+  chime(){
+    const now=performance.now(); if(now-this.lastChime<260) return; this.lastChime=now;
+    const pent=[523.25,587.33,659.25,783.99,880,1046.5]; this.blip(pent[Math.floor(Math.random()*pent.length)],0.5,0.018,'sine');
+  },
+  send(){ this.blip(392,0.18,0.05,'triangle'); setTimeout(()=>this.blip(587.33,0.25,0.045,'triangle'),90); },
+  bad(){ this.blip(180,0.35,0.06,'sawtooth'); },
+  dusk(){ [196,246.94,293.66].forEach((f,i)=>setTimeout(()=>this.blip(f,1.4,0.04,'sine'),i*140)); },
+};
+
+/* =========================================================
+   VIEW STATE
+   ========================================================= */
+const $=s=>document.querySelector(s);
+const mapCv=$('#map'), combCv=$('#comb');
+const mapG=mapCv.getContext('2d'), combG=combCv.getContext('2d');
+const MV={w:0,h:0,s:0,dpr:1,k:0}, CV={w:0,h:0,s:0,dpr:1};
+const terrainCv=document.createElement('canvas'); let terrainKey='';
+const FOG_EXT=5200, FOGR=520, FOG_RGB='44,34,21', FOG_A=0.8;
+const fogHi=document.createElement('canvas'); fogHi.width=fogHi.height=FOGR; const fogHx=fogHi.getContext('2d');
+const combBase=document.createElement('canvas'); let combKey='';
+let paused=false, speed=1, modalOpen=false, selPid=0, hoverPid=0, hoverPt=null, realT=0;
+let DANCERS=[];       // scout dancers on the comb
+let hold=null;        // active dance gesture
+let lastDance=null;   // finishing animation after release
+let crowd=[];
+let sideTab='routes';
+
+function mx(x){return MV.w/2+x*MV.k;} function my(y){return MV.h/2-y*MV.k;}
+function combCenter(){return {x:CV.w/2,y:CV.h/2+CV.s*0.025,R:CV.s*0.39};}
+
+/* ---------- sizing ---------- */
+function fit(){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const mp=$('#mapPane'), cp=$('#combPane');
+  const mw=Math.max(200,mp.clientWidth), mh=Math.max(200,mp.clientHeight);
+  const cw=Math.max(200,cp.clientWidth), ch=Math.max(200,cp.clientHeight);
+  if(mw!==MV.w||mh!==MV.h||dpr!==MV.dpr){ MV.w=mw;MV.h=mh;MV.s=Math.min(mw,mh);MV.dpr=dpr;MV.k=MV.s/(2*C.HALF); mapCv.width=mw*dpr;mapCv.height=mh*dpr;mapCv.style.width=mw+'px';mapCv.style.height=mh+'px'; terrainKey=''; }
+  if(cw!==CV.w||ch!==CV.h||dpr!==CV.dpr){ CV.w=cw;CV.h=ch;CV.s=Math.min(cw,ch);CV.dpr=dpr; combCv.width=cw*dpr;combCv.height=ch*dpr;combCv.style.width=cw+'px';combCv.style.height=ch+'px'; combKey=''; initCrowd(); }
+}
+
+/* =========================================================
+   MAP RENDERING
+   ========================================================= */
+const SEASON_PAL={
+  spring:{g:[122,166,72],l:[150,190,92],d:[92,138,58],wood:[48,92,44],woodL:[74,124,58]},
+  summer:{g:[104,146,56],l:[136,168,70],d:[78,118,44],wood:[40,80,36],woodL:[62,108,46]},
+  autumn:{g:[146,142,70],l:[176,158,86],d:[118,110,56],wood:[96,84,40],woodL:[150,104,46]},
+};
+const rgb=(c,a)=>a===undefined?`rgb(${c[0]},${c[1]},${c[2]})`:`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+function renderTerrain(){
+  const se=season(S.day), key=MV.w+'|'+MV.h+'|'+MV.dpr+'|'+se+'|'+W.seed;
+  if(key===terrainKey) return; terrainKey=key;
+  const s=MV.s,d=MV.dpr,k=MV.k,tw=MV.w,th=MV.h; terrainCv.width=tw*d; terrainCv.height=th*d;
+  const g=terrainCv.getContext('2d'); g.setTransform(d,0,0,d,0,0);
+  const P=SEASON_PAL[se], R=mulberry32((W.seed^0x5bd1e995)>>>0);
+  g.fillStyle=rgb(P.g); g.fillRect(0,0,tw,th);
+  for(let i=0;i<90;i++){ const x=R()*tw,y=R()*th,r=(0.04+R()*0.12)*s; const gr=g.createRadialGradient(x,y,0,x,y,r); const c=R()<.5?P.l:P.d; gr.addColorStop(0,rgb(c,0.55)); gr.addColorStop(1,rgb(c,0)); g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r); }
+  for(let i=0;i<3200*tw*th/(s*s);i++){ const x=R()*tw,y=R()*th,c=R()<.5?P.l:P.d; g.fillStyle=rgb(c,0.35+R()*0.4); g.fillRect(x,y,1,1+R()*1.5); }
+  // moor
+  for(const c of W.moor){ const gr=g.createRadialGradient(mx(c.x),my(c.y),0,mx(c.x),my(c.y),c.r*k); gr.addColorStop(0,'rgba(120,86,84,0.75)'); gr.addColorStop(0.7,'rgba(128,98,80,0.5)'); gr.addColorStop(1,'rgba(128,98,80,0)'); g.fillStyle=gr; g.beginPath(); g.arc(mx(c.x),my(c.y),c.r*k,0,TAU); g.fill(); }
+  for(let i=0;i<500;i++){ const c=W.moor[i%Math.max(1,W.moor.length)]; if(!c) break; const a=R()*TAU,dd=Math.sqrt(R())*c.r*0.9; g.fillStyle=R()<.5?'rgba(96,70,62,.6)':'rgba(150,120,90,.5)'; g.fillRect(mx(c.x+Math.cos(a)*dd),my(c.y+Math.sin(a)*dd),1.5,1.5); }
+  // fields
+  const drawField=(x,y,w,h,a,fill,stripe)=>{ g.save(); g.translate(mx(x),my(y)); g.rotate(-a); g.fillStyle=fill; g.fillRect(-w*k/2,-h*k/2,w*k,h*k); g.strokeStyle=stripe; g.lineWidth=Math.max(0.6,8*k); for(let v=-h/2+10;v<h/2;v+=30){ g.beginPath(); g.moveTo(-w*k/2,v*k); g.lineTo(w*k/2,v*k); g.stroke(); } g.strokeStyle='rgba(60,50,30,.35)'; g.lineWidth=1; g.strokeRect(-w*k/2,-h*k/2,w*k,h*k); g.restore(); };
+  for(const f of W.fields) drawField(f.x,f.y,f.w,f.h,f.a,f.kind==='plough'?'#8a6c48':'#b8a466',f.kind==='plough'?'rgba(70,52,32,.6)':'rgba(150,130,70,.6)');
+  for(const p of W.patches){ const T=TYPES[p.type]; if(!T.field) continue; drawField(p.x,p.y,p.r*2.1,p.r*1.45,p.ang,p.type==='lavender'?'#6f7c55':'#7d8d4a','rgba(60,80,40,.55)'); }
+  // lanes
+  g.lineCap='round'; g.lineJoin='round';
+  for(const ln of W.lanes){ g.strokeStyle='rgba(205,186,140,.75)'; g.lineWidth=Math.max(1.2,9*k); g.beginPath(); ln.forEach(([x,y],i)=>i?g.lineTo(mx(x),my(y)):g.moveTo(mx(x),my(y))); g.stroke(); }
+  // river
+  const rpath=()=>{g.beginPath();W.river.forEach(([x,y],i)=>i?g.lineTo(mx(x),my(y)):g.moveTo(mx(x),my(y)));};
+  rpath(); g.strokeStyle='rgba(70,100,50,.5)'; g.lineWidth=Math.max(5,85*k); g.stroke();
+  rpath(); g.strokeStyle='#4c8db0'; g.lineWidth=Math.max(3,46*k); g.stroke();
+  rpath(); g.strokeStyle='rgba(150,205,230,.55)'; g.lineWidth=Math.max(1,14*k); g.stroke();
+  // pond(s)
+  for(const p of W.patches){ if(!TYPES[p.type].water||p.name!=='Pond') continue; g.fillStyle='rgba(70,100,50,.5)'; g.beginPath(); g.ellipse(mx(p.x),my(p.y),p.r*k*1.2,p.r*k*0.95,p.ang,0,TAU); g.fill(); g.fillStyle='#4c8db0'; g.beginPath(); g.ellipse(mx(p.x),my(p.y),p.r*k*0.95,p.r*k*0.72,p.ang,0,TAU); g.fill(); g.fillStyle='rgba(170,215,235,.45)'; g.beginPath(); g.ellipse(mx(p.x)-p.r*k*.25,my(p.y)-p.r*k*.2,p.r*k*.35,p.r*k*.12,p.ang,0,TAU); g.fill(); }
+  // tree helpers
+  const crown=(x,y,r,c,cl)=>{ const px=mx(x),py=my(y),pr=Math.max(1.4,r*k); g.fillStyle='rgba(20,30,10,.35)'; g.beginPath(); g.arc(px+pr*.3,py+pr*.35,pr,0,TAU); g.fill(); g.fillStyle=rgb(c); g.beginPath(); g.arc(px,py,pr,0,TAU); g.fill(); g.fillStyle=rgb(cl,.8); g.beginPath(); g.arc(px-pr*.3,py-pr*.3,pr*.5,0,TAU); g.fill(); };
+  // woods
+  for(const c of W.woods){ g.fillStyle=rgb(P.wood,.85); g.beginPath(); g.arc(mx(c.x),my(c.y),c.r*k*0.95,0,TAU); g.fill(); }
+  for(const c of W.woods){ const n=Math.round(c.r*c.r/2600); for(let i=0;i<n;i++){ const a=R()*TAU,dd=Math.sqrt(R())*c.r; const tone=R(); crown(c.x+Math.cos(a)*dd,c.y+Math.sin(a)*dd,24+R()*20,tone<.5?P.wood:[P.wood[0]+12,P.wood[1]+14,P.wood[2]+6],P.woodL); } }
+  for(const t of W.trees){ if(W.woods.some(c=>Math.hypot(c.x-t.x,c.y-t.y)<c.r)) continue; crown(t.x,t.y,t.r,P.wood,P.woodL); }
+  // orchards & avenues
+  for(const p of W.patches){
+    if(p.type==='orchard'){ const ca=Math.cos(p.ang),sa=Math.sin(p.ang); for(let u=-p.r;u<=p.r;u+=55) for(let v=-p.r;v<=p.r;v+=55){ if(u*u+v*v>p.r*p.r) continue; crown(p.x+u*ca-v*sa,p.y+u*sa+v*ca,17,[86,120,52],[120,160,70]); } }
+    if(p.type==='linden'){ const ca=Math.cos(p.ang),sa=Math.sin(p.ang); for(let u=-p.r*1.1;u<=p.r*1.1;u+=42) for(const v of [-38,38]) crown(p.x+u*ca-v*sa,p.y+u*sa+v*ca,22,[74,116,48],[118,156,64]); }
+  }
+  // village
+  for(const h of W.houses){ g.save(); g.translate(mx(h.x),my(h.y)); g.rotate(-h.a); const w=Math.max(2.4,h.w*k),hh=Math.max(1.8,h.h*k); g.fillStyle='rgba(30,20,10,.35)'; g.fillRect(-w/2+1,-hh/2+1,w,hh); g.fillStyle=h.roof; g.fillRect(-w/2,-hh/2,w,hh); g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(-w/2,-hh/2,w,hh/2); g.restore(); }
+}
+function fogHole(x,y,rad){
+  const sc=FOGR/(2*FOG_EXT), px=FOGR/2+x*sc, py=FOGR/2-y*sc, r=Math.max(1.5,rad*sc);
+  fogHx.globalCompositeOperation='destination-out';
+  const gr=fogHx.createRadialGradient(px,py,r*0.55,px,py,r*1.08); gr.addColorStop(0,'rgba(0,0,0,1)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+  fogHx.fillStyle=gr; fogHx.beginPath(); fogHx.arc(px,py,r*1.08,0,TAU); fogHx.fill();
+  fogHx.globalCompositeOperation='source-over';
+}
+function updateFog(){
+  if(!fogDirty) return; fogDirty=false;
+  fogHx.globalCompositeOperation='source-over'; fogHx.clearRect(0,0,FOGR,FOGR);
+  fogHx.fillStyle=`rgba(${FOG_RGB},${FOG_A})`; fogHx.fillRect(0,0,FOGR,FOGR);
+  const n=C.FOG_N,cell=C.FOG_CELL,h=n*cell/2;
+  for(let j=0;j<n;j++) for(let i=0;i<n;i++) if(S.fog[j*n+i]) fogHole(-h+(i+.5)*cell,h-(j+.5)*cell,cell*1.05);
+}
+fogPaint=(x,y,rad)=>{ if(!HEADLESS&&!fogDirty) fogHole(x,y,rad); };
+function drawBee(g,x,y,ang,sz,alpha,t){
+  g.save(); g.translate(x,y); g.rotate(ang); g.globalAlpha=alpha===undefined?1:alpha;
+  const flap=0.75+0.25*Math.sin((t||0)*60);
+  g.fillStyle='rgba(225,236,250,.55)';
+  g.beginPath(); g.ellipse(-sz*.42,-sz*.05,sz*.42*flap,sz*.2,-0.6,0,TAU); g.fill();
+  g.beginPath(); g.ellipse(sz*.42,-sz*.05,sz*.42*flap,sz*.2,0.6,0,TAU); g.fill();
+  g.fillStyle='#e3a42a'; g.beginPath(); g.ellipse(0,sz*.08,sz*.34,sz*.62,0,0,TAU); g.fill();
+  g.fillStyle='#2a1a0c'; for(const yy of [0.02,0.28,0.52]){ g.fillRect(-sz*.32,sz*yy,sz*.64,sz*.1); }
+  g.beginPath(); g.arc(0,-sz*.58,sz*.24,0,TAU); g.fill();
+  g.restore(); g.globalAlpha=1;
+}
+function drawSunGlyph(g,x,y,r,a){
+  g.save(); g.globalAlpha=a; g.strokeStyle='#ffd25a'; g.lineWidth=1.6;
+  for(let i=0;i<8;i++){ const an=i*TAU/8; g.beginPath(); g.moveTo(x+Math.cos(an)*r*1.35,y+Math.sin(an)*r*1.35); g.lineTo(x+Math.cos(an)*r*1.85,y+Math.sin(an)*r*1.85); g.stroke(); }
+  const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'#fff3b0'); gr.addColorStop(1,'#f5b623'); g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,TAU); g.fill();
+  g.restore();
+}
+function patchStatus(p){
+  const T=TYPES[p.type];
+  if(T.water) return S.weather.hot?{k:'open',t:'water needed'}:{k:'',t:'water'};
+  if(S.day<T.d[0]) return {k:'',t:`blooms day ${T.d[0]}`};
+  if(S.day>T.d[1]) return {k:'',t:'finished'};
+  if(p.spray&&p.spraySeen) return {k:'bad',t:'sprayed today'};
+  if(S.hour<T.h[0]) return {k:'wait',t:`opens ${fmtH(T.h[0])}`};
+  if(S.hour>=T.h[1]) return {k:'',t:'closed for today'};
+  return {k:'open',t:'open'};
+}
+function drawMap(){
+  const g=mapG,s=MV.s,k=MV.k,Wd=MV.w,Hd=MV.h,ox=(Wd-s)/2,oy=(Hd-s)/2;
+  g.setTransform(MV.dpr,0,0,MV.dpr,0,0);
+  renderTerrain(); g.drawImage(terrainCv,0,0,Wd,Hd);
+  // patches
+  for(const p of W.patches){
+    if(!p.known) continue;
+    const T=TYPES[p.type], px=mx(p.x), py=my(p.y);
+    if(T.water){
+      const pr=Math.max(4,9*(s/600)); g.fillStyle=S.weather.hot?'#bfe8ff':'rgba(200,232,248,.85)';
+      g.beginPath(); g.moveTo(px,py-pr); g.quadraticCurveTo(px+pr*.8,py+pr*.1,px,py+pr*.6); g.quadraticCurveTo(px-pr*.8,py+pr*.1,px,py-pr); g.fill();
+      g.strokeStyle='rgba(20,60,90,.6)'; g.lineWidth=1; g.stroke();
+      continue;
+    }
+    const bl=inBloom(p,S.day), open=bl&&isOpen(p,S.hour);
+    const frac=bl?clamp(p.S/p.Smax,0,1):1;
+    const n=bl?Math.ceil(p.dots.length*(0.22+0.78*frac)):p.dots.length;
+    const before=S.day<T.d[0];
+    g.globalAlpha=bl?(open?1:0.5):(before?0.55:0.45);
+    for(let i=0;i<n;i++){ const dd=p.dots[i]; g.fillStyle=bl?T.col[dd[2]]:(before?'#5a7a36':'#7a6646'); const sz=Math.max(1.2,dd[3]*(s/620)); g.fillRect(px+dd[0]*k-sz/2,py-dd[1]*k-sz/2,sz,sz); }
+    g.globalAlpha=1;
+    if(p.spray&&p.spraySeen){ g.save(); g.beginPath(); g.arc(px,py,p.r*k,0,TAU); g.clip(); g.strokeStyle='rgba(236,109,69,.65)'; g.lineWidth=1.5; for(let u=-p.r*k*2;u<p.r*k*2;u+=6){ g.beginPath(); g.moveTo(px+u,py-p.r*k); g.lineTo(px+u+p.r*k*2,py+p.r*k); g.stroke(); } g.restore(); }
+    if(p.id===selPid||p.id===hoverPid){ g.strokeStyle=p.id===selPid?'#ffe7a3':'rgba(255,240,200,.7)'; g.lineWidth=p.id===selPid?2:1.2; g.setLineDash([4,3]); g.beginPath(); g.arc(px,py,p.r*k+3,0,TAU); g.stroke(); g.setLineDash([]); }
+  }
+  // fog
+  updateFog(); g.imageSmoothingEnabled=true;
+  { const fs=2*FOG_EXT*k, fx=Wd/2-fs/2, fy=Hd/2-fs/2; g.drawImage(fogHi,0,0,FOGR,FOGR,fx,fy,fs,fs);
+    g.fillStyle=`rgba(${FOG_RGB},${FOG_A})`; if(fx>0){ g.fillRect(0,0,Math.ceil(fx),Hd); g.fillRect(Math.floor(fx+fs),0,Wd,Hd); } if(fy>0){ g.fillRect(0,0,Wd,Math.ceil(fy)); g.fillRect(0,Math.floor(fy+fs),Wd,Hd); } }
+  // range rings
+  g.strokeStyle='rgba(255,248,225,.16)'; g.lineWidth=1; g.setLineDash([2,5]);
+  for(const r of [1000,2000,3000]){ g.beginPath(); g.arc(mx(0),my(0),r*k,0,TAU); g.stroke(); }
+  g.setLineDash([]); g.fillStyle='rgba(255,248,225,.5)'; g.font=`500 ${Math.max(9,s/60)}px "IBM Plex Mono",monospace`; g.textAlign='left';
+  for(const r of [1000,2000,3000]){ g.fillText(r/1000+' km',mx(0)+r*k*0.707+3,my(0)+r*k*0.707+10); }
+  // hornets
+  for(const hn of W.hornets){
+    if(!hn.known) continue; const active=S.day>=9; const px=mx(hn.x),py=my(hn.y);
+    g.strokeStyle=active?'rgba(236,109,69,.85)':'rgba(236,109,69,.4)'; g.fillStyle=active?'rgba(236,109,69,.12)':'rgba(236,109,69,.05)'; g.lineWidth=1.5; g.setLineDash([5,4]);
+    g.beginPath(); g.arc(px,py,hn.r*k,0,TAU); g.fill(); g.stroke(); g.setLineDash([]);
+    g.save(); g.translate(px,py); const hs=Math.max(4,s/110); g.fillStyle='#e6b13a'; g.beginPath(); g.ellipse(0,0,hs*.55,hs,0,0,TAU); g.fill(); g.fillStyle='#3a1a0c'; g.fillRect(-hs*.55,-hs*.2,hs*1.1,hs*.22); g.fillRect(-hs*.55,hs*.25,hs*1.1,hs*.22); g.fillStyle='#8a2a14'; g.beginPath(); g.arc(0,-hs*.95,hs*.4,0,TAU); g.fill(); g.restore();
+    if(!active){ g.fillStyle='rgba(255,230,210,.75)'; g.font=`500 ${Math.max(9,s/62)}px Figtree,sans-serif`; g.textAlign='center'; g.fillText('asleep until day 9',px,py+hn.r*k+12); }
+  }
+  // routes
+  for(const r of S.routes){
+    const ax=mx(r.ax),ay=my(r.ay);
+    g.strokeStyle=r.col; g.globalAlpha=0.75; g.lineWidth=1.6; g.setLineDash([6,5]);
+    g.beginPath(); g.moveTo(mx(0),my(0)); g.lineTo(ax,ay); g.stroke();
+    g.setLineDash([2,3]); g.beginPath(); g.arc(ax,ay,Math.max(4,spreadAt(r.dist)*k),0,TAU); g.stroke(); g.setLineDash([]); g.globalAlpha=1;
+    const cnt=S.squads.filter(q=>q.route===r.id).length;
+    g.fillStyle=r.col; g.font=`600 ${Math.max(10,s/55)}px Figtree,sans-serif`; g.textAlign='left'; g.fillText('×'+cnt,ax+6,ay-6);
+  }
+  // squads
+  for(const q of S.squads){
+    if(q.st==='idle'||q.st==='wait'||q.st==='guard'||q.st==='unload') continue;
+    const r=routeById(q.route); const px=mx(q.x),py=my(q.y);
+    const c=r?r.col:'#ffe9a8'; const sz=Math.max(1.6,s/330);
+    for(let i=0;i<3;i++){ const a=q.jit+i*2.1+realT*3, rr=sz*1.6; g.fillStyle=i===0?c:(q.load&&q.load.h>0?'#ffd85a':'#2a1a0c'); g.fillRect(px+Math.cos(a)*rr-sz/2,py+Math.sin(a)*rr-sz/2,sz,sz); }
+    if(q.st==='forage'){ g.strokeStyle=c; g.globalAlpha=0.4; g.beginPath(); g.arc(px,py,sz*3.2,0,TAU); g.stroke(); g.globalAlpha=1; }
+  }
+  // scouts
+  for(const sc of S.scouts){ const px=mx(sc.x),py=my(sc.y); g.fillStyle='#ffffff'; g.beginPath(); g.arc(px,py,Math.max(2,s/260),0,TAU); g.fill(); g.strokeStyle='rgba(255,255,255,.35)'; g.beginPath(); g.arc(px,py,Math.max(4,s/120),0,TAU); g.stroke(); }
+  // the oak
+  { const px=mx(0),py=my(0),r=Math.max(7,s/58);
+    g.fillStyle='rgba(15,10,5,.4)'; g.beginPath(); g.arc(px+2,py+3,r*1.1,0,TAU); g.fill();
+    g.fillStyle='#3d5e2a'; g.beginPath(); g.arc(px,py,r*1.1,0,TAU); g.fill();
+    g.fillStyle='#5b8238'; g.beginPath(); g.arc(px-r*.3,py-r*.3,r*.6,0,TAU); g.fill();
+    g.fillStyle='#f2a91d'; g.beginPath(); g.arc(px,py,r*.32,0,TAU); g.fill();
+    g.strokeStyle='#1a1009'; g.lineWidth=1.5; g.stroke(); }
+  // sun on the rim + sun line
+  { const az=sunAz(S.hour), up=S.hour>=C.DAY0&&S.hour<=dayEnd()+0.2; const rr=s/2-18; const [ux,uy]=polar(az,1); const cx=Wd/2, cy=Hd/2;
+    g.strokeStyle='rgba(255,214,110,.4)'; g.lineWidth=1.2; g.setLineDash([3,6]); g.beginPath(); g.moveTo(mx(0),my(0)); g.lineTo(cx+ux*rr,cy-uy*rr); g.stroke(); g.setLineDash([]);
+    drawSunGlyph(g,cx+ux*rr,cy-uy*rr,Math.max(6,s/70),up?1:0.35);
+    g.fillStyle='#ffe7a3'; g.font=`600 ${Math.max(10,s/56)}px "IBM Plex Mono",monospace`; g.textAlign=ux>0.3?'right':ux<-0.3?'left':'center';
+    const lx=cx+ux*(rr-20), ly=cy-uy*(rr-20)+(uy<-0.3?-6:uy>0.3?14:4); g.fillText('sun '+Math.round(az)+'°',lx,ly); }
+  // compass
+  g.fillStyle='rgba(255,248,225,.85)'; g.font=`${Math.max(13,s/38)}px "IM Fell English SC",Georgia,serif`; g.textAlign='center'; g.fillText('N',Wd/2,oy+16);
+  g.strokeStyle='rgba(255,248,225,.6)'; g.beginPath(); g.moveTo(Wd/2,oy+20); g.lineTo(Wd/2,oy+28); g.stroke();
+  // dance preview (guided) or finishing preview
+  const pv=dancePreview();
+  if(pv&&(S.mode==='guided'||pv.follow)){
+    const [ax,ay]=polar(pv.bearing,pv.dist); const sg=spreadAt(pv.dist);
+    g.strokeStyle='#fff6d8'; g.lineWidth=2; g.setLineDash([8,5]); g.beginPath(); g.moveTo(mx(0),my(0)); g.lineTo(mx(ax),my(ay)); g.stroke(); g.setLineDash([]);
+    g.fillStyle='rgba(255,246,216,.14)'; g.beginPath(); g.arc(mx(ax),my(ay),Math.max(5,sg*k),0,TAU); g.fill(); g.strokeStyle='rgba(255,246,216,.8)'; g.lineWidth=1.2; g.stroke();
+  }
+  // rain
+  if(isRaining(S.hour)&&(S.phase==='day'||S.phase==='dusk')){ g.strokeStyle='rgba(200,220,240,.35)'; g.lineWidth=1; const off=(realT*240)%40; for(let x=-Hd;x<Wd*1.2;x+=14){ for(let y=-40;y<Hd;y+=40){ const yy=y+off+((x*7)%40); g.beginPath(); g.moveTo(x+yy*0.35,yy); g.lineTo(x+yy*0.35+4,yy+11); g.stroke(); } } g.fillStyle='rgba(40,60,80,.18)'; g.fillRect(0,0,Wd,Hd); }
+  // light
+  const h=S.hour; let tint=null;
+  if(h<7) tint=`rgba(40,60,110,${(7-h)*0.28})`;
+  else if(h>dayEnd()-1.5) tint=`rgba(${h>dayEnd()?'30,30,80':'120,60,40'},${clamp((h-(dayEnd()-1.5))*0.18,0,0.42)})`;
+  if(tint){ g.fillStyle=tint; g.fillRect(0,0,Wd,Hd); }
+  // hover label
+  const lp=hoverPid?patchById(hoverPid):(selPid?patchById(selPid):null);
+  if(lp&&lp.known){ const st=patchStatus(lp); const txt=`${lp.label} · ${fmtDist(lp.dist)} · ${st.t}`; g.font=`600 ${Math.max(11,s/52)}px Figtree,sans-serif`; const tw=g.measureText(txt).width; let lx=clamp(mx(lp.x)-tw/2-6,4,Wd-tw-16), ly=my(lp.y)-lp.r*k-24; if(ly<26) ly=my(lp.y)+lp.r*k+8; g.fillStyle='rgba(22,16,10,.88)'; g.fillRect(lx,ly,tw+12,20); g.fillStyle='#f4e4b6'; g.textAlign='left'; g.fillText(txt,lx+6,ly+14); }
+  if(hoverPt){ const d=Math.hypot(hoverPt.x,hoverPt.y), b=bearingOf(hoverPt.x,hoverPt.y); g.fillStyle='rgba(22,16,10,.8)'; g.font=`500 ${Math.max(10,s/58)}px "IBM Plex Mono",monospace`; const txt=`${fmtDist(d)} · bearing ${Math.round(b)}° ${compass(b)}`; g.fillRect(8,Hd-28,g.measureText(txt).width+14,20); g.fillStyle='#f4e4b6'; g.textAlign='left'; g.fillText(txt,15,Hd-14); }
+}
+
+/* =========================================================
+   COMB RENDERING
+   ========================================================= */
+function renderCombBase(){
+  const s=CV.s, cw=CV.w, ch=CV.h, broodT=S.brood.reduce((a,b)=>a+b,0);
+  const key=[cw,ch,CV.dpr,Math.round(S.honey*2),Math.round(S.pollen*10),Math.round(broodT/250)].join('|');
+  if(key===combKey) return; combKey=key;
+  const d=CV.dpr; combBase.width=cw*d; combBase.height=ch*d;
+  const g=combBase.getContext('2d'); g.setTransform(d,0,0,d,0,0);
+  g.fillStyle='#1a1209'; g.fillRect(0,0,cw,ch);
+  const hr=s/27, w=Math.sqrt(3)*hr, hh=1.5*hr, cc=combCenter();
+  const cells=[];
+  for(let row=-1;row*hh<ch+hr;row++) for(let col=-1;col*w<cw+w;col++){ const x=col*w+(row&1?w/2:0), y=row*hh; cells.push({x,y,dc:Math.hypot(x-cc.x,y-cc.y),kind:'empty',seed:(row*131+col*71)&1023}); }
+  const floorR=s*0.2;
+  const inner=cells.filter(c=>c.dc>floorR).sort((a,b)=>a.dc-b.dc);
+  cells.forEach(c=>{ if(c.dc<=floorR) c.kind='floor'; });
+  const N=inner.length;
+  const nb=Math.round(N*0.30*clamp(broodT/9000,0,1));
+  const np=Math.round(N*0.14*clamp(S.pollen/5,0,1));
+  for(let i=0;i<nb;i++) inner[i].kind='brood';
+  for(let i=nb;i<nb+np&&i<N;i++) inner[i].kind='pollen';
+  const rest=inner.slice(nb+np).sort((a,b)=>a.y-b.y);
+  const nh=Math.round(rest.length*0.62*clamp(S.honey/40,0,1));
+  for(let i=0;i<nh;i++){ rest[i].kind='honey'; rest[i].capped=i<nh*0.55; }
+  const PC=['#e8a33a','#d9c34a','#c45e2a','#b38ad0','#e6d070','#9fb44a','#e07b3c'];
+  const hex=(x,y,r)=>{g.beginPath();for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?g.lineTo(px,py):g.moveTo(px,py);}g.closePath();};
+  for(const c of cells){
+    hex(c.x,c.y,hr*0.97);
+    switch(c.kind){
+      case 'floor': g.fillStyle='#21170c'; g.fill(); g.strokeStyle='#3b2a19'; g.lineWidth=1.4; g.stroke(); break;
+      case 'empty': g.fillStyle='#2a1d10'; g.fill(); g.strokeStyle='#5a4128'; g.lineWidth=1.6; g.stroke(); hex(c.x,c.y,hr*0.62); g.fillStyle='#1f150b'; g.fill(); break;
+      case 'brood': { g.fillStyle='#5a4128'; g.fill(); hex(c.x,c.y,hr*0.86); const gr=g.createRadialGradient(c.x-hr*.25,c.y-hr*.3,1,c.x,c.y,hr); gr.addColorStop(0,'#e0b06a'); gr.addColorStop(1,'#9a6430'); g.fillStyle=gr; g.fill(); break; }
+      case 'pollen': { g.fillStyle='#5a4128'; g.fill(); hex(c.x,c.y,hr*0.78); g.fillStyle=PC[c.seed%PC.length]; g.fill(); g.fillStyle='rgba(0,0,0,.18)'; g.beginPath(); g.arc(c.x+hr*.18,c.y+hr*.2,hr*.35,0,TAU); g.fill(); break; }
+      case 'honey': { g.fillStyle='#6a4a22'; g.fill(); hex(c.x,c.y,hr*0.84); if(c.capped){ g.fillStyle='#ecd59a'; g.fill(); g.fillStyle='rgba(255,255,255,.25)'; g.beginPath(); g.arc(c.x-hr*.2,c.y-hr*.25,hr*.25,0,TAU); g.fill(); } else { const gr=g.createRadialGradient(c.x-hr*.2,c.y-hr*.3,1,c.x,c.y,hr); gr.addColorStop(0,'#ffd76a'); gr.addColorStop(1,'#c97c0c'); g.fillStyle=gr; g.fill(); g.fillStyle='rgba(255,255,255,.4)'; g.beginPath(); g.ellipse(c.x-hr*.25,c.y-hr*.3,hr*.18,hr*.09,-0.5,0,TAU); g.fill(); } break; }
+    }
+  }
+  const vg=g.createRadialGradient(cc.x,cc.y,s*0.15,cc.x,cc.y,Math.max(cw,ch)*0.72); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(8,5,2,.78)'); g.fillStyle=vg; g.fillRect(0,0,cw,ch);
+  const sp=g.createRadialGradient(cc.x,cc.y,0,cc.x,cc.y,s*0.24); sp.addColorStop(0,'rgba(255,200,110,.10)'); sp.addColorStop(1,'rgba(255,200,110,0)'); g.fillStyle=sp; g.fillRect(0,0,cw,ch);
+}
+function initCrowd(){
+  const R=mulberry32(77); crowd=[];
+  for(let i=0;i<46;i++){ const a=R()*TAU, d=0.1+R()*0.36; crowd.push({a,d,h:R()*TAU,sp:0.02+R()*0.05,ph:R()*10}); }
+}
+// one figure-eight waggle dance: run through the centre, loop back on alternating sides
+function danceShape(t,ang,km,len){
+  const runT=0.25+0.75*km, retT=0.75, cyc=runT+retT;
+  const n=Math.floor(t/cyc), tc=t-n*cyc, side=n%2?1:-1;
+  const ux=Math.sin(ang), uy=-Math.cos(ang), px=-uy, py=ux;
+  if(tc<runT){ const f=tc/runT, along=(f-0.5)*len, lat=Math.sin(tc*TAU*13)*len*0.06; return {x:ux*along+px*lat,y:uy*along+py*lat,h:ang+Math.sin(tc*TAU*13)*0.35,wag:true}; }
+  const th=(tc-runT)/retT*Math.PI;
+  const along=Math.cos(th)*len/2, lat=side*Math.sin(th)*len*0.42;
+  const dax=-Math.sin(th)*len/2, dlat=side*Math.cos(th)*len*0.42;
+  return {x:ux*along+px*lat,y:uy*along+py*lat,h:Math.atan2(ux*dax+px*dlat,-(uy*dax+py*dlat)),wag:false};
+}
+function comb2dance(x,y){
+  const cc=combCenter(); const dx=x-cc.x, dy=y-cc.y; const r=Math.hypot(dx,dy);
+  const ang=Math.atan2(dx,-dy)/D2R;
+  const dist=clamp(r/cc.R,0,1)*C.RANGE;
+  return {ang:norm360(ang),dist,r};
+}
+function dancePreview(){
+  if(!hold) return null;
+  if(hold.mode==='follow'){ const p=patchById(hold.pid); if(!p) return null; return {bearing:p.bearing,dist:p.dist,follow:true}; }
+  const d=comb2dance(hold.x,hold.y); if(d.dist<100) return null;
+  return {bearing:norm360(sunAz(S.hour)+d.ang),dist:d.dist,ang:d.ang};
+}
+function drawComb(dtReal){
+  const g=combG,s=CV.s,cc=combCenter();
+  g.setTransform(CV.dpr,0,0,CV.dpr,0,0);
+  renderCombBase(); g.drawImage(combBase,0,0,CV.w,CV.h);
+  // up axis and sun
+  g.strokeStyle='rgba(255,214,110,.28)'; g.lineWidth=1.2; g.setLineDash([3,6]); g.beginPath(); g.moveTo(cc.x,cc.y); g.lineTo(cc.x,cc.y-cc.R-6); g.stroke(); g.setLineDash([]);
+  drawSunGlyph(g,cc.x,cc.y-cc.R-s*0.038,Math.max(6,s/62),1);
+  g.fillStyle='#ffe7a3'; g.font=`600 ${Math.max(10,s/48)}px Figtree,sans-serif`; g.textAlign='left'; g.fillText('toward the sun',cc.x+s*0.05,cc.y-cc.R-s*0.03);
+  // distance rings
+  g.strokeStyle='rgba(255,236,190,.17)'; g.lineWidth=1; g.setLineDash([2,5]);
+  const marks=[[500,'500 m'],[1000,'1 km'],[2000,'2 km'],[3000,'3 km']];
+  for(const [m] of marks){ g.beginPath(); g.arc(cc.x,cc.y,cc.R*m/C.RANGE,0,TAU); g.stroke(); }
+  g.setLineDash([]); g.fillStyle='rgba(255,236,190,.55)'; g.font=`500 ${Math.max(9,s/56)}px "IBM Plex Mono",monospace`;
+  for(const [m,l] of marks){ const rr=cc.R*m/C.RANGE; g.fillText(l,cc.x+rr*0.5+3,cc.y+rr*0.866+11); }
+  // crowd
+  const t=realT, dancing=!!hold||!!lastDance;
+  for(const b of crowd){
+    if(!paused&&!modalOpen){ b.h+=Math.sin(t*0.7+b.ph)*0.02; b.a+=Math.sin(t*0.3+b.ph)*0.002; b.d=clamp(b.d+Math.cos(b.h)*0.0006,0.06,0.46); }
+    let x=cc.x+Math.cos(b.a)*b.d*s, y=cc.y+Math.sin(b.a)*b.d*s, h=b.h;
+    if(dancing&&b.d<0.2){ h=Math.atan2(cc.x-x,-(cc.y-y)); }
+    drawBee(g,x,y,h,s/46,0.85,t+b.ph);
+  }
+  // scout dancers
+  const sa=sunAz(S.hour);
+  for(const dn of DANCERS){
+    const p=patchById(dn.pid); if(!p) continue;
+    const x=cc.x+dn.dx*s, y=cc.y+dn.dy*s, ang=(p.bearing-sa)*D2R, km=p.dist/1000, len=s*(0.05+0.07*km/3);
+    const life=1-dn.age/dn.life;
+    g.strokeStyle=`rgba(255,255,255,${0.25+0.3*life})`; g.lineWidth=2; g.beginPath(); g.arc(x,y,len*0.9+10,-Math.PI/2,-Math.PI/2+TAU*life); g.stroke();
+    const ds=danceShape(dn.age,ang,km,len);
+    drawBee(g,x+ds.x,y+ds.y,ds.h,s/34,1,t);
+    if(dn===hoverDancer||(hold&&hold.dancer===dn)){ g.strokeStyle='#ffe7a3'; g.lineWidth=1.5; g.beginPath(); g.arc(x,y,len*0.9+14,0,TAU); g.stroke(); }
+    const tag=`Scout: ${p.name} · ${fmtDist(p.dist)}`; g.font=`600 ${Math.max(10,s/50)}px Figtree,sans-serif`; const tw=g.measureText(tag).width; const tx=clamp(x-tw/2,6,CV.w-tw-6), ty=y-len*0.9-18;
+    g.fillStyle='rgba(22,16,10,.85)'; g.fillRect(tx-5,ty-12,tw+10,17); g.fillStyle='#fff'; g.textAlign='left'; g.fillText(tag,tx,ty);
+  }
+  // player's dance
+  let buzz=0;
+  if(hold){
+    let ang,km,len,tx,ty;
+    if(hold.mode==='follow'){ const p=patchById(hold.pid); ang=p?(p.bearing-sa)*D2R:0; km=p?p.dist/1000:1; tx=cc.x+hold.dancer.dx*s; ty=cc.y+hold.dancer.dy*s; }
+    else { const d=comb2dance(hold.x,hold.y); ang=d.ang*D2R; km=d.dist/1000; const rr=Math.min(d.r,cc.R); tx=cc.x+Math.sin(ang)*rr; ty=cc.y-Math.cos(ang)*rr;
+      g.strokeStyle='rgba(255,240,200,.7)'; g.lineWidth=1.5; g.setLineDash([5,4]); g.beginPath(); g.moveTo(cc.x,cc.y); g.lineTo(tx,ty); g.stroke(); g.setLineDash([]);
+      g.strokeStyle='#ffe7a3'; g.lineWidth=2; g.beginPath(); g.arc(tx,ty,9,0,TAU); g.stroke(); g.beginPath(); g.moveTo(tx-4,ty); g.lineTo(tx+4,ty); g.moveTo(tx,ty-4); g.lineTo(tx,ty+4); g.stroke(); }
+    len=s*(0.07+0.13*km/3);
+    const ox=hold.mode==='follow'?tx:cc.x, oy=hold.mode==='follow'?ty:cc.y;
+    const ds=danceShape(hold.t,ang,km,len); if(ds.wag) buzz=1;
+    drawBee(g,ox+ds.x,oy+ds.y,ds.h,s/28,1,t);
+    // readout
+    const valid=hold.mode==='follow'||comb2dance(hold.x,hold.y).dist>=100;
+    const idle=idleSquads().length;
+    const l1= hold.mode==='follow' ? `Following the scout to ${patchById(hold.pid)?.label||'?'}` : (valid?`Waggle run ${(0.25+0.75*km).toFixed(1)} s · ${relSun(ang/D2R)}`:'Drag farther from the centre');
+    const l2= valid ? (idle>0||hold.circuits>0 ? `Recruiting ×${hold.circuits} squad${hold.circuits===1?'':'s'} · ${Math.max(0,idle-hold.circuits)} idle left` : 'No idle squads. Recall a route first.') : '';
+    readout(g,s,l1,l2);
+  } else if(lastDance){
+    const ds=danceShape(lastDance.t,lastDance.ang,lastDance.km,lastDance.len); if(ds.wag) buzz=0.6;
+    drawBee(g,lastDance.ox+ds.x,lastDance.oy+ds.y,ds.h,s/28,clamp(1-lastDance.t/2.2,0,1),t);
+  } else if(S.phase==='day'){
+    const idle=idleSquads().length;
+    readout(g,s, idle>0?`${idle} idle squad${idle===1?'':'s'} waiting for a dance`:'All squads are out working', S.day<=2&&idle>0?'Press and hold on the comb to dance':'' , true);
+  } else if(S.phase==='dusk'){
+    readout(g,s,'Dusk. Foragers are coming home.','',true);
+  }
+  AU.buzzLevel(paused&&!hold?0:buzz);
+}
+let hoverDancer=null;
+function readout(g,s,l1,l2,quiet){
+  g.font=`600 ${Math.max(11,s/40)}px Figtree,sans-serif`; g.textAlign='center';
+  const cc=combCenter(), co=$('#coach');
+  const w=Math.max(g.measureText(l1).width,l2?g.measureText(l2).width:0)+22, h=l2?42:24, x=cc.x-w/2;
+  let y=Math.min(cc.y+cc.R+18,CV.h-h-10);
+  if(!co.hidden){ const ct=co.getBoundingClientRect().top-combCv.getBoundingClientRect().top; if(ct<CV.h) y=Math.min(y,ct-h-8); }
+  g.fillStyle=quiet?'rgba(22,16,10,.62)':'rgba(22,16,10,.9)'; g.fillRect(x,y,w,h);
+  if(!quiet){ g.strokeStyle='#c27a0b'; g.lineWidth=1; g.strokeRect(x+.5,y+.5,w-1,h-1); }
+  g.fillStyle=quiet?'#d8c9a6':'#ffe7a3'; g.fillText(l1,cc.x,y+16);
+  if(l2){ g.fillStyle='#ece2c8'; g.font=`500 ${Math.max(10,s/46)}px Figtree,sans-serif`; g.fillText(l2,cc.x,y+34); }
+}
+function addDancer(p){
+  if(HEADLESS) return;
+  if(DANCERS.some(d=>d.pid===p.id)) return;
+  let dx=0.3,dy=0.1;
+  for(let i=0;i<60;i++){ const a=Math.random()*TAU, d=0.25+Math.random()*0.1; dx=Math.cos(a)*d; dy=Math.sin(a)*d; if(dy<-0.22) continue; if(DANCERS.every(o=>Math.hypot(o.dx-dx,o.dy-dy)>0.24)) break; }
+  DANCERS.push({pid:p.id,dx:clamp(dx,-0.36,0.36),dy:clamp(dy,-0.3,0.36),age:0,life:14});
+  if(DANCERS.length>3) DANCERS.shift();
+}
+onScoutDance=addDancer;
+chimeCb=()=>AU.chime();
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+function evPt(cv,e){const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+function dancerAt(x,y){ const s=CV.s, cc=combCenter(); for(const d of DANCERS){ if(Math.hypot(cc.x+d.dx*s-x,cc.y+d.dy*s-y)<Math.max(26,s*0.08)) return d; } return null; }
+combCv.addEventListener('pointerdown',e=>{
+  AU.init(); AU.resume();
+  if(modalOpen||!S||S.phase!=='day') { if(S&&S.phase==='dusk') toast('Dusk: the foragers are done for today.'); return; }
+  e.preventDefault(); combCv.setPointerCapture(e.pointerId);
+  const pt=evPt(combCv,e); const dn=dancerAt(pt.x,pt.y);
+  hold= dn ? {mode:'follow',dancer:dn,pid:dn.pid,x:pt.x,y:pt.y,t:0,circuits:0,next:0.28,interval:0.28,id:e.pointerId}
+           : {mode:'dance',x:pt.x,y:pt.y,t:0,circuits:0,next:0.28,interval:0.28,id:e.pointerId};
+  lastDance=null;
+});
+combCv.addEventListener('pointermove',e=>{
+  const pt=evPt(combCv,e);
+  if(hold&&hold.id===e.pointerId&&hold.mode==='dance'){ hold.x=pt.x; hold.y=pt.y; }
+  if(!hold){ hoverDancer=dancerAt(pt.x,pt.y); combCv.style.cursor=hoverDancer?'pointer':'crosshair'; }
+});
+function endHold(e,cancel){
+  if(!hold||(e&&hold.id!==e.pointerId)) return;
+  const h=hold; hold=null;
+  const cc=combCenter(), s=CV.s;
+  let bearing,dist,pid=0,ang,km,ox=cc.x,oy=cc.y;
+  if(h.mode==='follow'){ const p=patchById(h.pid); if(!p) return; bearing=p.bearing; dist=p.dist; pid=p.id; ang=(p.bearing-sunAz(S.hour))*D2R; ox=cc.x+h.dancer.dx*s; oy=cc.y+h.dancer.dy*s; }
+  else { const d=comb2dance(h.x,h.y); if(d.dist<100){ if(!cancel) toast('Drag away from the centre: distance from the centre is distance to fly.'); return; } bearing=sunAz(S.hour)+d.ang; dist=d.dist; ang=d.ang*D2R; }
+  km=dist/1000;
+  if(cancel||h.circuits<=0){ if(!cancel&&h.circuits<=0) toast(idleSquads().length?'Hold a little longer: each dance circuit recruits a squad.':'No idle squads. Recall a route to free some.'); return; }
+  const r=createRoute(bearing,dist,h.circuits,pid);
+  if(r){
+    lastDance={t:h.t,ang,km,len:s*(0.07+0.13*km/3),ox,oy};
+    AU.send();
+    toast(`${h.circuits} squad${h.circuits===1?'':'s'} → ${fmtDist(dist)} ${compass(bearing)}${r.pid?' · '+r.label:''}`,'good');
+    if(S.tut===1) { S.tut=2; showCoach(); }
+  }
+}
+combCv.addEventListener('pointerup',e=>endHold(e,false));
+combCv.addEventListener('pointercancel',e=>endHold(e,true));
+combCv.addEventListener('contextmenu',e=>e.preventDefault());
+combCv.addEventListener('pointerleave',()=>{hoverDancer=null;});
+
+function map2world(x,y){return {x:(x-MV.w/2)/MV.k,y:(MV.h/2-y)/MV.k};}
+function patchAt(wx,wy){ let best=null,bd=1e9; for(const p of W.patches){ if(!p.known) continue; const d=Math.hypot(p.x-wx,p.y-wy); const lim=Math.max(p.r,TYPES[p.type].water?160:0)+8/MV.k; if(d<lim&&d<bd){bd=d;best=p;} } return best; }
+mapCv.addEventListener('pointermove',e=>{ if(!S) return; const pt=evPt(mapCv,e), w=map2world(pt.x,pt.y); hoverPt=w; const p=patchAt(w.x,w.y); hoverPid=p?p.id:0; mapCv.style.cursor=p?'pointer':'default'; });
+mapCv.addEventListener('pointerleave',()=>{hoverPt=null;hoverPid=0;});
+mapCv.addEventListener('pointerdown',e=>{ AU.init(); AU.resume(); if(!S||modalOpen) return; const pt=evPt(mapCv,e), w=map2world(pt.x,pt.y); const p=patchAt(w.x,w.y); selPid=p?p.id:0; if(e.pointerType!=='mouse'){hoverPt=w;} updateSide(true); });
+
+window.addEventListener('keydown',e=>{
+  if(modalOpen||!S) return;
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')) return;
+  if(e.code==='Space'){ e.preventDefault(); setPaused(!paused); }
+  else if(e.key==='1') setSpeed(1); else if(e.key==='2') setSpeed(2); else if(e.key==='3') setSpeed(4);
+  else if(e.key==='Escape'&&hold){ endHold(null,true); hold=null; }
+});
+
+/* =========================================================
+   UI: HUD, SIDE PANEL, TOASTS
+   ========================================================= */
+const WX_ICON={
+  sunny:'<svg viewBox="0 0 24 24" fill="none" stroke="#ffd25a" stroke-width="2"><circle cx="12" cy="12" r="4.5" fill="#f5b623"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>',
+  hot:'<svg viewBox="0 0 24 24" fill="none" stroke="#ff9a4a" stroke-width="2"><circle cx="12" cy="12" r="5" fill="#ff8a3a"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.2 4.2l2.2 2.2M17.6 17.6l2.2 2.2M4.2 19.8l2.2-2.2M17.6 6.4l2.2-2.2"/></svg>',
+  cloudy:'<svg viewBox="0 0 24 24" fill="#b9b2a2"><path d="M7 18h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.2 9.1 4.5 4.5 0 0 0 7 18z"/></svg>',
+  showers:'<svg viewBox="0 0 24 24"><path fill="#a9b8c8" d="M7 14h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.2 5.1 4.5 4.5 0 0 0 7 14z"/><path stroke="#78bfdc" stroke-width="2" stroke-linecap="round" d="M8 17l-1 3M12 17l-1 3M16 17l-1 3"/></svg>',
+  windy:'<svg viewBox="0 0 24 24" fill="none" stroke="#c9c1ae" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"/></svg>',
+};
+function setPaused(v){ paused=v; $('#bPause').classList.toggle('on',v); $('#bPause').textContent=v?'▶':'❚❚'; $('#bPause').setAttribute('aria-label',v?'Resume':'Pause'); }
+function setSpeed(v){ speed=v; document.querySelectorAll('[data-speed]').forEach(b=>b.classList.toggle('on',+b.dataset.speed===v)); if(paused) setPaused(false); savePrefs(); }
+document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{AU.init();AU.resume();setSpeed(+b.dataset.speed);}));
+$('#bPause').addEventListener('click',()=>{AU.init();AU.resume();setPaused(!paused);});
+$('#bSound').addEventListener('click',()=>{AU.init();AU.resume();AU.setOn(!AU.on);$('#bSound').classList.toggle('on',AU.on);savePrefs();});
+$('#bMenu').addEventListener('click',()=>showMenu());
+function savePrefs(){ lsSet(PREF_KEY,JSON.stringify({speed,sound:AU.on,tutDone:prefs.tutDone})); }
+let prefs={speed:1,sound:true,tutDone:false};
+try{ const p=JSON.parse(lsGet(PREF_KEY)||'null'); if(p) prefs=Object.assign(prefs,p); }catch(e){}
+AU.on=prefs.sound!==false; $('#bSound').classList.toggle('on',AU.on); speed=prefs.speed||1;
+document.querySelectorAll('[data-speed]').forEach(b=>b.classList.toggle('on',+b.dataset.speed===speed));
+
+function updateHUD(){
+  $('#hDay').textContent=`Day ${S.day} of ${C.DAYS} · ${season(S.day)[0].toUpperCase()+season(S.day).slice(1)}`;
+  $('#hClock').textContent=fmtH(S.hour);
+  const w=S.weather; const wxKey=w.kind+(w.rain?w.rain.join():'' );
+  if($('#hWx').dataset.k!==wxKey){ $('#hWx').dataset.k=wxKey; $('#hWx').innerHTML=WX_ICON[w.kind]+`<span>${w.kind==='showers'?`Showers ${fmtH(w.rain[0])}–${fmtH(w.rain[1])}`:WX[w.kind]}</span>`; }
+  $('#sHoney').textContent=S.honey.toFixed(1)+' kg';
+  const need=winterNeed(); const ne=$('#sNeed'); ne.textContent=`winter needs ~${need.toFixed(0)} kg`; ne.className=S.honey>=need?'ok':(S.day>=15?'low':'');
+  $('#sPollen').textContent=S.pollen.toFixed(2)+' kg';
+  const pn=$('#sPollenNote'); const pneed=layCap(S.day)*C.EGG_P; pn.textContent=S.pollen<pneed?'too little for tonight’s eggs':'brood food'; pn.className=S.pollen<pneed?'low':'';
+  $('#sBees').textContent=fmtN(S.bees);
+  $('#sBrood').textContent='brood '+fmtN(S.brood.reduce((a,b)=>a+b,0));
+  $('#waterStat').hidden=!S.weather.hot;
+  if(S.weather.hot) $('#sWater').textContent=`${S.water.toFixed(1)} / ${S.waterNeed.toFixed(1)} L`;
+}
+const WX={sunny:'Sunny',hot:'Hot',cloudy:'Overcast',windy:'Windy',showers:'Showers'};
+
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ sideTab=b.dataset.tab; document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b)); $('#tabRoutes').hidden=sideTab!=='routes'; $('#tabFlowers').hidden=sideTab!=='flowers'; $('#tabLog').hidden=sideTab!=='log'; updateSide(true); }));
+
+function syncList(box,items,keyFn,make,update){
+  const old=new Map(); for(const el of Array.from(box.children)) if(el.dataset.key) old.set(el.dataset.key,el); else el.remove();
+  items.forEach((it,i)=>{ const k=String(keyFn(it)); let el=old.get(k); if(el) old.delete(k); else { el=make(it); el.dataset.key=k; } update(el,it); if(box.children[i]!==el) box.insertBefore(el,box.children[i]||null); });
+  old.forEach(el=>el.remove());
+}
+function routeStatus(r){
+  const sq=S.squads.filter(q=>q.route===r.id);
+  if(isRaining(S.hour)) return {t:'sheltering from rain',k:'wait'};
+  if(S.hour<S.noFlyUntil) return {t:`grooming until ${fmtH(S.noFlyUntil)}`,k:'wait'};
+  if(S.hour<r.waitUntil) return {t:`waiting until ${fmtH(r.waitUntil)}`,k:'wait'};
+  const out=sq.filter(q=>q.st==='out'||q.st==='forage'||q.st==='back').length;
+  return {t:out?`${out} in the air`:'between trips',k:'open'};
+}
+function updateSide(force){
+  // foragers bar
+  const tot=S.squads.length||1, busy=S.squads.filter(q=>q.route&&q.st!=='idle').length, guard=S.squads.filter(q=>q.st==='guard').length, idle=idleSquads().length;
+  $('#fBarBusy').style.width=(busy/tot*100)+'%'; $('#fBarWait').style.width='0%'; $('#fBarGuard').style.width=(guard/tot*100)+'%';
+  $('#fTxt').textContent=`${busy} of ${S.squads.length} squads working · ${idle} idle${guard?` · ${guard} on guard`:''} · 100 bees each`;
+  // selected
+  const sc=$('#selCard'); const p=selPid?patchById(selPid):null;
+  if(!p){ sc.hidden=true; sc.dataset.pid=''; } else {
+    sc.hidden=false; const T=TYPES[p.type], st=patchStatus(p);
+    const sq=S.squads.filter(q=>{const r=routeById(q.route);return r&&r.pid===p.id;}).length;
+    const ang=signed180(p.bearing-sunAz(S.hour));
+    const hornet=W.hornets.some(hn=>hn.known&&segDist(0,0,p.x,p.y,hn.x,hn.y)<hn.r);
+    if(sc.dataset.pid!==String(p.id)){ sc.dataset.pid=String(p.id); sc.dataset.h=''; sc.innerHTML=`<div class="t"><span class="dot" style="background:${T.col[0]}"></span><span></span><button class="x btn icon" data-act="desel" aria-label="Close">×</button></div><div class="cbody"></div>`; sc.querySelector('.t span:nth-child(2)').textContent=p.label; }
+    const html=`<div class="kv"><span>Where</span><span>${fmtDist(p.dist)} · bearing ${Math.round(p.bearing)}° ${compass(p.bearing)}</span>
+      ${T.water?`<span>Use</span><span>Water, needed only on hot days</span>`:`<span>Blooms</span><span>days ${T.d[0]}–${T.d[1]} · ${st.t}</span><span>Hours</span><span>${fmtH(T.h[0])}–${fmtH(T.h[1])}</span><span>Nectar</span><span>${stars(p.q,0.9,1.3)} &nbsp; Pollen ${stars(p.p,0.6,1.1)}</span><span>Feeds</span><span>about ${Math.round(T.sup)} squads at once</span>`}
+      ${(!T.water&&inBloom(p,S.day))?`<span>Stock</span><span><div class="bar" style="margin-top:6px"><i style="width:${Math.round(clamp(p.S/p.Smax,0,1)*100)}%"></i></div></span>`:''}
+      ${sq?`<span>Working it</span><span>${sq} squad${sq===1?'':'s'}</span>`:''}</div>
+      ${S.mode==='guided'?`<div class="hint">Dance ${relSun(ang)}, ${fmtDist(p.dist)} out.</div>`:`<div class="sub">Sun is at ${Math.round(sunAz(S.hour))}°. Work out the angle yourself.</div>`}
+      ${p.spray&&p.spraySeen?'<div class="warnline">Sprayed today. Foragers die there.</div>':''}
+      ${hornet&&S.day>=9?'<div class="warnline">The flight path passes a hornet nest.</div>':''}`;
+    if(sc.dataset.h!==html){ sc.dataset.h=html; sc.querySelector('.cbody').innerHTML=html; }
+  }
+  if(sideTab==='routes'){
+    const box=$('#tabRoutes');
+    if(!S.routes.length){ if(!box.querySelector('.empty')){ box.innerHTML='<div class="empty">No routes yet. Dance on the comb to send squads out. Every route you dance appears here.</div>'; } }
+    else {
+      const em=box.querySelector('.empty'); if(em) em.remove();
+      syncList(box,S.routes,r=>r.id,
+        r=>{ const el=document.createElement('div'); el.className='row'; el.innerHTML='<span class="dot"></span><span class="nm"></span><button class="rx" data-act="recall">Recall</button><span class="meta"></span>'; el.querySelector('.rx').dataset.id=r.id; return el; },
+        (el,r)=>{ const sq=S.squads.filter(q=>q.route===r.id).length, st=routeStatus(r);
+          el.querySelector('.dot').style.background=r.col; el.querySelector('.nm').textContent=r.label;
+          el.classList.toggle('bad',!!(r.danger||r.poisonWarned));
+          const meta=`${sq} squads · ${st.t} · +${r.todayH.toFixed(2)} kg${r.todayP>0.005?` · pollen ${r.todayP.toFixed(2)}`:''}${r.todayW>0?` · water ${r.todayW.toFixed(1)} L`:''}${r.danger?' · hornets!':''}`;
+          const m=el.querySelector('.meta'); if(m.textContent!==meta) m.textContent=meta; });
+    }
+  } else if(sideTab==='flowers'){
+    const box=$('#tabFlowers');
+    const order=p=>{const st=patchStatus(p);return st.k==='open'?0:st.k==='wait'?1:st.k==='bad'?2:inBloom(p,S.day)?3:S.day<TYPES[p.type].d[0]?4:5;};
+    const list=W.patches.filter(p=>p.known).sort((a,b)=>order(a)-order(b)||a.dist-b.dist);
+    if(!list.length){ box.innerHTML='<div class="empty">Nothing found yet.</div>'; }
+    else { const em=box.querySelector('.empty'); if(em) em.remove();
+      syncList(box,list,p=>p.id,
+        p=>{ const el=document.createElement('div'); el.className='row click'; el.tabIndex=0; el.dataset.act='sel'; el.dataset.id=p.id; el.innerHTML='<span class="dot"></span><span class="nm"></span><span class="chip"></span><span class="meta"></span>'; return el; },
+        (el,p)=>{ const st=patchStatus(p), T=TYPES[p.type]; el.querySelector('.dot').style.background=T.col[0]; el.querySelector('.nm').textContent=p.label; const ch=el.querySelector('.chip'); ch.textContent=st.t; ch.className='chip '+st.k;
+          const meta=`${fmtDist(p.dist)} ${compass(p.bearing)}${T.water?'':` · ${fmtH(T.h[0])}–${fmtH(T.h[1])}`}${(!T.water&&inBloom(p,S.day))?` · ${Math.round(clamp(p.S/p.Smax,0,1)*100)}% stock`:''}`; const m=el.querySelector('.meta'); if(m.textContent!==meta) m.textContent=meta; el.classList.toggle('bad',st.k==='bad'); });
+    }
+  } else if(sideTab==='log'&&(force||logDirty)){
+    logDirty=false; const box=$('#tabLog');
+    box.innerHTML=S.log.slice().reverse().slice(0,40).map(l=>`<div class="logline ${l.kind}"><b>D${l.d} ${fmtH(l.h)}</b>${esc(l.text)}</div>`).join('')||'<div class="empty">Nothing yet.</div>';
+  }
+}
+let logDirty=true; logCb=()=>{logDirty=true;};
+$('#side').addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  if(t.dataset.act==='recall'){ recallRoute(+t.dataset.id); updateSide(true); }
+  else if(t.dataset.act==='desel'){ selPid=0; updateSide(true); }
+  else if(t.dataset.act==='sel'){ selPid=+t.dataset.id; updateSide(true); }
+});
+$('#side').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const t=e.target.closest('[data-act="sel"]'); if(t){ selPid=+t.dataset.id; updateSide(true);} } });
+
+function toast(text,kind){
+  if(HEADLESS) return;
+  const box=$('#toasts'); const el=document.createElement('div'); el.className='toast '+(kind||''); el.textContent=text; box.appendChild(el);
+  while(box.children.length>3) box.firstChild.remove();
+  if(kind==='bad') AU.bad();
+  setTimeout(()=>{el.style.opacity='0';},3600); setTimeout(()=>el.remove(),4200);
+}
+
+/* ---------- coach (first game only) ---------- */
+const COACH=[
+  {t:'Up means the sun',b:'Bees dance on a vertical comb, so “straight up” always stands for “toward the sun”. Find the sun on the rim of the map. It moves from east to west during the day.',btn:'Next'},
+  {t:'Dance to send foragers',b:'Press and hold on the comb. The angle from straight up is the angle from the sun. The distance from the centre is how far to fly. Keep holding to recruit more squads, then let go.',btn:null},
+  {t:'Watch the scouts',b:'Scouts come home and dance too. Press and hold on a dancing scout to send squads exactly where she went. Their dances turn as the sun moves.',btn:'Next'},
+  {t:'Fill the comb before winter',b:'Pollen feeds new brood. Honey feeds everyone. After day 22 the colony needs enough honey to last until spring. Recall routes from the side panel when flowers fade.',btn:'Got it'},
+];
+function showCoach(){
+  const el=$('#coach');
+  if(prefs.tutDone||S.tut>=COACH.length||!S||S.day>3){ el.hidden=true; return; }
+  const c=COACH[S.tut]; el.hidden=false;
+  el.innerHTML=`<div class="ct">${c.t}</div><div>${c.b}</div><div class="cb"><button class="btn" data-c="skip">Skip tips</button>${c.btn?`<button class="btn on" data-c="next">${c.btn}</button>`:''}</div>`;
+}
+$('#coach').addEventListener('click',e=>{ const b=e.target.closest('[data-c]'); if(!b) return; if(b.dataset.c==='skip'){ prefs.tutDone=true; savePrefs(); $('#coach').hidden=true; return; } S.tut++; if(S.tut>=COACH.length){ prefs.tutDone=true; savePrefs(); } showCoach(); });
+
+/* =========================================================
+   MODALS & FLOW
+   ========================================================= */
+function openModal(html,bind){
+  const m=$('#modal'); m.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`; m.hidden=false; modalOpen=true; hold=null;
+  if(bind) bind(m);
+  const f=m.querySelector('button'); if(f) setTimeout(()=>{try{f.focus({preventScroll:true});}catch(e){}},30);
+}
+function closeModal(){ const m=$('#modal'); m.hidden=true; m.innerHTML=''; modalOpen=false; }
+
+function showTitle(){
+  const sv=lsGet(SAVE_KEY); let cont=null; if(sv){ try{ const o=JSON.parse(sv); if(o&&o.S&&o.S.v===1) cont=o.S; }catch(e){} }
+  const best=+(lsGet(BEST_KEY)||0);
+  openModal(`
+    <div class="eyebrow">A colony speaks in dances</div>
+    <h1 class="title-word">Waggle</h1>
+    <p class="lede">A bee can’t tell her sisters where the flowers are. She shows them.</p>
+    <p>You are the dance floor of a honeybee colony in an old oak. Every forager goes where your waggle dance points. On the comb, straight up always means <em>toward the sun</em>, and the sun crosses the sky all day. Find flowers in a meadow you can’t fully see. Dodge hornets, rain and crop spray. Grow the colony through spring and summer, and store enough honey to survive the winter.</p>
+    <div class="modes">
+      <button class="choice" data-new="guided"><b>Guided</b><span>A line on the map shows where each dance points while you hold it. Start here.</span></button>
+      <button class="choice" data-new="wild"><b>Wild</b><span>No aiming line. You have the sun’s bearing and the flower’s bearing. Do the angle in your head, like a bee.</span></button>
+    </div>
+    ${cont?`<div class="actions" style="justify-content:flex-start"><button class="big" data-cont>Continue: day ${cont.day}, ${fmtN(cont.bees)} bees</button></div>`:''}
+    ${best?`<div class="sub">Best year so far: ${fmtN(best)} points</div>`:''}
+  `,m=>{
+    m.querySelectorAll('[data-new]').forEach(b=>b.addEventListener('click',()=>{ AU.init(); AU.resume(); beginNew(b.dataset.new); }));
+    const c=m.querySelector('[data-cont]'); if(c) c.addEventListener('click',()=>{ AU.init(); AU.resume(); try{ deserialize(lsGet(SAVE_KEY)); }catch(e){ lsDel(SAVE_KEY); showTitle(); return; } resumeLoaded(); });
+  });
+}
+function beginNew(mode){
+  const seed=(Math.random()*2**31)>>>0;
+  newRun(seed,mode); DANCERS=[]; selPid=0; terrainKey=''; combKey=''; fogDirty=true;
+  log('A new colony wakes in the old oak. 6,000 bees, 3 kg of honey and a queen.');
+  save(); showMorning();
+}
+function resumeLoaded(){
+  DANCERS=[]; selPid=0; terrainKey=''; combKey=''; fogDirty=true; closeModal();
+  if(S.phase==='morning'){ if(S.pendingPerk) showPerk(); else showMorning(); }
+  else if(S.phase==='day'||S.phase==='dusk'){ setPaused(true); showCoach(); }
+  else showTitle();
+}
+function showMorning(){
+  const m=S.morning||{notes:[],event:null};
+  const ev=m.event?EVENTS[m.event]:null;
+  const se=season(S.day);
+  openModal(`
+    <div class="eyebrow">Dawn · ${se[0].toUpperCase()+se.slice(1)}</div>
+    <h2>Day ${S.day} of ${C.DAYS}</h2>
+    <div class="wx" style="font-size:14px;color:var(--text)">${WX_ICON[S.weather.kind]}<span>${esc(weatherText(S.weather))}</span></div>
+    ${S.weather.hot?`<p class="sub">Carry ${S.waterNeed.toFixed(1)} L of water today (dance to a pond or the river), or some brood will overheat.</p>`:''}
+    ${m.notes.length?`<ul>${m.notes.map(n=>`<li class="${n.k==='bad'?'warnline':n.k==='good'?'hint':''}">${esc(n.t)}</li>`).join('')}</ul>`:''}
+    <div class="ledger"><span>Honey</span><b>${S.honey.toFixed(1)} kg</b><span>Pollen</span><b>${S.pollen.toFixed(2)} kg</b><span>Bees</span><b>${fmtN(S.bees)}</b><span>Forager squads</span><b>${S.squads.length}</b>${S.perks.length?`<span>Instincts</span><b style="font-family:var(--body)">${S.perks.map(id=>PERKS.find(p=>p.id===id).name).join(', ')}</b>`:''}</div>
+    ${ev?`<div class="card"><h3>${esc(ev.title)}</h3><p>${esc(ev.text)}</p><div class="choices">${ev.choices.map((c,i)=>`<button class="choice" data-ev="${i}"><b>${esc(c.label)}</b>${c.note?`<span>${esc(c.note)}</span>`:''}</button>`).join('')}</div></div>`
+         :`${m.result?`<p class="hint">${esc(m.result)}</p>`:''}<div class="actions"><button class="big" data-go>Start the day</button></div>`}
+  `,el=>{
+    el.querySelectorAll('[data-ev]').forEach(b=>b.addEventListener('click',()=>{ applyEvent(+b.dataset.ev); save(); showMorning(); }));
+    const go=el.querySelector('[data-go]'); if(go) go.addEventListener('click',()=>{ closeModal(); startDay(); setPaused(false); showCoach(); });
+  });
+}
+function showNight(sm){
+  AU.dusk();
+  const lost=sm.lostHornet+sm.lostSpray+sm.lostRain;
+  const row=(a,b,neg)=>`<span>${a}</span><b class="${neg?'neg':''}">${b}</b>`;
+  openModal(`
+    <div class="eyebrow">Night</div>
+    <h2>Day ${sm.day} is over</h2>
+    <div class="ledger">
+      ${row('Honey brought in','+'+sm.h.toFixed(2)+' kg')}
+      ${row('Honey burned in flight','−'+sm.fuel.toFixed(2)+' kg',true)}
+      ${row('Honey eaten by the colony','−'+sm.eat.toFixed(2)+' kg',true)}
+      ${row('Honey fed to new brood','−'+sm.eggHoney.toFixed(2)+' kg',true)}
+      ${row('Pollen brought in','+'+sm.p.toFixed(2)+' kg')}
+      ${sm.hot?row('Water carried',`${sm.w.toFixed(1)} of ${sm.waterNeed.toFixed(1)} L`,sm.w<sm.waterNeed):''}
+      <i class="sep"></i>
+      ${row('Eggs laid',fmtN(sm.laid)+(sm.limit==='pollen'?' (short of pollen)':sm.limit==='honey'?' (short of honey)':sm.limit==='queenless'?' (no laying queen)':''),sm.limit&&sm.limit!=='queenless')}
+      ${row('Young bees emerged','+'+fmtN(sm.emerged))}
+      ${row('Died of old age','−'+fmtN(sm.died),true)}
+      ${lost?row('Lost in the field ('+[sm.lostHornet?`hornets ${fmtN(sm.lostHornet)}`:'',sm.lostSpray?`spray ${fmtN(sm.lostSpray)}`:'',sm.lostRain?`rain ${fmtN(sm.lostRain)}`:''].filter(Boolean).join(', ')+')','−'+fmtN(lost),true):''}
+      ${sm.broodLostW?row('Brood lost to heat','−'+fmtN(sm.broodLostW),true):''}
+      ${sm.mothLoss?row('Brood lost to wax moths','−'+fmtN(sm.mothLoss),true):''}
+      ${sm.starved?row('Starved','−'+fmtN(sm.starved),true):''}
+      <i class="sep"></i>
+      ${row('Honey in the comb',sm.honey.toFixed(1)+' kg')}
+      ${row('Pollen in the comb',sm.pollen.toFixed(2)+' kg')}
+      ${row('Bees',fmtN(sm.bees))}
+      ${row('Brood',fmtN(sm.brood))}
+    </div>
+    ${sm.starved?'<p class="warnline">The honey ran out overnight. A fifth of the colony starved.</p>':''}
+    ${sm.limit==='pollen'?'<p class="warnline">The queen stopped laying early because there was not enough pollen. Fewer bees will emerge in three days.</p>':''}
+    <div class="actions"><button class="big" data-go>${sm.end?'Continue':'Sleep'}</button></div>
+  `,el=>{
+    el.querySelector('[data-go]').addEventListener('click',()=>{
+      if(sm.end==='collapse') return showCollapse();
+      if(sm.end==='winter') return showWinter();
+      if(S.pendingPerk) return showPerk();
+      showMorning();
+    });
+  });
+}
+function showPerk(){
+  const ids=S.pendingPerk||[]; if(!ids.length){ S.pendingPerk=null; return showMorning(); }
+  openModal(`
+    <div class="eyebrow">The colony learns</div>
+    <h2>Choose an instinct</h2>
+    <p class="sub">Every third night the colony settles into a new habit. It lasts for the rest of the year.</p>
+    <div class="perks">${ids.map(id=>{const p=PERKS.find(x=>x.id===id);return `<button class="choice" data-perk="${id}"><b>${esc(p.name)}</b><span>${esc(p.text)}</span></button>`;}).join('')}</div>
+  `,el=>{
+    el.querySelectorAll('[data-perk]').forEach(b=>b.addEventListener('click',()=>{ choosePerk(b.dataset.perk); log(`New instinct: ${PERKS.find(p=>p.id===b.dataset.perk).name}.`,'good'); if(b.dataset.perk==='memory'){} buildSquadsKeep(); save(); showMorning(); }));
+  });
+}
+function buildSquadsKeep(){ buildSquads(); }
+function recordBest(score){ const b=+(lsGet(BEST_KEY)||0); if(score>b){ lsSet(BEST_KEY,String(score)); return true; } return false; }
+function showWinter(){
+  const r=winterResult(); const nb=recordBest(r.score); lsDel(SAVE_KEY);
+  openModal(`
+    <div class="eyebrow">Winter</div>
+    <h2>${r.survive?'The colony survived':'The colony did not survive'}</h2>
+    <p class="result">${esc(r.grade)}</p>
+    <p>${r.survive?`The bees clustered tight around the queen and shivered their wing muscles warm through the cold months. In March the first foragers flew out to the willows.`:esc(r.why)}</p>
+    <div class="ledger">
+      <span>Honey stored</span><b>${S.honey.toFixed(1)} kg</b>
+      <span>Honey needed</span><b>${r.need.toFixed(1)} kg</b>
+      <span>Winter cluster</span><b>${fmtN(S.bees)} bees (min ${fmtN(C.CLUSTER)})</b>
+      <span>Daughter colonies</span><b>${S.swarms}</b>
+      <span>Flower patches found</span><b>${S.stats.found} of ${W.patches.length}</b>
+      <i class="sep"></i>
+      <span>Score</span><b>${fmtN(r.score)}${nb?' · new best':''}</b>
+    </div>
+    <p class="sub">Score: 1,000 for surviving, 400 per swarm, 30 per spare kilo of honey, 1 per 50 bees, 5 per patch found.</p>
+    <div class="actions"><button class="big" data-new="guided">New year, Guided</button><button class="big ghost" data-new="wild">New year, Wild</button></div>
+  `,el=>el.querySelectorAll('[data-new]').forEach(b=>b.addEventListener('click',()=>beginNew(b.dataset.new))));
+}
+function showCollapse(){
+  lsDel(SAVE_KEY);
+  openModal(`
+    <div class="eyebrow">Day ${S.day-1}</div>
+    <h2>The colony collapsed</h2>
+    <p>Too few bees were left to keep the brood warm and the queen fed. The oak is quiet now.</p>
+    <p class="sub">Feed the brood with pollen every night, keep honey above zero, and keep foragers away from hornets and sprayed fields.</p>
+    <div class="actions"><button class="big" data-new="guided">Try again, Guided</button><button class="big ghost" data-new="wild">Try again, Wild</button></div>
+  `,el=>el.querySelectorAll('[data-new]').forEach(b=>b.addEventListener('click',()=>beginNew(b.dataset.new))));
+}
+function reopenFlow(){
+  if(!S) return showTitle();
+  if(S.phase==='morning') return S.pendingPerk?showPerk():showMorning();
+  if(S.phase==='winter') return showWinter();
+  if(S.phase==='over') return showCollapse();
+}
+function showMenu(){
+  if(!S){ return; }
+  const wasPaused=paused; setPaused(true);
+  openModal(`
+    <h2>How to dance</h2>
+    <ul>
+      <li><b>Up on the comb is toward the sun.</b> The sun’s bearing is shown on the map rim and moves through the day.</li>
+      <li><b>Press and hold on the comb</b> to dance. Angle from straight up = angle from the sun. Distance from the centre = distance to fly (rings show 0.5 to 3 km).</li>
+      <li><b>Keep holding</b> to recruit more squads (100 bees each). Let go to send them.</li>
+      <li><b>Press and hold a dancing scout</b> to send squads exactly where she went.</li>
+      <li>Squads keep working a route until the flowers close, drain or fade, then give up and come home. Recall a route any time from the side panel.</li>
+      <li>Far flights take longer and burn honey. Hornets kill foragers that fly near their nest from day 9. Sprayed fields kill foragers that land there.</li>
+      <li>Pollen feeds brood, brood becomes bees three nights later. Honey feeds everyone and must last the winter.</li>
+      <li>Keys: Space pauses, 1 / 2 / 3 set speed.</li>
+    </ul>
+    <div class="actions">
+      <button class="big ghost" data-restart>Abandon this colony</button>
+      <button class="big" data-close>Back to the hive</button>
+    </div>
+  `,el=>{
+    el.querySelector('[data-close]').addEventListener('click',()=>{ closeModal(); setPaused(wasPaused); reopenFlow(); });
+    el.querySelector('[data-restart]').addEventListener('click',()=>{
+      const sheet=el.querySelector('.actions');
+      sheet.innerHTML='<span class="warnline" style="margin-right:auto">This colony and its save will be lost.</span><button class="big ghost" data-no>Keep playing</button><button class="big" data-yes>Abandon it</button>';
+      sheet.querySelector('[data-no]').addEventListener('click',()=>{ closeModal(); setPaused(wasPaused); reopenFlow(); });
+      sheet.querySelector('[data-yes]').addEventListener('click',()=>{ lsDel(SAVE_KEY); S=null; closeModal(); showTitle(); });
+    });
+  });
+}
+
+/* =========================================================
+   MAIN LOOP
+   ========================================================= */
+let lastFrame=performance.now(), sideTimer=0, hudTimer=0, saveTimer=0;
+function frame(now){
+  const dtR=Math.min(0.1,(now-lastFrame)/1000); lastFrame=now; realT+=dtR;
+  if(S&&W&&!HEADLESS){
+    fit();
+    const running=!paused&&!modalOpen&&(S.phase==='day'||S.phase==='dusk');
+    if(running){
+      let dtMin=dtR*C.MIN_PER_SEC*speed;
+      while(dtMin>0){ const d=Math.min(2,dtMin); dtMin-=d; const res=step(d); if(res==='dayover'){ endDay(); break; } }
+    }
+    // dance gesture timing runs in real time (also while paused)
+    if(hold&&!modalOpen){
+      hold.t+=dtR;
+      const valid=hold.mode==='follow'||comb2dance(hold.x,hold.y).dist>=100;
+      if(valid){ while(hold.t>=hold.next){ const idle=idleSquads().length; if(hold.circuits<idle){ hold.circuits=Math.min(idle,hold.circuits+(hasPerk('recruit')?2:1)); AU.tick(hold.circuits); } hold.interval=Math.max(0.09,hold.interval*0.86); hold.next+=hold.interval; } }
+      else hold.next=hold.t+hold.interval;
+      if(hold&&hold.mode==='follow'&&!DANCERS.includes(hold.dancer)){ /* dancer left: keep following her find */ }
+    }
+    if(lastDance){ lastDance.t+=dtR; if(lastDance.t>2.2) lastDance=null; }
+    if(!paused&&!modalOpen){ for(const d of DANCERS) d.age+=dtR; DANCERS=DANCERS.filter(d=>d.age<d.life||(hold&&hold.dancer===d)); }
+    AU.rainLevel((S.phase==='day'||S.phase==='dusk')&&isRaining(S.hour)&&!modalOpen?1:0);
+    drawMap(); drawComb(dtR);
+    hudTimer-=dtR; if(hudTimer<=0){ hudTimer=0.15; updateHUD(); }
+    sideTimer-=dtR; if(sideTimer<=0){ sideTimer=0.3; updateSide(false); }
+    saveTimer-=dtR; if(saveTimer<=0){ saveTimer=10; if(S.phase==='day'||S.phase==='dusk'||S.phase==='morning') save(); }
+  }
+  requestAnimationFrame(frame);
+}
+function endDay(){
+  hold=null; lastDance=null; DANCERS=[];
+  const sm=night();
+  save();
+  showNight(sm);
+}
+window.addEventListener('resize',()=>{ terrainKey=''; combKey=''; });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden&&S) save(); });
+
+/* ---------- test hooks ---------- */
+window.WG={ get S(){return S;}, get W(){return W;}, C, TYPES, PERKS, EVENTS,
+  newRun, step, night, startDay, createRoute, recallRoute, applyEvent, choosePerk, winterResult, sunAz, polar, bearingOf, inBloom, isOpen, bloomStr, findTarget, idleSquads, spreadAt, winterNeed, serialize, deserialize,
+  setHeadless(v){HEADLESS=v;}, showPerk, showWinter, showCollapse, showNight, endDay, showMenu, beginNew, showMorning, closeModal, setPaused, setSpeed, comb2dance, combCenter, get modalOpen(){return modalOpen;}, get DANCERS(){return DANCERS;}, addDancer };
+
+/* ---------- boot ---------- */
+function boot(data){
+  fit();
+  if(data&&data.save){ try{ deserialize(data.save); resumeLoaded(); }catch(e){ showTitle(); } }
+  else showTitle();
+  if(data&&data.ui&&data.ui.speed) setSpeed(data.ui.speed);
+  requestAnimationFrame(t=>{lastFrame=t;frame(t);});
+}
+try{ window.claude?.hot?.snapshot?.(()=>({save:S&&W&&S.phase!=='over'&&S.phase!=='winter'?serialize():null,ui:{speed}})); }catch(e){}
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</body></html>

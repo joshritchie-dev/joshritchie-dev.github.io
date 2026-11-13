@@ -1,0 +1,1054 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="color-scheme" content="light">
+<title>Fold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500;1,9..144,600&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --mat: #27574a;
+  --mat-deep: #1d463b;
+  --mat-line: rgba(214, 238, 222, 0.10);
+  --mat-line-major: rgba(214, 238, 222, 0.20);
+  --paper: #f2e8cd;
+  --paper-edge: #d8c9a4;
+  --ink: #2a2116;
+  --ink-soft: #6a5a42;
+  --road: #f0b23a;
+  --road-casing: #7a4422;
+  --pen: #c3361e;
+  --sea-ink: #2c4f78;
+  --gold: #f4c64e;
+  --ui: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--mat-line-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-line-major) 1px, transparent 1px),
+    linear-gradient(var(--mat-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-line) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: -1px -1px;
+  color: var(--ink);
+  font-family: var(--ui);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+#app {
+  position: fixed; inset: 0;
+  display: grid; grid-template-rows: auto 1fr auto;
+  padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+/* ---------- legend panel (HUD) ---------- */
+#hud {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+  background: var(--paper); border-radius: 3px;
+  box-shadow: 0 2px 0 var(--paper-edge), 0 8px 18px rgba(0, 0, 0, 0.25);
+  padding: 8px 12px; max-width: 900px; width: 100%; margin: 0 auto;
+}
+#bMaps {
+  background: none; border: 1.5px solid var(--ink); border-radius: 3px; padding: 5px 10px;
+  font-weight: 600; font-size: 15px;
+}
+#bMaps:hover { background: rgba(42, 33, 22, 0.07); }
+.hud-mid { min-width: 0; }
+#lvName { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 19px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#goal { font-size: 15px; line-height: 1.3; color: var(--ink-soft); margin-top: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--ink); white-space: nowrap; transition: opacity .2s; }
+.chip .dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink); background: #fff; }
+.chip.off { opacity: 0.42; }
+.chip.off::after { content: "hidden"; font-weight: 400; font-size: 12px; color: var(--ink-soft); }
+.chip .pin { width: 15px; height: 15px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: inline-grid; place-items: center; }
+.chip .pin i { transform: rotate(45deg); font-style: normal; color: #fff; font-size: 10px; font-weight: 700; }
+.chip .star { color: var(--pen); font-size: 15px; }
+#folds { text-align: right; line-height: 1; }
+#folds b { font-family: var(--serif); font-size: 30px; font-weight: 700; display: block; }
+#folds span { font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+
+/* ---------- stage ---------- */
+#stage { position: relative; min-height: 0; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+#toast {
+  position: absolute; left: 0; right: 0; margin: 0 auto; width: fit-content; bottom: 10px; transform: translateY(8px);
+  background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 3px;
+  font-size: 16px; max-width: min(560px, calc(100% - 8px)); text-align: center; line-height: 1.3;
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ---------- toolbar ---------- */
+#bar { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding-top: 8px; }
+#bar button {
+  background: var(--paper); border: none; border-radius: 3px; padding: 9px 14px; min-width: 64px;
+  font-weight: 600; font-size: 16px; display: inline-flex; align-items: center; gap: 7px;
+  box-shadow: 0 2px 0 var(--paper-edge), 0 5px 10px rgba(0, 0, 0, 0.22);
+  transition: transform .08s;
+}
+#bar button:active { transform: translateY(2px); box-shadow: 0 0 0 var(--paper-edge), 0 2px 5px rgba(0, 0, 0, 0.22); }
+#bar button:disabled { opacity: 0.45; cursor: default; }
+#bar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#bPeek.on { background: var(--sea-ink); color: #eef3f6; }
+#bSound.muted { opacity: .6; }
+.k { font-size: 12px; font-weight: 500; color: var(--ink-soft); border: 1px solid var(--paper-edge); border-radius: 2px; padding: 0 4px; }
+
+/* ---------- overlays ---------- */
+.ov { position: fixed; inset: 0; display: none; place-items: center; z-index: 10; padding: 16px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left)); background: rgba(18, 40, 33, 0.62); overflow-y: auto; }
+.ov.show { display: grid; }
+.sheet {
+  background: var(--paper); border-radius: 3px; padding: 26px 28px; max-width: 520px; width: 100%;
+  box-shadow: 0 3px 0 var(--paper-edge), 0 20px 50px rgba(0, 0, 0, 0.4);
+  background-image: linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(120, 90, 50, 0.13) 50%, transparent calc(50% + 0.5px)), linear-gradient(transparent calc(50% - 0.5px), rgba(120, 90, 50, 0.13) 50%, transparent calc(50% + 0.5px));
+}
+.sheet h2 { font-family: var(--serif); font-weight: 700; font-size: 34px; margin: 0 0 6px; line-height: 1.05; }
+.sheet p { font-family: var(--serif); font-size: 18px; line-height: 1.5; margin: 0 0 18px; color: var(--ink); max-width: 44ch; }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { border: 2px solid var(--ink); background: none; padding: 9px 18px; border-radius: 3px; font-weight: 700; font-size: 17px; }
+.btn.main { background: var(--ink); color: var(--paper); }
+.btn:hover { background: rgba(42, 33, 22, 0.08); }
+.btn.main:hover { background: #3d3122; }
+
+/* title */
+#title .sheet { max-width: 560px; text-align: left; }
+.logo { display: flex; gap: 6px; margin: 4px 0 18px; perspective: 600px; }
+.logo span {
+  width: 72px; height: 72px; display: grid; place-items: center; font-family: var(--serif); font-weight: 700; font-size: 52px;
+  background: #f7efd9; border: 1px solid var(--paper-edge); box-shadow: 2px 3px 0 var(--paper-edge); color: var(--ink);
+}
+.logo span:nth-child(odd) { background: #e2e9e6; color: var(--sea-ink); }
+.logo span:last-child { transform-origin: left center; animation: flap 3.2s ease-in-out 0.4s infinite; }
+@keyframes flap { 0%, 30% { transform: rotateY(0); } 50%, 75% { transform: rotateY(-180deg); } 95%, 100% { transform: rotateY(0); } }
+@media (prefers-reduced-motion: reduce) { .logo span:last-child { animation: none; } }
+.small { font-size: 15px; color: var(--ink-soft); margin-top: 16px; font-family: var(--ui); }
+
+/* levels */
+#levels .sheet { max-width: 720px; padding: 22px 22px 26px; }
+#levels h2 { margin-bottom: 14px; }
+.chap { border-top: 1.5px solid var(--ink); padding: 12px 0 14px; }
+.chap h3 { font-family: var(--serif); font-style: italic; font-size: 22px; margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.chap h3 small { font-family: var(--ui); font-style: normal; font-size: 15px; font-weight: 500; color: var(--ink-soft); }
+.chap p { font-size: 16px; margin: 3px 0 10px; color: var(--ink-soft); }
+.tiles { display: flex; flex-wrap: wrap; gap: 8px; }
+.tile {
+  width: 62px; height: 62px; border: 1.5px solid var(--ink); background: #fbf5e4; border-radius: 2px;
+  display: grid; place-items: center; align-content: center; gap: 1px; padding: 0;
+}
+.tile b { font-family: var(--serif); font-size: 22px; line-height: 1; }
+.tile em { font-style: normal; font-size: 12px; letter-spacing: 1px; color: var(--pen); min-height: 14px; }
+.tile:hover:not(:disabled) { background: #fff; }
+.tile.cur { box-shadow: inset 0 0 0 3px var(--gold); }
+.tile:disabled { border-style: dashed; background: transparent; color: var(--ink-soft); cursor: default; }
+.closeX { float: right; background: none; border: none; font-size: 26px; line-height: 1; padding: 2px 6px; }
+
+/* win */
+.stars { font-size: 40px; color: var(--pen); letter-spacing: 6px; margin: 2px 0 6px; }
+.stars .no { color: var(--paper-edge); }
+
+@media (max-width: 600px) {
+  #hud { grid-template-columns: auto 1fr auto; gap: 8px; padding: 7px 9px; }
+  #lvName { font-size: 16px; }
+  #goal { font-size: 13.5px; }
+  #folds b { font-size: 24px; }
+  #folds span { font-size: 11.5px; }
+  #bMaps { font-size: 14px; padding: 4px 7px; }
+  #bar { gap: 5px; flex-wrap: nowrap; }
+  #bar button { padding: 8px 8px; min-width: 0; font-size: 14.5px; gap: 5px; }
+  #bar svg { width: 16px; height: 16px; }
+  .k { display: none; }
+  .logo span { width: 56px; height: 56px; font-size: 40px; }
+  .sheet { padding: 20px 18px; }
+  .sheet h2 { font-size: 28px; }
+  .tile { width: 52px; height: 52px; }
+}
+@media (max-width: 380px) { #bar .lbl { display: none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <button id="bMaps" aria-label="Choose a map">Maps</button>
+    <div class="hud-mid"><div id="lvName">Fold</div><div id="goal"></div></div>
+    <div id="folds"><b>0</b><span>folds, par 1</span></div>
+  </header>
+  <div id="stage"><canvas id="cv" aria-label="The map. Drag a side across a crease to fold it."></canvas><div id="toast" role="status"></div></div>
+  <nav id="bar">
+    <button id="bUndo" title="Undo (Z)"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span class="lbl">Undo</span> <span class="k">Z</span></button>
+    <button id="bReset" title="Unfold everything (R)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14"/><path d="M9 5v14M15 5v14"/></svg><span class="lbl">Unfold</span> <span class="k">R</span></button>
+    <button id="bPeek" title="Hold to see the back of the sheet (Space)"><svg viewBox="0 0 24 24"><path d="M3 12h18"/><path d="M12 3v3M12 18v3"/><path d="M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg><span class="lbl">Back</span> <span class="k">Space</span></button>
+    <button id="bHint" title="Show the next fold (H)"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg><span class="lbl">Hint</span> <span class="k">H</span></button>
+    <button id="bSound" title="Sound on or off" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M17 8a5 5 0 0 1 0 8"/></svg></button>
+  </nav>
+</div>
+
+<div class="ov" id="title"><div class="sheet">
+  <div class="logo" aria-hidden="true"><span>F</span><span>O</span><span>L</span><span>D</span></div>
+  <h2>Fold the map, find the road.</h2>
+  <p>Every map is printed on both sides. Crease it, flip it and stack it until the towns join up.</p>
+  <div class="btns"><button class="btn main" id="tPlay">Play</button><button class="btn" id="tMaps">Choose a map</button></div>
+  <div class="small" id="tProgress"></div>
+</div></div>
+
+<div class="ov" id="levels"><div class="sheet">
+  <button class="closeX" id="lClose" aria-label="Close">×</button>
+  <h2>Maps</h2>
+  <div id="chaps"></div>
+</div></div>
+
+<div class="ov" id="intro"><div class="sheet">
+  <h2 id="iName"></h2>
+  <p id="iBlurb"></p>
+  <div class="btns"><button class="btn main" id="iGo">Unfold the map</button></div>
+</div></div>
+
+<div class="ov" id="win"><div class="sheet">
+  <h2 id="wHead"></h2>
+  <div class="stars" id="wStars"></div>
+  <p id="wText"></p>
+  <div class="btns"><button class="btn main" id="wNext">Next map</button><button class="btn" id="wAgain">Fold it again</button><button class="btn" id="wMaps">Maps</button></div>
+</div></div>
+
+<script>
+"use strict";
+// ============================================================================
+// FOLD engine: paper squares on a grid. Shared by the game and the level generator.
+// A cell is one square of paper. state[i] = {x, y, z, fx, fy}: grid position, layer
+// rank at that position (0 = bottom), and mirror parity from vertical / horizontal folds.
+// Road bits: N=1 E=2 S=4 W=8 (in the face's own printed frame).
+// ============================================================================
+const N = 1, E = 2, S = 4, Wb = 8;
+const DIRV = [[0, -1, N, S], [1, 0, E, Wb], [0, 1, S, N], [-1, 0, Wb, E]]; // dx, dy, bit, opposite
+function mirX(b) { return (b & (N | S)) | ((b & E) ? Wb : 0) | ((b & Wb) ? E : 0); }
+function mirY(b) { return (b & (E | Wb)) | ((b & N) ? S : 0) | ((b & S) ? N : 0); }
+
+function initState(level) { const st = []; for (let i = 0; i < level.w * level.h; i++) st.push({ x: i % level.w, y: (i / level.w) | 0, z: 0, fx: 0, fy: 0 }); return st; }
+function cloneState(s) { return s.map(c => ({ x: c.x, y: c.y, z: c.z, fx: c.fx, fy: c.fy })); }
+function bbox(s) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const c of s) { if (c.x < x0) x0 = c.x; if (c.y < y0) y0 = c.y; if (c.x > x1) x1 = c.x; if (c.y > y1) y1 = c.y; } return { x0, y0, x1, y1 }; }
+// every legal fold: axis "v" = vertical crease at x = k (between columns k-1 and k), side +1 = the x>=k part moves
+function legalFolds(s) {
+  const b = bbox(s), out = [];
+  for (let k = b.x0 + 1; k <= b.x1; k++) { out.push({ axis: "v", k, side: 1 }, { axis: "v", k, side: -1 }); }
+  for (let k = b.y0 + 1; k <= b.y1; k++) { out.push({ axis: "h", k, side: 1 }, { axis: "h", k, side: -1 }); }
+  return out;
+}
+function moving(c, f) { const v = f.axis === "v" ? c.x : c.y; return f.side > 0 ? v >= f.k : v < f.k; }
+function applyFold(s, f) {
+  const ns = cloneState(s), key = (x, y) => x * 4096 + y;
+  const stat = new Map(), movCount = new Map();
+  for (const c of s) { const m = moving(c, f), k = key(c.x, c.y); if (m) movCount.set(k, (movCount.get(k) || 0) + 1); else stat.set(k, (stat.get(k) || 0) + 1); }
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]; if (!moving(c, f)) continue;
+    const n = movCount.get(key(c.x, c.y)), d = ns[i];
+    if (f.axis === "v") { d.x = 2 * f.k - 1 - c.x; d.fx ^= 1; } else { d.y = 2 * f.k - 1 - c.y; d.fy ^= 1; }
+    d.z = (stat.get(key(d.x, d.y)) || 0) + (n - 1 - c.z);
+  }
+  return ns;
+}
+function stateKey(s) { const b = bbox(s); let k = ""; for (const c of s) k += (c.x - b.x0) + "," + (c.y - b.y0) + "," + c.z + "," + c.fx + c.fy + ";"; return k; }
+// which side of a cell faces up, and how its printed content is mirrored on screen
+function faceUp(c) { return (c.fx ^ c.fy) ? "b" : "f"; }
+function faceXform(c) { const up = faceUp(c); return { mx: up === "f" ? c.fx : c.fx ^ 1, my: c.fy }; }
+function visBits(level, i, c) { const face = level.cells[i][faceUp(c)]; if (!face || !face.r) return 0; const t = faceXform(c); let b = face.r; if (t.mx) b = mirX(b); if (t.my) b = mirY(b); return b; }
+// visible map: position -> {i, face} (holes are see-through)
+function visibleMap(level, s) {
+  const by = new Map();
+  for (let i = 0; i < s.length; i++) { const c = s[i], k = c.x + "," + c.y; let a = by.get(k); if (!a) by.set(k, a = []); a.push(i); }
+  const vis = new Map();
+  for (const [k, arr] of by) {
+    arr.sort((a, b) => s[b].z - s[a].z);
+    const top = arr.find(i => !level.cells[i].hole);
+    if (top !== undefined) vis.set(k, { i: top, face: faceUp(s[top]) });
+  }
+  return vis;
+}
+// does this state meet the level goal? returns {ok, path:[positions]} for drawing
+function checkGoal(level, s) {
+  const vis = visibleMap(level, s);
+  // landmarks must stay visible, face up
+  for (const lm of level.keep || []) {
+    const c = s[lm.i], v = vis.get(c.x + "," + c.y);
+    if (!v || v.i !== lm.i || v.face !== lm.face) return { ok: false };
+  }
+  if (level.goal === "meet") {
+    const a = s[level.meet[0]], b = s[level.meet[1]];
+    return { ok: a.x === b.x && a.y === b.y, at: [a.x, a.y] };
+  }
+  // connect: every town visible, all on one road network
+  const towns = {};
+  for (const [k, v] of vis) { const f = level.cells[v.i][v.face]; if (f && f.c) towns[f.c] = k; }
+  for (const t of level.towns) if (!towns[t]) return { ok: false };
+  const start = towns[level.towns[0]], seen = new Map([[start, null]]), q = [start];
+  while (q.length) {
+    const k = q.shift(), [x, y] = k.split(",").map(Number), v = vis.get(k), bits = visBits(level, v.i, s[v.i]);
+    for (const [dx, dy, bit, opp] of DIRV) {
+      if (!(bits & bit)) continue;
+      const nk = (x + dx) + "," + (y + dy), nv = vis.get(nk); if (!nv || seen.has(nk)) continue;
+      if (!(visBits(level, nv.i, s[nv.i]) & opp)) continue;
+      seen.set(nk, k); q.push(nk);
+    }
+  }
+  for (const t of level.towns) if (!seen.has(towns[t])) return { ok: false };
+  // path for the victory drive: chain town -> town
+  const path = [];
+  for (let ti = level.towns.length - 1; ti > 0; ti--) {
+    let k = towns[level.towns[ti]]; const seg = [];
+    // rebuild BFS from previous town for a clean segment
+    const from = towns[level.towns[ti - 1]], prev = bfsPath(level, s, vis, from); let cur = towns[level.towns[ti]];
+    while (cur) { seg.push(cur); cur = prev.get(cur); }
+    path.unshift(...(path.length ? seg.slice(0, -1) : seg).reverse());
+  }
+  return { ok: true, path: path.map(k => k.split(",").map(Number)) };
+}
+function bfsPath(level, s, vis, start) {
+  const seen = new Map([[start, null]]), q = [start];
+  while (q.length) {
+    const k = q.shift(), [x, y] = k.split(",").map(Number), v = vis.get(k), bits = visBits(level, v.i, s[v.i]);
+    for (const [dx, dy, bit, opp] of DIRV) {
+      if (!(bits & bit)) continue;
+      const nk = (x + dx) + "," + (y + dy), nv = vis.get(nk); if (!nv || seen.has(nk)) continue;
+      if (!(visBits(level, nv.i, s[nv.i]) & opp)) continue;
+      seen.set(nk, k); q.push(nk);
+    }
+  }
+  return seen;
+}
+// breadth-first solver. Returns the shortest fold list (or null) within maxDepth / maxStates.
+function solve(level, s0, maxDepth, maxStates = 400000) {
+  if (checkGoal(level, s0).ok) return [];
+  const seen = new Set([stateKey(s0)]); let frontier = [{ s: s0, path: [] }];
+  for (let d = 1; d <= maxDepth; d++) {
+    const next = [];
+    for (const node of frontier) {
+      for (const f of legalFolds(node.s)) {
+        const ns = applyFold(node.s, f), key = stateKey(ns);
+        if (seen.has(key)) continue; seen.add(key);
+        const path = node.path.concat([f]);
+        if (checkGoal(level, ns).ok) return path;
+        next.push({ s: ns, path });
+        if (seen.size > maxStates) return undefined; // gave up
+      }
+    }
+    frontier = next;
+  }
+  return null;
+}
+if (typeof module !== "undefined") module.exports = { N, E, S, Wb, DIRV, mirX, mirY, initState, cloneState, bbox, legalFolds, applyFold, stateKey, faceUp, faceXform, visBits, visibleMap, checkGoal, solve, moving };
+
+</script>
+<script>
+"use strict";
+// ============================================================================
+// FOLD: the game. Uses engine.js (loaded first) for all folding rules.
+// ============================================================================
+const LEVELS = [{"name":"Crease","blurb":"Fold the map until the towns are joined by road. The back of the map is printed too.","levels":[{"w":3,"h":2,"cells":[{"f":{"r":6},"b":{"r":5},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{"r":12},"b":{"r":12},"hole":false},{"f":{"r":1,"c":"Calder"},"b":{},"hole":false},{"f":{"r":9},"b":{},"hole":false},{"f":{},"b":{"r":1,"c":"Pilling"},"hole":false}],"goal":"connect","towns":["Calder","Pilling"],"keep":[],"seed":1000,"par":1,"solution":[{"axis":"v","k":2,"side":1}]},{"w":4,"h":2,"cells":[{"f":{},"b":{"r":6},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{"r":10},"b":{"r":3},"hole":false},{"f":{"r":12},"b":{},"hole":false},{"f":{"r":12},"b":{"r":1,"c":"Furness"},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":2,"c":"Eskdale"},"b":{"r":12},"hole":false},{"f":{"r":9},"b":{},"hole":false}],"goal":"connect","towns":["Eskdale","Furness"],"keep":[],"seed":1001,"par":1,"solution":[{"axis":"v","k":1,"side":-1}]},{"w":4,"h":3,"cells":[{"f":{},"b":{"r":9},"hole":false},{"f":{"r":10},"b":{"r":2,"c":"Barrow"},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":6},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":4,"c":"Zennor"},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{"r":10},"b":{"r":3},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{"r":5},"b":{"r":9},"hole":false}],"goal":"connect","towns":["Barrow","Zennor"],"keep":[],"seed":1002,"par":2,"solution":[{"axis":"h","k":1,"side":-1},{"axis":"v","k":3,"side":1}]},{"w":4,"h":3,"cells":[{"f":{"r":2,"c":"Barrow"},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":12},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{"r":4,"c":"Pilling"},"b":{},"hole":false},{"f":{"r":5},"b":{"r":6},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{"r":3},"b":{"r":12},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":12},"b":{"r":9},"hole":false},{"f":{},"b":{"r":12},"hole":false}],"goal":"connect","towns":["Barrow","Pilling"],"keep":[],"seed":1003,"par":2,"solution":[{"axis":"v","k":3,"side":1},{"axis":"v","k":2,"side":1}]},{"w":5,"h":3,"cells":[{"f":{"r":4,"c":"Zennor"},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":10},"b":{"r":12},"hole":false},{"f":{"r":12},"b":{"r":2,"c":"Corby"},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{"r":7},"b":{"r":12},"hole":false},{"f":{"r":10},"b":{"r":10},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":6},"b":{},"hole":false}],"goal":"connect","towns":["Corby","Zennor"],"keep":[],"seed":1004,"par":2,"solution":[{"axis":"v","k":3,"side":1},{"axis":"h","k":2,"side":1}]},{"w":5,"h":3,"cells":[{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{"r":13},"b":{"r":10},"hole":false},{"f":{"r":12},"b":{"r":6},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{"r":1,"c":"Calder"},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{"r":4,"c":"Vane"},"hole":false}],"goal":"connect","towns":["Calder","Vane"],"keep":[],"seed":1005,"par":3,"solution":[{"axis":"v","k":2,"side":-1},{"axis":"h","k":2,"side":1},{"axis":"v","k":3,"side":-1}]}]},{"name":"Accordion","blurb":"This map has blank backs. Anything folded once shows blank paper. Fold it twice to bring it back face up.","levels":[{"w":6,"h":2,"cells":[{"f":{"r":6},"b":null,"hole":false},{"f":{"r":12},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":8,"c":"Kettle"},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":3},"b":null,"hole":false},{"f":{"r":3},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":8,"c":"Dunmore"},"b":null,"hole":false},{"f":{"r":9},"b":null,"hole":false},{"f":{},"b":null,"hole":false}],"goal":"connect","towns":["Kettle","Dunmore"],"keep":[],"seed":1011,"par":3,"solution":[{"axis":"v","k":5,"side":-1},{"axis":"v","k":7,"side":1},{"axis":"v","k":6,"side":1}]},{"w":5,"h":3,"cells":[{"f":{},"b":null,"hole":false},{"f":{"r":3},"b":null,"hole":false},{"f":{"r":2,"c":"Quarry"},"b":null,"hole":false},{"f":{"r":9},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":9},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":10},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":1,"c":"Marrow"},"b":null,"hole":false}],"goal":"connect","towns":["Marrow","Quarry"],"keep":[],"seed":1013,"par":3,"solution":[{"axis":"v","k":1,"side":1},{"axis":"v","k":-2,"side":-1},{"axis":"h","k":1,"side":-1}]},{"w":6,"h":3,"cells":[{"f":{"r":13},"b":null,"hole":false},{"f":{"r":10},"b":null,"hole":false},{"f":{"r":2,"c":"Pilling"},"b":null,"hole":false},{"f":{"r":10},"b":null,"hole":false},{"f":{"r":12},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":10},"b":null,"hole":false},{"f":{"r":3},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":5},"b":null,"hole":false},{"f":{"r":10},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":9},"b":null,"hole":false},{"f":{"r":12},"b":null,"hole":false},{"f":{"r":4,"c":"Kettle"},"b":null,"hole":false}],"goal":"connect","towns":["Pilling","Kettle"],"keep":[],"seed":1017,"par":3,"solution":[{"axis":"v","k":1,"side":1},{"axis":"v","k":-3,"side":1},{"axis":"h","k":2,"side":1}]},{"w":6,"h":3,"cells":[{"f":{"r":3},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":5},"b":null,"hole":false},{"f":{"r":9},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":5},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":9},"b":null,"hole":false},{"f":{"r":12},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":1,"c":"Yarrow"},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{},"b":null,"hole":false},{"f":{"r":1,"c":"Marrow"},"b":null,"hole":false}],"goal":"connect","towns":["Yarrow","Marrow"],"keep":[],"seed":1032,"par":4,"solution":[{"axis":"v","k":1,"side":1},{"axis":"v","k":-1,"side":1},{"axis":"h","k":1,"side":1},{"axis":"v","k":-2,"side":1}]}]},{"name":"Meeting Point","blurb":"Fold so the two towns end up on the same square. Keep every landmark (\u2605) uncovered and face up.","levels":[{"w":4,"h":2,"cells":[{"f":{"r":3},"b":{},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{"c":"Ingham"},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{"c":"Dunmore"},"b":{},"hole":false},{"f":{},"b":{"lm":1},"hole":false}],"goal":"meet","towns":["Ingham","Dunmore"],"keep":[{"i":7,"face":"b"}],"meet":[3,6],"seed":1033,"par":2,"solution":[{"axis":"v","k":3,"side":-1},{"axis":"h","k":1,"side":1}]},{"w":4,"h":3,"cells":[{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"c":"Furness"},"b":{},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{"r":6},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"lm":1},"hole":false},{"f":{},"b":{"r":13},"hole":false},{"f":{"c":"Thursk"},"b":{"lm":1},"hole":false},{"f":{},"b":{},"hole":false}],"goal":"meet","towns":["Furness","Thursk"],"keep":[{"i":10,"face":"b"},{"i":8,"face":"b"}],"meet":[2,10],"seed":1034,"par":2,"solution":[{"axis":"h","k":1,"side":-1},{"axis":"h","k":2,"side":1}]},{"w":5,"h":3,"cells":[{"f":{},"b":{"lm":1},"hole":false},{"f":{},"b":{"lm":1},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{"r":5},"hole":false},{"f":{"c":"Quarry"},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":3},"b":{"r":10},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":12},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"c":"Vane"},"b":{},"hole":false}],"goal":"meet","towns":["Quarry","Vane"],"keep":[{"i":1,"face":"b"},{"i":0,"face":"b"}],"meet":[5,14],"seed":1035,"par":3,"solution":[{"axis":"v","k":2,"side":1},{"axis":"v","k":0,"side":1},{"axis":"h","k":2,"side":1}]},{"w":5,"h":4,"cells":[{"f":{"r":11},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"lm":1},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{"r":9},"b":{},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"lm":1},"hole":false},{"f":{"c":"Lowick"},"b":{"r":5},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"c":"Ellery"},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"lm":1},"hole":false}],"goal":"meet","towns":["Lowick","Ellery"],"keep":[{"i":9,"face":"b"},{"i":19,"face":"b"},{"i":2,"face":"f"}],"meet":[10,12],"seed":1037,"par":3,"solution":[{"axis":"v","k":1,"side":1},{"axis":"v","k":0,"side":1},{"axis":"v","k":-1,"side":1}]},{"w":6,"h":4,"cells":[{"f":{"c":"Yarrow"},"b":{},"hole":false},{"f":{"lm":1},"b":{},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"c":"Marrow"},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":6},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"lm":1},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"lm":1},"hole":false},{"f":{"r":6},"b":{},"hole":false}],"goal":"meet","towns":["Yarrow","Marrow"],"keep":[{"i":16,"face":"b"},{"i":1,"face":"f"},{"i":22,"face":"b"}],"meet":[0,11],"seed":1041,"par":4,"solution":[{"axis":"v","k":4,"side":-1},{"axis":"v","k":7,"side":1},{"axis":"v","k":6,"side":-1},{"axis":"h","k":1,"side":-1}]}]},{"name":"Hole Punch","blurb":"Some squares are punched out. You can see straight through a hole to the paper beneath it.","levels":[{"w":4,"h":2,"cells":[{"f":{"r":4,"c":"Ulley"},"b":{},"hole":false},{"f":{"r":2,"c":"Lowick"},"b":{},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":12},"hole":false},{"f":{"r":3},"b":{"r":6},"hole":false},{"f":{"r":10},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":12},"b":{"r":9},"hole":false}],"goal":"connect","towns":["Ulley","Lowick"],"keep":[],"seed":1042,"par":1,"solution":[{"axis":"v","k":3,"side":1}]},{"w":4,"h":3,"cells":[{"f":{},"b":{"r":12},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":2,"c":"Zennor"},"b":{"r":10},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":null,"hole":true},{"f":{"r":6},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":8,"c":"Ellery"},"hole":false}],"goal":"connect","towns":["Zennor","Ellery"],"keep":[],"seed":1043,"par":2,"solution":[{"axis":"h","k":2,"side":-1},{"axis":"v","k":3,"side":1}]},{"w":5,"h":3,"cells":[{"f":{"r":12},"b":{},"hole":false},{"f":{"r":6},"b":{"r":9},"hole":false},{"f":{},"b":null,"hole":true},{"f":{"r":6},"b":{"r":2,"c":"Brill"},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{"r":10},"b":{"r":12},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":7},"b":{"r":3},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{"r":8,"c":"Zennor"},"b":{},"hole":false}],"goal":"connect","towns":["Brill","Zennor"],"keep":[],"seed":1044,"par":2,"solution":[{"axis":"v","k":1,"side":-1},{"axis":"h","k":1,"side":-1}]},{"w":5,"h":4,"cells":[{"f":{},"b":null,"hole":true},{"f":{"r":12},"b":{"r":5},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":3},"b":{"r":9},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":2,"c":"Brill"},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":6},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":12},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":5},"b":{"r":3},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":8,"c":"Dalby"},"b":{"r":5},"hole":false}],"goal":"connect","towns":["Dalby","Brill"],"keep":[],"seed":1045,"par":3,"solution":[{"axis":"v","k":2,"side":-1},{"axis":"h","k":2,"side":-1},{"axis":"v","k":3,"side":-1}]},{"w":6,"h":4,"cells":[{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":9},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":12},"b":{"r":3},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{"r":10},"b":{"r":5},"hole":false},{"f":{"r":9},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":12},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":null,"hole":true},{"f":{"r":11},"b":{"r":3},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":1,"c":"Eskdale"},"hole":false},{"f":{"r":12},"b":{"r":9},"hole":false},{"f":{"lm":1},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":1,"c":"Furness"},"hole":false}],"goal":"connect","towns":["Furness","Eskdale"],"keep":[{"i":20,"face":"f"}],"seed":1046,"par":3,"solution":[{"axis":"v","k":1,"side":-1},{"axis":"v","k":5,"side":1},{"axis":"h","k":1,"side":-1}]}]},{"name":"Grand Tour","blurb":"Three towns, one road. Everything you've learned, all at once.","levels":[{"w":5,"h":3,"cells":[{"f":{},"b":{"r":6},"hole":false},{"f":{"r":7},"b":{"r":9},"hole":false},{"f":{},"b":{"r":10,"c":"Holloway"},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":13},"hole":false},{"f":{"r":2,"c":"Wick"},"b":{"r":6},"hole":false},{"f":{"r":9},"b":{},"hole":false},{"f":{"r":2,"c":"Lowick"},"b":{"r":5},"hole":false},{"f":{"r":3},"b":{},"hole":false},{"f":{},"b":{"r":9},"hole":false}],"goal":"connect","towns":["Wick","Holloway","Lowick"],"keep":[],"seed":1047,"par":2,"solution":[{"axis":"v","k":4,"side":1},{"axis":"h","k":1,"side":-1}]},{"w":5,"h":4,"cells":[{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":14},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{},"b":{"r":1,"c":"Furness"},"hole":false},{"f":{},"b":{"r":8,"c":"Ingham"},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":12},"hole":false},{"f":{"r":6},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":5},"b":{"r":10,"c":"Garrow"},"hole":false},{"f":{},"b":{"r":3},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{"r":9},"hole":false},{"f":{"r":9},"b":{},"hole":false}],"goal":"connect","towns":["Ingham","Garrow","Furness"],"keep":[],"seed":1048,"par":3,"solution":[{"axis":"v","k":2,"side":-1},{"axis":"h","k":1,"side":-1},{"axis":"h","k":2,"side":-1}]},{"w":6,"h":4,"cells":[{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{"r":4,"c":"Rydal"},"hole":false},{"f":{"r":12},"b":{"r":3},"hole":false},{"f":{"r":2,"c":"Ingham"},"b":{"r":10},"hole":false},{"f":{"r":12},"b":{},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"lm":1},"b":{"r":3},"hole":false},{"f":{"r":5},"b":{"r":9},"hole":false},{"f":{"r":9},"b":{"r":10},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":10},"b":{"r":3},"hole":false},{"f":{"r":3},"b":{"r":3},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":9},"hole":false},{"f":{"r":10},"b":{"r":11},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{"r":6},"b":{"r":6,"c":"Ashford"},"hole":false}],"goal":"connect","towns":["Rydal","Ashford","Ingham"],"keep":[{"i":10,"face":"f"}],"seed":1050,"par":3,"solution":[{"axis":"v","k":2,"side":-1},{"axis":"v","k":3,"side":1},{"axis":"h","k":3,"side":-1}]},{"w":6,"h":4,"cells":[{"f":{"r":12},"b":{},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{},"b":{"r":12},"hole":false},{"f":{},"b":{"r":4,"c":"Eskdale"},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":4,"c":"Rydal"},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":3},"b":{"r":12},"hole":false},{"f":{"r":3},"b":{"r":5},"hole":false},{"f":{},"b":{"r":5},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{"r":5},"b":{"r":10},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":6},"b":{"r":3,"c":"Orford"},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{"r":5},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":12},"b":{},"hole":false},{"f":{},"b":{"r":6},"hole":false}],"goal":"connect","towns":["Rydal","Orford","Eskdale"],"keep":[],"seed":1052,"par":4,"solution":[{"axis":"v","k":1,"side":-1},{"axis":"v","k":3,"side":-1},{"axis":"h","k":3,"side":1},{"axis":"v","k":4,"side":-1}]},{"w":6,"h":5,"cells":[{"f":{},"b":{"r":12},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":6},"b":{"r":12},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":12},"b":{},"hole":false},{"f":{},"b":null,"hole":true},{"f":{},"b":null,"hole":true},{"f":{},"b":{},"hole":false},{"f":{"r":11},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{"r":3},"b":{"r":5},"hole":false},{"f":{},"b":{"r":9},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{"r":10},"hole":false},{"f":{},"b":{},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":null,"hole":true},{"f":{"r":10},"b":{},"hole":false},{"f":{},"b":{"r":8,"c":"Pilling"},"hole":false},{"f":{"r":5},"b":{},"hole":false},{"f":{},"b":{"r":7},"hole":false},{"f":{},"b":{"r":13},"hole":false},{"f":{"r":5,"c":"Dunmore"},"b":{"r":6},"hole":false},{"f":{},"b":{},"hole":false},{"f":{"r":3},"b":{"r":4,"c":"Barrow"},"hole":false},{"f":{},"b":{"r":9},"hole":false},{"f":{"r":5},"b":{"r":9},"hole":false},{"f":{},"b":{"r":9},"hole":false}],"goal":"connect","towns":["Barrow","Dunmore","Pilling"],"keep":[],"seed":1053,"par":4,"solution":[{"axis":"v","k":5,"side":1},{"axis":"h","k":3,"side":-1},{"axis":"v","k":3,"side":1},{"axis":"v","k":2,"side":1}]}]}];
+const $ = q => document.querySelector(q);
+const TEX = 80;               // terrain texture pixels per square
+const PAD = 38;               // screen margin around the sheet
+const FOLD_TIME = 0.36;       // seconds for a half turn
+
+// ---------------------------------------------------------------- save data
+const SAVE_KEY = "fold-map-v1";
+const save = { best: {}, sound: true, seen: {} };
+function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (t) { const d = JSON.parse(t); if (d && typeof d === "object") Object.assign(save, d); } } catch (e) { /* storage unavailable */ } }
+function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* storage unavailable */ } }
+const ORDER = []; LEVELS.forEach((c, ci) => c.levels.forEach((l, li) => ORDER.push([ci, li])));
+const lid = (ci, li) => ci + "-" + li;
+const orderIndex = (ci, li) => ORDER.findIndex(o => o[0] === ci && o[1] === li);
+function solved(ci, li) { return save.best[lid(ci, li)] != null; }
+function unlocked(ci, li) { const n = orderIndex(ci, li); if (n <= 0) return true; const [pc, pl] = ORDER[n - 1]; return solved(pc, pl) || solved(ci, li); }
+function starsFor(folds, par) { return folds <= par ? 3 : folds <= par + 2 ? 2 : 1; }
+
+// ---------------------------------------------------------------- sound
+const Sfx = {
+  ac: null, master: null, buf: null,
+  init() {
+    if (this.ac) { if (this.ac.state === "suspended") this.ac.resume(); return; }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      this.ac = new AC(); this.master = this.ac.createGain(); this.master.gain.value = 0.7; this.master.connect(this.ac.destination);
+      const n = this.ac.sampleRate; this.buf = this.ac.createBuffer(1, n, n); const d = this.buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    } catch (e) { this.ac = null; }
+  },
+  noise(dur, type, f0, f1, q, gain, when = 0) {
+    const ac = this.ac, t = ac.currentTime + when, src = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = this.buf; fl.type = type; fl.Q.value = q; fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + Math.min(0.02, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(fl); fl.connect(g); g.connect(this.master); src.start(t, Math.random() * 0.5); src.stop(t + dur + 0.05);
+  },
+  tone(freq, dur, type, gain, when = 0) {
+    const ac = this.ac, t = ac.currentTime + when, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + dur + 0.05);
+  },
+  play(name) {
+    if (!save.sound || !this.ac || this.ac.state !== "running") return;
+    try {
+      if (name === "lift") this.noise(0.3, "bandpass", 900, 2600, 0.8, 0.10);
+      else if (name === "crease") { this.noise(0.09, "highpass", 2400, 3800, 0.7, 0.30); this.tone(110, 0.09, "sine", 0.22); }
+      else if (name === "back") this.noise(0.18, "bandpass", 2200, 700, 1.0, 0.09);
+      else if (name === "undo") { this.noise(0.16, "bandpass", 2600, 900, 0.9, 0.10); this.tone(330, 0.06, "triangle", 0.05); }
+      else if (name === "tap") this.tone(740, 0.05, "triangle", 0.07);
+      else if (name === "no") this.tone(170, 0.14, "square", 0.035);
+      else if (name === "hint") { this.tone(880, 0.12, "sine", 0.07); this.tone(1175, 0.16, "sine", 0.06, 0.08); }
+      else if (name === "car") this.noise(0.12, "lowpass", 400, 300, 0.7, 0.05);
+      else if (name === "win") [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => { this.tone(f, 0.5, "triangle", 0.12, i * 0.09); this.tone(f * 2, 0.25, "sine", 0.03, i * 0.09); });
+    } catch (e) { /* audio is optional */ }
+  },
+};
+
+// ---------------------------------------------------------------- terrain textures
+function hash2(x, y, s) { let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(s, 1442695041)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+function vnoise(x, y, s) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, s) { return vnoise(x, y, s) * 0.57 + vnoise(x * 2.03, y * 2.03, s + 7) * 0.29 + vnoise(x * 4.1, y * 4.1, s + 13) * 0.14; }
+function mix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+function buildSheets(L) {
+  const W = L.w * TEX, H = L.h * TEX, seed = L.seed | 0;
+  const mk = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; return c; };
+  const front = mk(), back = mk();
+  for (const side of ["f", "b"]) {
+    const cv = side === "f" ? front : back, cx = cv.getContext("2d"), img = cx.createImageData(W, H), d = img.data, s0 = seed * 4 + (side === "f" ? 0 : 977);
+    for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+      const u = px / TEX, v = py / TEX;
+      const fld = fbm(u * 0.9, v * 0.9, s0 + 1), wood = fbm(u * 1.25 + 20, v * 1.25, s0 + 101), wat = fbm(u * 0.7, v * 0.7 + 40, s0 + 202), ht = fbm(u * 0.45, v * 0.45, s0 + 303);
+      let col;
+      if (side === "f") {
+        col = [242, 233, 208];
+        if (fld > 0.55) col = mix(col, [221, 230, 192], Math.min(1, (fld - 0.55) * 12));
+        if (wood > 0.63) col = mix(col, [190, 210, 163], Math.min(1, (wood - 0.63) * 14));
+        if (wat < 0.27) col = mix(col, [191, 217, 226], Math.min(1, (0.27 - wat) * 30));
+        const cl = ht * 13, fr = Math.abs(cl - Math.round(cl));
+        if (fr < 0.045 && wat >= 0.27) col = mix(col, [196, 152, 104], 0.42 * (1 - fr / 0.045));
+      } else {
+        col = [226, 233, 230];
+        if (wat < 0.33) col = mix(col, [203, 221, 234], Math.min(1, (0.33 - wat) * 25));
+        if (fld > 0.6) col = mix(col, [214, 227, 214], Math.min(1, (fld - 0.6) * 10));
+        const cl = ht * 11, fr = Math.abs(cl - Math.round(cl));
+        if (fr < 0.05) col = mix(col, [96, 132, 170], 0.38 * (1 - fr / 0.05));
+      }
+      const g = (hash2(px, py, s0 + 5) - 0.5) * 7; // paper grain
+      const o = (py * W + px) * 4; d[o] = col[0] + g; d[o + 1] = col[1] + g; d[o + 2] = col[2] + g; d[o + 3] = 255;
+    }
+    cx.putImageData(img, 0, 0);
+    if (side === "f") {
+      // little trees in the woods
+      const n = L.w * L.h * 70;
+      for (let k = 0; k < n; k++) {
+        const x = hash2(k, 1, s0) * W, y = hash2(k, 2, s0) * H;
+        if (fbm(x / TEX * 1.25 + 20, y / TEX * 1.25, s0 + 101) < 0.67) continue;
+        cx.fillStyle = "rgba(112,150,92,0.85)"; cx.beginPath(); cx.arc(x, y, 2.1, 0, 7); cx.fill();
+      }
+    } else {
+      // graticule on the back
+      cx.strokeStyle = "rgba(44,79,120,0.20)"; cx.lineWidth = 1; cx.setLineDash([2, 3]);
+      for (let x = TEX / 2; x < W; x += TEX) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, H); cx.stroke(); }
+      for (let y = TEX / 2; y < H; y += TEX) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke(); }
+      cx.setLineDash([]);
+    }
+  }
+  return { front, back };
+}
+
+// ---------------------------------------------------------------- game state
+const G = {
+  ci: 0, li: 0, L: null, s: null, s0: null, hist: [], sheets: null, peekState: null,
+  anim: null, drag: null, sel: null, hover: null, hint: null, peek: false,
+  won: false, winT: 0, route: null, winShown: false, meetAt: null,
+  cam: { x: 0, y: 0 }, cs: 60, W: 0, H: 0, dpr: 1, fast: false, busy: false,
+};
+const cv = $("#cv"), ctx = cv.getContext("2d");
+
+function loadLevel(ci, li) {
+  G.ci = ci; G.li = li; G.L = LEVELS[ci].levels[li];
+  G.s0 = initState(G.L); G.s = G.s0; G.hist = [];
+  G.sheets = buildSheets(G.L);
+  G.peekState = G.L.cells.map((_, i) => ({ x: G.L.w - 1 - (i % G.L.w), y: (i / G.L.w) | 0, z: 0, fx: 1, fy: 0 }));
+  G.anim = null; G.drag = null; G.sel = null; G.hover = null; G.hint = null; G.peek = false;
+  G.won = false; G.winT = 0; G.route = null; G.winShown = false; G.meetAt = null; G.busy = false;
+  const b = bbox(G.s); G.cam.x = (b.x0 + b.x1 + 1) / 2; G.cam.y = (b.y0 + b.y1 + 1) / 2;
+  $("#bPeek").classList.remove("on"); clearTimeout(toastTimer); $("#toast").classList.remove("show");
+  layout(); updateHUD(); closeOverlays();
+  try { localStorage.setItem(SAVE_KEY + "-last", lid(ci, li)); } catch (e) { /* ignore */ }
+  if (li === 0 && !save.seen[ci]) { save.seen[ci] = 1; writeSave(); showIntro(ci); }
+  else levelTip();
+}
+function levelTip() {
+  if (G.ci === 0 && G.li === 0 && !solved(0, 0)) { G.hint = G.L.solution[0]; toast("Drag the glowing half across the dotted crease to fold it. Or tap the crease, then tap a side.", 7000); }
+  else if (G.ci === 0 && G.li === 1 && !solved(0, 1)) toast("Folded paper shows its back. Blue squares are the back of the map.", 6000);
+  else if (G.ci === 3 && G.li === 0 && !solved(3, 0)) toast("Hold Back to see the reverse of the whole sheet.", 5000);
+}
+
+// ---------------------------------------------------------------- layout & coordinates
+function layout() {
+  const r = $("#stage").getBoundingClientRect();
+  G.W = Math.max(50, r.width); G.H = Math.max(50, r.height); G.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(G.W * G.dpr); cv.height = Math.round(G.H * G.dpr);
+  if (G.L) G.cs = fitSize(bbox(G.peek ? G.peekState : G.s));
+}
+function fitSize(b) { return Math.max(26, Math.min(130, Math.floor((G.W - PAD * 2) / (b.x1 - b.x0 + 1)), Math.floor((G.H - PAD * 2) / (b.y1 - b.y0 + 1)))); }
+function toScreen(gx, gy) { return [G.W / 2 + (gx - G.cam.x) * G.cs, G.H / 2 + (gy - G.cam.y) * G.cs]; }
+function toGrid(px, py) { return [(px - G.W / 2) / G.cs + G.cam.x, (py - G.H / 2) / G.cs + G.cam.y]; }
+
+// ---------------------------------------------------------------- drawing
+function cellRect(x, y, xf) {
+  let x0 = x, x1 = x + 1, y0 = y, y1 = y + 1;
+  if (xf) {
+    if (xf.axis === "v") { x0 = xf.k + (x - xf.k) * xf.sc; x1 = xf.k + (x + 1 - xf.k) * xf.sc; }
+    else { y0 = xf.k + (y - xf.k) * xf.sc; y1 = xf.k + (y + 1 - xf.k) * xf.sc; }
+  }
+  const [sx, sy] = toScreen(Math.min(x0, x1), Math.min(y0, y1));
+  return { x: sx, y: sy, w: Math.abs(x1 - x0) * G.cs, h: Math.abs(y1 - y0) * G.cs };
+}
+function roadPath(bits) {
+  ctx.beginPath();
+  for (const [dx, dy, bit] of DIRV) if (bits & bit) { ctx.moveTo(0.5, 0.5); ctx.lineTo(0.5 + dx * 0.5, 0.5 + dy * 0.5); }
+}
+function star(cx, cy, r) {
+  ctx.beginPath();
+  for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
+  ctx.closePath();
+}
+function drawFace(i, c, rect, shade) {
+  const L = G.L, cell = L.cells[i], fk = faceUp(c), face = cell[fk];
+  ctx.save(); ctx.translate(rect.x, rect.y); ctx.scale(rect.w, rect.h);
+  if (!face) {
+    // blank back: plain unprinted paper
+    ctx.fillStyle = "#e7dcc0"; ctx.fillRect(0, 0, 1, 1);
+    ctx.strokeStyle = "rgba(150,120,80,0.10)"; ctx.lineWidth = 0.01;
+    for (let k = 1; k < 6; k++) { ctx.beginPath(); ctx.moveTo(0, k / 6 + 0.04 * Math.sin(i + k)); ctx.lineTo(1, k / 6 - 0.03 * Math.cos(i * 2 + k)); ctx.stroke(); }
+  } else {
+    const t = faceXform(c), w = L.w, x = i % w, y = (i / w) | 0;
+    ctx.save();
+    if (t.mx) { ctx.translate(1, 0); ctx.scale(-1, 1); }
+    if (t.my) { ctx.translate(0, 1); ctx.scale(1, -1); }
+    const src = fk === "f" ? G.sheets.front : G.sheets.back, sx = (fk === "f" ? x : w - 1 - x) * TEX;
+    ctx.drawImage(src, sx, y * TEX, TEX, TEX, 0, 0, 1, 1);
+    ctx.restore();
+    const bits = visBits(L, i, c);
+    if (bits) {
+      ctx.lineJoin = "round"; ctx.lineCap = "butt";
+      roadPath(bits); ctx.strokeStyle = "#7a4422"; ctx.lineWidth = 0.26; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0.5, 0.5, 0.13, 0, 7); ctx.fillStyle = "#7a4422"; ctx.fill();
+      roadPath(bits); ctx.strokeStyle = "#f0b23a"; ctx.lineWidth = 0.16; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0.5, 0.5, 0.08, 0, 7); ctx.fillStyle = "#f0b23a"; ctx.fill();
+    }
+    if (face.c) {
+      ctx.beginPath(); ctx.arc(0.5, 0.5, 0.115, 0, 7); ctx.fillStyle = "#fffaf0"; ctx.fill();
+      ctx.lineWidth = 0.045; ctx.strokeStyle = "#2a2116"; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0.5, 0.5, 0.04, 0, 7); ctx.fillStyle = "#2a2116"; ctx.fill();
+    }
+    if (face.lm) {
+      ctx.beginPath(); ctx.arc(0.2, 0.2, 0.13, 0, 7); ctx.fillStyle = "#c3361e"; ctx.fill();
+      ctx.lineWidth = 0.025; ctx.strokeStyle = "#fffaf0"; ctx.stroke();
+      star(0.2, 0.205, 0.085); ctx.fillStyle = "#fffaf0"; ctx.fill();
+    }
+  }
+  // creases between squares
+  ctx.strokeStyle = "rgba(90,66,36,0.20)"; ctx.lineWidth = 0.012; ctx.strokeRect(0.006, 0.006, 0.988, 0.988);
+  if (shade > 0) { ctx.fillStyle = `rgba(28,20,10,${shade})`; ctx.fillRect(0, 0, 1, 1); }
+  ctx.restore();
+}
+// draw the stack tops for the cells passing `filter`. xf squashes along one axis (for the fold animation).
+function drawSurface(st, filter, xf, opt = {}) {
+  const L = G.L, groups = new Map();
+  for (let i = 0; i < st.length; i++) {
+    if (filter && !filter(i)) continue;
+    const c = st[i], k = c.x + "," + c.y; let g = groups.get(k); if (!g) groups.set(k, g = []); g.push(i);
+  }
+  const items = [];
+  for (const g of groups.values()) {
+    g.sort((a, b) => st[b].z - st[a].z);
+    const top = g.find(i => !L.cells[i].hole), layers = g.filter(i => !L.cells[i].hole).length;
+    const c0 = st[g[0]], r = cellRect(c0.x, c0.y, xf);
+    if (r.w < 0.6 || r.h < 0.6) continue;
+    items.push({ c0, r, top, layers, win: L.cells[g[0]].hole && top !== undefined, empty: top === undefined });
+  }
+  const shade = xf ? xf.shade : 0, lift = opt.lift || 0;
+  // shadow under the whole surface
+  ctx.fillStyle = `rgba(8,24,18,${0.28 + lift * 0.12})`;
+  const off = 3 + lift * 16;
+  for (const it of items) if (!it.empty) ctx.fillRect(it.r.x + off * 0.6, it.r.y + off, it.r.w, it.r.h);
+  // thickness of stacked paper
+  for (const it of items) {
+    if (it.empty) continue;
+    for (let j = Math.min(it.layers - 1, 4); j >= 1; j--) {
+      ctx.fillStyle = j % 2 ? "#d4c49c" : "#e3d6b4";
+      ctx.fillRect(it.r.x + j * 1.6, it.r.y + j * 2.2, it.r.w, it.r.h);
+    }
+  }
+  const labels = [];
+  for (const it of items) {
+    if (it.empty) {
+      // a punched-out square with nothing beneath: just the cut edge
+      if (!xf) { ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = "rgba(242,232,205,0.55)"; ctx.lineWidth = 1.5; ctx.strokeRect(it.r.x + 2, it.r.y + 2, it.r.w - 4, it.r.h - 4); ctx.restore(); }
+      continue;
+    }
+    const c = st[it.top];
+    drawFace(it.top, c, it.r, shade);
+    if (it.win) {
+      // looking through a hole: shade the rim
+      ctx.save(); ctx.strokeStyle = "rgba(40,28,14,0.38)"; ctx.lineWidth = Math.max(3, G.cs * 0.07);
+      ctx.strokeRect(it.r.x + ctx.lineWidth / 2, it.r.y + ctx.lineWidth / 2, it.r.w - ctx.lineWidth, it.r.h - ctx.lineWidth); ctx.restore();
+    }
+    const face = L.cells[it.top][faceUp(c)];
+    if (opt.labels && face && face.c) labels.push({ t: face.c, x: it.r.x + it.r.w / 2, y: it.r.y + it.r.h / 2 + G.cs * 0.3 });
+  }
+  drawLabels(labels);
+}
+function drawLabels(labels) {
+  const fs = Math.max(11, Math.min(19, G.cs * 0.17));
+  ctx.font = `italic 600 ${fs}px Fraunces, Georgia, serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const l of labels) {
+    ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.strokeStyle = "rgba(250,245,230,0.92)"; ctx.strokeText(l.t, l.x, l.y);
+    ctx.fillStyle = "#2a2116"; ctx.fillText(l.t, l.x, l.y);
+  }
+}
+function drawFoldAnim(from, to, f, th) {
+  const mov = i => moving(from[i], f), stat = i => !mov(i);
+  drawSurface(from, stat, null, { labels: true });
+  const c = Math.cos(th), lift = Math.sin(th);
+  if (c >= 0) drawSurface(from, mov, { axis: f.axis, k: f.k, sc: c, shade: (1 - c) * 0.22 }, { lift });
+  else drawSurface(to, mov, { axis: f.axis, k: f.k, sc: -c, shade: (1 + c) * 0.30 }, { lift });
+}
+function creaseLine(axis, k, s, color, width, dash) {
+  const b = bbox(s);
+  let a, z;
+  if (axis === "v") { a = toScreen(k, b.y0); z = toScreen(k, b.y1 + 1); a[1] -= 14; z[1] += 14; }
+  else { a = toScreen(b.x0, k); z = toScreen(b.x1 + 1, k); a[0] -= 14; z[0] += 14; }
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []); ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(z[0], z[1]); ctx.stroke(); ctx.restore();
+}
+// curved arrow showing a half folding over the crease
+function foldArrow(f, s, color, alpha) {
+  const b = bbox(s); let from, to;
+  if (f.axis === "v") {
+    const cy = (b.y0 + b.y1 + 1) / 2, mid = f.side > 0 ? (f.k + b.x1 + 1) / 2 : (b.x0 + f.k) / 2;
+    const reach = Math.min(Math.abs(mid - f.k), 1.2);
+    from = toScreen(f.k + Math.sign(mid - f.k) * reach, cy); to = toScreen(f.k - Math.sign(mid - f.k) * reach, cy);
+  } else {
+    const cx = (b.x0 + b.x1 + 1) / 2, mid = f.side > 0 ? (f.k + b.y1 + 1) / 2 : (b.y0 + f.k) / 2;
+    const reach = Math.min(Math.abs(mid - f.k), 1.2);
+    from = toScreen(cx, f.k + Math.sign(mid - f.k) * reach); to = toScreen(cx, f.k - Math.sign(mid - f.k) * reach);
+  }
+  const mx = (from[0] + to[0]) / 2, my = (from[1] + to[1]) / 2, len = Math.hypot(to[0] - from[0], to[1] - from[1]);
+  const nx = -(to[1] - from[1]) / len, ny = (to[0] - from[0]) / len, bend = len * 0.35;
+  const ctl = [mx + nx * bend, my + ny * bend];
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = Math.max(3, G.cs * 0.06); ctx.lineCap = "round";
+  ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.moveTo(from[0], from[1]); ctx.quadraticCurveTo(ctl[0], ctl[1], to[0], to[1]); ctx.stroke();
+  const ang = Math.atan2(to[1] - ctl[1], to[0] - ctl[0]), hl = Math.max(10, G.cs * 0.2);
+  ctx.beginPath(); ctx.moveTo(to[0] + Math.cos(ang) * 2, to[1] + Math.sin(ang) * 2);
+  ctx.lineTo(to[0] - Math.cos(ang - 0.5) * hl, to[1] - Math.sin(ang - 0.5) * hl); ctx.lineTo(to[0] - Math.cos(ang + 0.5) * hl, to[1] - Math.sin(ang + 0.5) * hl); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function drawPin(x, y, color, letter, solid) {
+  const r = Math.max(9, G.cs * 0.14);
+  ctx.save(); ctx.translate(x, y);
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(-r * 0.9, -r * 1.1, -r * 1.1, -r * 2.2, 0, -r * 2.4); ctx.bezierCurveTo(r * 1.1, -r * 2.2, r * 0.9, -r * 1.1, 0, 0); ctx.closePath();
+  if (solid) { ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2; ctx.fillStyle = color; ctx.fill(); ctx.shadowColor = "transparent"; ctx.strokeStyle = "#fffaf0"; ctx.lineWidth = 1.5; ctx.stroke(); }
+  else { ctx.setLineDash([3, 3]); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.fillStyle = "rgba(255,250,240,0.75)"; ctx.fill(); ctx.stroke(); }
+  ctx.fillStyle = solid ? "#fff" : color; ctx.font = `700 ${Math.round(r * 1.05)}px "Barlow Semi Condensed", sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(letter, 0, -r * 1.45);
+  ctx.restore();
+}
+const PIN_COL = ["#c3361e", "#2c4f78"];
+function drawMeetPins(st) {
+  const L = G.L; if (L.goal !== "meet") return;
+  const vis = visibleMap(L, st), labels = [];
+  L.meet.forEach((m, j) => {
+    const c = st[m], v = vis.get(c.x + "," + c.y), shown = v && v.i === m && v.face === "f";
+    const [sx, sy] = toScreen(c.x + 0.5 + (j ? 0.16 : -0.16), c.y + 0.42);
+    drawPin(sx, sy, PIN_COL[j], j ? "B" : "A", shown);
+    if (!shown) labels.push({ t: L.towns[j], x: sx, y: sy + G.cs * 0.2 });
+  });
+  ctx.save(); ctx.globalAlpha = 0.6; drawLabels(labels); ctx.restore();
+}
+function drawCar(x, y, ang) {
+  const s = Math.max(14, G.cs * 0.3);
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+  ctx.shadowColor = "rgba(0,0,0,0.4)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+  ctx.fillStyle = "#c3361e"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-s / 2, -s * 0.28, s, s * 0.56, s * 0.14) : ctx.rect(-s / 2, -s * 0.28, s, s * 0.56); ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.fillStyle = "#cfe3ec"; ctx.fillRect(s * 0.06, -s * 0.2, s * 0.18, s * 0.4); ctx.fillRect(-s * 0.34, -s * 0.18, s * 0.12, s * 0.36);
+  ctx.fillStyle = "#fff6c8"; ctx.fillRect(s * 0.44, -s * 0.22, s * 0.06, s * 0.1); ctx.fillRect(s * 0.44, s * 0.12, s * 0.06, s * 0.1);
+  ctx.restore();
+}
+function routePoint(t) {
+  const P = G.route, n = P.length - 1, u = Math.max(0, Math.min(n, t)), a = Math.min(n - 1, Math.floor(u)), f = u - a;
+  if (n === 0) return { x: P[0][0] + 0.5, y: P[0][1] + 0.5, ang: 0 };
+  const p = P[a], q = P[a + 1];
+  return { x: p[0] + 0.5 + (q[0] - p[0]) * f, y: p[1] + 0.5 + (q[1] - p[1]) * f, ang: Math.atan2(q[1] - p[1], q[0] - p[0]) };
+}
+function render() {
+  ctx.setTransform(G.dpr, 0, 0, G.dpr, 0, 0);
+  ctx.clearRect(0, 0, G.W, G.H);
+  if (!G.L) return;
+  if (G.peek) {
+    drawSurface(G.peekState, null, null, { labels: true });
+    ctx.save(); ctx.font = `600 16px "Barlow Semi Condensed", sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(242,232,205,0.9)";
+    ctx.fillText("The back of the sheet, turned over", G.W / 2, 18); ctx.restore();
+    return;
+  }
+  const a = G.anim || (G.drag && G.drag.f ? G.drag : null);
+  if (a) drawFoldAnim(a.from, a.to, a.f, a.th);
+  else drawSurface(G.s, null, null, { labels: true });
+  if (G.anim) return;
+  // crease guides
+  if (G.hint && !G.drag) {
+    const pulse = 0.55 + 0.45 * Math.sin(performance.now() / 260);
+    creaseLine(G.hint.axis, G.hint.k, G.s, `rgba(244,198,78,${0.5 + pulse * 0.5})`, 4, [8, 7]);
+    foldArrow(G.hint, G.s, "#f4c64e", 0.55 + pulse * 0.4);
+  }
+  if (G.sel && !G.drag) {
+    creaseLine(G.sel.axis, G.sel.k, G.s, "#fffaf0", 3.5, [9, 6]);
+    foldArrow({ axis: G.sel.axis, k: G.sel.k, side: 1 }, G.s, "#fffaf0", 0.85);
+    foldArrow({ axis: G.sel.axis, k: G.sel.k, side: -1 }, G.s, "#fffaf0", 0.85);
+  } else if (G.hover && !G.drag && !G.won) creaseLine(G.hover.axis, G.hover.k, G.s, "rgba(255,250,240,0.7)", 2.5, [6, 6]);
+  if (G.drag && G.drag.f) creaseLine(G.drag.f.axis, G.drag.f.k, G.drag.from, "rgba(255,250,240,0.85)", 2.5, [6, 6]);
+  if (!G.drag || !G.drag.f) drawMeetPins(G.s);
+  // victory
+  if (G.won && G.route) {
+    const t = G.winT / 0.3, p = routePoint(t);
+    ctx.save(); ctx.strokeStyle = "rgba(195,54,30,0.85)"; ctx.lineWidth = Math.max(3, G.cs * 0.06); ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([G.cs * 0.12, G.cs * 0.1]);
+    ctx.beginPath();
+    const n = Math.min(Math.floor(t), G.route.length - 1);
+    for (let j = 0; j <= n; j++) { const [sx, sy] = toScreen(G.route[j][0] + 0.5, G.route[j][1] + 0.5); j ? ctx.lineTo(sx, sy) : ctx.moveTo(sx, sy); }
+    const [px, py] = toScreen(p.x, p.y); ctx.lineTo(px, py); ctx.stroke(); ctx.restore();
+    drawCar(px, py, p.ang);
+  }
+  if (G.won && G.meetAt) {
+    const [sx, sy] = toScreen(G.meetAt[0] + 0.5, G.meetAt[1] + 0.5), r = G.cs * (0.4 + G.winT * 0.6);
+    ctx.save(); ctx.strokeStyle = `rgba(244,198,78,${Math.max(0, 1 - G.winT / 1.4)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, r, 0, 7); ctx.stroke(); ctx.restore();
+  }
+}
+
+// ---------------------------------------------------------------- folding
+function sameFold(a, b) { return a && b && a.axis === b.axis && a.k === b.k && a.side === b.side; }
+function startFold(f, th0 = 0) {
+  if (G.anim || G.won || G.peek) return false;
+  if (!legalFolds(G.s).some(g => sameFold(g, f))) { Sfx.play("no"); return false; }
+  G.anim = { f, from: G.s, to: applyFold(G.s, f), th: th0, target: Math.PI };
+  G.sel = null; Sfx.play("lift");
+  return true;
+}
+function commitFold(a) {
+  G.hist.push(G.s); G.s = a.to;
+  G.hint = null;
+  Sfx.play("crease");
+  updateHUD(); checkWin();
+}
+function undo() {
+  if (G.anim || G.won || !G.hist.length) return;
+  G.s = G.hist.pop(); G.sel = null; G.hint = null; Sfx.play("undo"); updateHUD();
+}
+function resetLevel() {
+  if (G.anim || G.won || !G.hist.length) return;
+  G.s = G.s0; G.hist = []; G.sel = null; G.hint = null; Sfx.play("back"); updateHUD();
+}
+function checkWin() {
+  const res = checkGoal(G.L, G.s);
+  if (!res.ok) return;
+  G.won = true; G.winT = 0; G.sel = null; G.hint = null; G.hover = null;
+  if (G.L.goal === "meet") G.meetAt = res.at; else G.route = res.path;
+  const k = lid(G.ci, G.li), folds = G.hist.length;
+  if (save.best[k] == null || folds < save.best[k]) save.best[k] = folds;
+  writeSave();
+  clearTimeout(toastTimer); $("#toast").classList.remove("show");
+  Sfx.play("win"); updateHUD();
+}
+function winDuration() { return G.route ? (G.route.length - 1) * 0.3 + 0.7 : 1.4; }
+function hint() {
+  if (G.anim || G.won || G.busy) return;
+  const L = G.L, key = stateKey(G.s);
+  // still on the known route?
+  let st = G.s0;
+  for (let j = 0; j < L.solution.length; j++) {
+    if (stateKey(st) === key) return showHint(L.solution[j], L.solution.length - j);
+    st = applyFold(st, L.solution[j]);
+  }
+  G.busy = true; toast("Working out the next fold…", 1500);
+  setTimeout(() => {
+    let sol;
+    try { sol = solve(L, G.s, 4, 40000); } catch (e) { sol = undefined; }
+    G.busy = false;
+    if (sol && sol.length) return showHint(sol[0], sol.length);
+    // off the map: unfold and point at the first fold
+    G.hist = []; G.s = G.s0; Sfx.play("back"); updateHUD();
+    G.hint = L.solution[0]; G.sel = null;
+    toast("No short way on from there, so the map is unfolded. Start with the glowing fold.", 6000);
+  }, 40);
+}
+function showHint(f, left) {
+  G.hint = f; G.sel = null; Sfx.play("hint");
+  toast(left === 1 ? "One fold to go. Fold the glowing half over." : `${left} folds to go from here. Start with the glowing half.`, 4500);
+}
+
+// ---------------------------------------------------------------- input
+function pointerGrid(e) { const r = cv.getBoundingClientRect(); return toGrid(e.clientX - r.left, e.clientY - r.top); }
+function insideBox(gx, gy, s, slack = 0) { const b = bbox(s); return gx >= b.x0 - slack && gx <= b.x1 + 1 + slack && gy >= b.y0 - slack && gy <= b.y1 + 1 + slack; }
+function creaseAt(gx, gy) {
+  const b = bbox(G.s); let best = null, bd = 0.2;
+  if (gy >= b.y0 - 0.3 && gy <= b.y1 + 1.3) for (let k = b.x0 + 1; k <= b.x1; k++) { const d = Math.abs(gx - k); if (d < bd) { bd = d; best = { axis: "v", k }; } }
+  if (gx >= b.x0 - 0.3 && gx <= b.x1 + 1.3) for (let k = b.y0 + 1; k <= b.y1; k++) { const d = Math.abs(gy - k); if (d < bd) { bd = d; best = { axis: "h", k }; } }
+  return best;
+}
+// from a drag (grab point g, pointer p, along one axis) work out the fold: crease halfway between, the grabbed half moves
+function dragFold(axis, g, p) {
+  const b = bbox(G.s), lo = axis === "v" ? b.x0 + 1 : b.y0 + 1, hi = axis === "v" ? b.x1 : b.y1;
+  if (hi < lo || Math.abs(p - g) < 0.05) return null;
+  const dir = Math.sign(p - g); let k = Math.round((g + p) / 2), side;
+  k = Math.max(lo, Math.min(hi, k));
+  if (dir < 0) { side = 1; if (k > g) k = Math.floor(g); if (k < lo || k > g) return null; }
+  else { side = -1; if (k <= g) k = Math.floor(g) + 1; if (k > hi || k <= g) return null; }
+  const prog = Math.min(1, Math.abs(p - g) / Math.max(0.5, 2 * Math.abs(g - k)));
+  return { f: { axis, k, side }, prog };
+}
+const toCache = new Map();
+function foldResult(s, f) { const key = f.axis + f.k + "," + f.side; if (!toCache.has(key)) toCache.set(key, applyFold(s, f)); return toCache.get(key); }
+
+cv.addEventListener("pointerdown", e => {
+  Sfx.init();
+  if (!G.L || G.anim || G.won || G.peek || G.busy) return;
+  const [gx, gy] = pointerGrid(e);
+  G.drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, gx, gy, axis: null, f: null, th: 0, prog: 0, from: G.s, to: null, onPaper: insideBox(gx, gy, G.s, 0.15) };
+  toCache.clear();
+  try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+});
+cv.addEventListener("pointermove", e => {
+  if (!G.L) return;
+  const [gx, gy] = pointerGrid(e);
+  const d = G.drag;
+  if (!d || d.id !== e.pointerId) {
+    if (e.pointerType === "mouse" && !G.anim && !G.won && !G.peek) { G.hover = creaseAt(gx, gy); cv.style.cursor = G.hover ? "pointer" : insideBox(gx, gy, G.s) ? "grab" : "default"; }
+    return;
+  }
+  if (!d.onPaper) return;
+  if (!d.axis) {
+    const dx = e.clientX - d.sx, dy = e.clientY - d.sy;
+    if (Math.hypot(dx, dy) < 10) return;
+    d.axis = Math.abs(dx) >= Math.abs(dy) ? "v" : "h"; G.sel = null; G.hover = null;
+  }
+  const r = dragFold(d.axis, d.axis === "v" ? d.gx : d.gy, d.axis === "v" ? gx : gy);
+  if (!r) { d.f = null; return; }
+  const was = d.f; d.f = r.f; d.prog = r.prog; d.th = Math.PI * Math.min(0.97, r.prog); d.to = foldResult(d.from, r.f);
+  if (!sameFold(was, d.f)) { if (!was) Sfx.play("lift"); }
+  cv.style.cursor = "grabbing";
+});
+function endDrag(e, cancelled) {
+  const d = G.drag; if (!d || d.id !== e.pointerId) return;
+  G.drag = null; cv.style.cursor = "";
+  if (d.axis) {
+    if (d.f && !cancelled && d.prog > 0.38) { G.anim = { f: d.f, from: d.from, to: d.to, th: d.th, target: Math.PI }; G.hint = null; }
+    else if (d.f) G.anim = { f: d.f, from: d.from, to: d.to, th: d.th, target: 0 };
+    return;
+  }
+  if (cancelled) return;
+  // a tap: pick a crease, or fold a side of the picked crease
+  const [gx, gy] = [d.gx, d.gy], c = creaseAt(gx, gy);
+  if (c) {
+    if (G.sel && G.sel.axis === c.axis && G.sel.k === c.k) G.sel = null; else { G.sel = c; Sfx.play("tap"); if (G.ci === 0 && G.li === 0) toast("Now tap the side you want to fold over.", 3500); }
+    return;
+  }
+  if (G.sel && insideBox(gx, gy, G.s)) {
+    const v = G.sel.axis === "v" ? gx : gy;
+    startFold({ axis: G.sel.axis, k: G.sel.k, side: v >= G.sel.k ? 1 : -1 });
+    return;
+  }
+  if (!G.sel && insideBox(gx, gy, G.s)) toast("Drag a side across a crease, or tap a crease line first.", 3000);
+  G.sel = null;
+}
+cv.addEventListener("pointerup", e => endDrag(e, false));
+cv.addEventListener("pointercancel", e => endDrag(e, true));
+cv.addEventListener("pointerleave", () => { if (!G.drag) G.hover = null; });
+
+function setPeek(on) {
+  if (!G.L || G.anim || G.won) on = false;
+  if (on === G.peek) return;
+  if (on && G.drag) return;
+  G.peek = on; $("#bPeek").classList.toggle("on", on);
+  if (on) { G.sel = null; Sfx.play("back"); }
+}
+const bPeek = $("#bPeek");
+bPeek.addEventListener("pointerdown", e => { Sfx.init(); e.preventDefault(); setPeek(true); try { bPeek.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } });
+bPeek.addEventListener("pointerup", () => setPeek(false));
+bPeek.addEventListener("pointercancel", () => setPeek(false));
+bPeek.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); setPeek(!G.peek); } });
+bPeek.addEventListener("contextmenu", e => e.preventDefault());
+$("#bUndo").addEventListener("click", () => { Sfx.init(); undo(); });
+$("#bReset").addEventListener("click", () => { Sfx.init(); resetLevel(); });
+$("#bHint").addEventListener("click", () => { Sfx.init(); hint(); });
+$("#bSound").addEventListener("click", () => { Sfx.init(); save.sound = !save.sound; writeSave(); updateSoundBtn(); Sfx.play("tap"); });
+$("#bMaps").addEventListener("click", () => { Sfx.init(); showLevels(); });
+function updateSoundBtn() { const b = $("#bSound"); b.classList.toggle("muted", !save.sound); b.querySelector(".wave").style.display = save.sound ? "" : "none"; b.setAttribute("aria-pressed", String(save.sound)); }
+
+window.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const ov = document.querySelector(".ov.show");
+  if (e.key === "Escape") { if (ov && ov.id === "levels" && G.L) closeOverlays(); else { G.sel = null; G.hint = null; } return; }
+  if (ov) return;
+  Sfx.init();
+  if (e.code === "Space") { e.preventDefault(); if (!e.repeat) setPeek(true); return; }
+  if (e.repeat) return;
+  if (e.key === "z" || e.key === "Z" || e.key === "Backspace") { e.preventDefault(); undo(); }
+  else if (e.key === "r" || e.key === "R") resetLevel();
+  else if (e.key === "h" || e.key === "H") hint();
+});
+window.addEventListener("keyup", e => { if (e.code === "Space") setPeek(false); });
+window.addEventListener("blur", () => setPeek(false));
+window.addEventListener("resize", () => layout());
+
+// ---------------------------------------------------------------- HUD & overlays
+let toastTimer = 0;
+function toast(msg, ms = 3000) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), ms); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
+function updateHUD() {
+  const L = G.L; if (!L) return;
+  const ch = LEVELS[G.ci];
+  $("#lvName").textContent = `${ch.name}, map ${G.li + 1} of ${ch.levels.length}`;
+  const vis = visibleMap(L, G.s), shownTowns = new Set();
+  for (const v of vis.values()) { const f = L.cells[v.i][v.face]; if (f && f.c) shownTowns.add(f.c); }
+  const chip = (t) => `<span class="chip${shownTowns.has(t) ? "" : " off"}"><span class="dot"></span>${esc(t)}</span>`;
+  let html;
+  if (L.goal === "meet") {
+    const pin = (j) => `<span class="chip"><span class="pin" style="background:${PIN_COL[j]}"><i>${j ? "B" : "A"}</i></span>${esc(L.towns[j])}</span>`;
+    html = `Fold ${pin(0)} onto ${pin(1)}.`;
+  } else if (L.towns.length === 3) html = `Join ${chip(L.towns[0])}, ${chip(L.towns[1])} and ${chip(L.towns[2])} by one road.`;
+  else html = `Join ${chip(L.towns[0])} and ${chip(L.towns[1])} by road.`;
+  if (L.keep && L.keep.length) {
+    let ok = 0;
+    for (const lm of L.keep) { const c = G.s[lm.i], v = vis.get(c.x + "," + c.y); if (v && v.i === lm.i && v.face === lm.face) ok++; }
+    html += ` <span class="chip"><span class="star">★</span>${ok} of ${L.keep.length} landmarks showing</span>`;
+  }
+  $("#goal").innerHTML = html;
+  const folds = G.hist.length;
+  $("#folds").innerHTML = `<b>${folds}</b><span>${folds === 1 ? "fold" : "folds"}, par ${L.par}</span>`;
+  $("#bUndo").disabled = !folds || G.won; $("#bReset").disabled = !folds || G.won;
+  $("#bHint").disabled = G.won; $("#bPeek").disabled = G.won;
+}
+function closeOverlays() { document.querySelectorAll(".ov.show").forEach(o => o.classList.remove("show")); }
+function showOverlay(id) { closeOverlays(); $("#" + id).classList.add("show"); const b = $("#" + id).querySelector(".btn.main, .tile:not(:disabled), button"); if (b) setTimeout(() => b.focus({ preventScroll: true }), 30); }
+function showIntro(ci) {
+  $("#iName").textContent = LEVELS[ci].name; $("#iBlurb").textContent = LEVELS[ci].blurb;
+  showOverlay("intro");
+}
+$("#iGo").addEventListener("click", () => { Sfx.init(); closeOverlays(); levelTip(); });
+function nextUnsolved() {
+  for (const [ci, li] of ORDER) if (!solved(ci, li) && unlocked(ci, li)) return [ci, li];
+  return null;
+}
+function showTitle() {
+  const n = Object.keys(save.best).length;
+  $("#tProgress").textContent = n ? `${n} of ${ORDER.length} maps folded.` : `${ORDER.length} maps in ${LEVELS.length} chapters.`;
+  $("#tPlay").textContent = n ? "Carry on" : "Play";
+  showOverlay("title");
+}
+$("#tPlay").addEventListener("click", () => { Sfx.init(); const nx = nextUnsolved() || [0, 0]; loadLevel(nx[0], nx[1]); });
+$("#tMaps").addEventListener("click", () => { Sfx.init(); showLevels(); });
+function showLevels() {
+  let html = "";
+  LEVELS.forEach((ch, ci) => {
+    let got = 0; ch.levels.forEach((l, li) => { const b = save.best[lid(ci, li)]; if (b != null) got += starsFor(b, l.par); });
+    html += `<section class="chap"><h3>${esc(ch.name)} <small>${got} of ${ch.levels.length * 3} stars</small></h3><p>${esc(ch.blurb)}</p><div class="tiles">`;
+    ch.levels.forEach((l, li) => {
+      const b = save.best[lid(ci, li)], st = b != null ? starsFor(b, l.par) : 0, open = unlocked(ci, li);
+      const cur = G.L && G.ci === ci && G.li === li ? " cur" : "";
+      html += `<button class="tile${cur}" data-ci="${ci}" data-li="${li}" ${open ? "" : "disabled"} aria-label="${esc(ch.name)} map ${li + 1}${open ? (st ? `, ${st} stars` : "") : ", locked"}"><b>${li + 1}</b><em>${"★".repeat(st)}</em></button>`;
+    });
+    html += `</div></section>`;
+  });
+  $("#chaps").innerHTML = html;
+  $("#lClose").style.display = G.L ? "" : "none";
+  showOverlay("levels");
+}
+$("#chaps").addEventListener("click", e => { const t = e.target.closest(".tile"); if (!t || t.disabled) return; Sfx.init(); loadLevel(+t.dataset.ci, +t.dataset.li); });
+$("#lClose").addEventListener("click", () => { if (G.L) closeOverlays(); else showTitle(); });
+function showWin() {
+  G.winShown = true;
+  const L = G.L, folds = G.hist.length, st = starsFor(folds, L.par), best = save.best[lid(G.ci, G.li)];
+  $("#wHead").textContent = L.goal === "meet" ? `${L.towns[0]} meets ${L.towns[1]}` : "The road is open";
+  $("#wStars").innerHTML = [0, 1, 2].map(k => `<span class="${k < st ? "" : "no"}">★</span>`).join("");
+  $("#wStars").setAttribute("aria-label", `${st} of 3 stars`);
+  let txt = `You took ${folds} ${folds === 1 ? "fold" : "folds"}. Par is ${L.par}.`;
+  if (st < 3) txt += ` Fold it in ${L.par} for three stars.`;
+  if (best < folds) txt += ` Your best is ${best}.`;
+  const n = orderIndex(G.ci, G.li), last = n === ORDER.length - 1;
+  if (last) txt += Object.keys(save.best).length === ORDER.length ? " That's every map folded. Go back for any stars you missed." : " That was the last map. A few earlier ones are still unsolved.";
+  $("#wText").textContent = txt;
+  $("#wNext").style.display = last ? "none" : "";
+  $("#wNext").textContent = !last && ORDER[n + 1][1] === 0 ? `Next: ${LEVELS[ORDER[n + 1][0]].name}` : "Next map";
+  showOverlay("win");
+}
+$("#wNext").addEventListener("click", () => { const n = orderIndex(G.ci, G.li); if (n < ORDER.length - 1) loadLevel(ORDER[n + 1][0], ORDER[n + 1][1]); });
+$("#wAgain").addEventListener("click", () => loadLevel(G.ci, G.li));
+$("#wMaps").addEventListener("click", () => showLevels());
+
+// ---------------------------------------------------------------- main loop
+let last = 0;
+function frame(t) {
+  const dt = Math.min(0.05, Math.max(0, (t - last) / 1000)); last = t;
+  try { update(dt); render(); } catch (err) { console.error(err); }
+  requestAnimationFrame(frame);
+}
+function update(dt) {
+  if (!G.L) return;
+  const a = G.anim;
+  if (a) {
+    const sp = G.fast ? 1e9 : Math.PI / FOLD_TIME, dir = Math.sign(a.target - a.th);
+    a.th += dir * sp * dt;
+    if (dir === 0 || (dir > 0 && a.th >= a.target) || (dir < 0 && a.th <= a.target)) {
+      a.th = a.target; G.anim = null;
+      if (a.target >= Math.PI) commitFold(a);
+    }
+  }
+  // camera glides to the middle of the paper and zooms to fit it
+  let b;
+  if (G.peek) b = bbox(G.peekState);
+  else if (G.anim) { const p = bbox(G.anim.from), q = bbox(G.anim.to); b = { x0: Math.min(p.x0, q.x0), y0: Math.min(p.y0, q.y0), x1: Math.max(p.x1, q.x1), y1: Math.max(p.y1, q.y1) }; }
+  else b = bbox(G.s);
+  const tx = (b.x0 + b.x1 + 1) / 2, ty = (b.y0 + b.y1 + 1) / 2, k = G.fast ? 1 : 1 - Math.exp(-dt * 6);
+  if (!G.drag) { G.cam.x += (tx - G.cam.x) * k; G.cam.y += (ty - G.cam.y) * k; G.cs += (fitSize(b) - G.cs) * k; }
+  if (G.won) {
+    const before = G.winT; G.winT += dt;
+    if (G.route && Math.floor(before / 0.3) !== Math.floor(G.winT / 0.3) && G.winT / 0.3 < G.route.length) Sfx.play("car");
+    if (!G.winShown && G.winT > (G.fast ? 0 : winDuration())) showWin();
+  }
+}
+
+// ---------------------------------------------------------------- boot
+loadSave(); updateSoundBtn(); layout();
+window.FOLD = { G, LEVELS, ORDER, loadLevel, startFold, undo, resetLevel, hint, showLevels, showTitle, save, dragFold, creaseAt };
+(function boot() {
+  let lastId = null; try { lastId = localStorage.getItem(SAVE_KEY + "-last"); } catch (e) { /* ignore */ }
+  const m = lastId && /^(\d+)-(\d+)$/.exec(lastId);
+  if (m && LEVELS[+m[1]] && LEVELS[+m[1]].levels[+m[2]] && unlocked(+m[1], +m[2])) { G.ci = +m[1]; G.li = +m[2]; }
+  // show the current map behind the title card
+  G.L = LEVELS[G.ci].levels[G.li]; G.s0 = initState(G.L); G.s = G.s0; G.sheets = buildSheets(G.L);
+  G.peekState = G.L.cells.map((_, i) => ({ x: G.L.w - 1 - (i % G.L.w), y: (i / G.L.w) | 0, z: 0, fx: 1, fy: 0 }));
+  const b = bbox(G.s); G.cam.x = (b.x0 + b.x1 + 1) / 2; G.cam.y = (b.y0 + b.y1 + 1) / 2;
+  layout(); updateHUD(); showTitle();
+  requestAnimationFrame(t => { last = t; frame(t); });
+})();
+
+</script>
+</body>
+</html>
+
+</body></html>

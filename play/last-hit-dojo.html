@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Last Hit Dojo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#0b0f14; --panel:#121922ee; --edge:#2a3644; --ink:#e8eef4; --dim:#8a99a8; --you:#4fd18b; --foe:#ee5a43; --gold:#f4c24f; --deny:#9fd3ff;
+  --head:'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; --body:'Barlow', system-ui, sans-serif; }
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:var(--body); overflow:hidden; user-select:none; -webkit-user-select:none; }
+canvas { position:fixed; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+#hud { position:fixed; left:50%; top:10px; transform:translateX(-50%); display:flex; gap:4px; z-index:2; pointer-events:none; }
+.stat { background:var(--panel); border:1px solid var(--edge); padding:4px 14px 5px; min-width:78px; text-align:center; }
+.stat:first-child { border-radius:8px 0 0 8px; } .stat:last-child { border-radius:0 8px 8px 0; }
+.stat b { display:block; font-family:var(--head); font-size:26px; line-height:1; font-variant-numeric:tabular-nums; }
+.stat span { font-size:11px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; }
+#sLH b { color:var(--you); } #sDN b { color:var(--deny); } #sGold b { color:var(--gold); }
+#feed { position:fixed; right:12px; top:12px; width:250px; z-index:2; pointer-events:none; display:flex; flex-direction:column; gap:3px; }
+#feed div { background:var(--panel); border-left:3px solid var(--edge); padding:4px 8px; font-size:13px; transition:opacity .5s; }
+#feed .lh { border-color:var(--you); } #feed .dn { border-color:var(--deny); } #feed .miss { border-color:var(--foe); } #feed .info { border-color:var(--gold); }
+#feed small { color:var(--dim); }
+#atk { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:340px; z-index:2; pointer-events:none; }
+#atk .lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
+#atkBar { height:10px; background:#00000088; border:1px solid var(--edge); border-radius:5px; overflow:hidden; position:relative; }
+#atkFill { position:absolute; left:0; top:0; bottom:0; width:0; background:var(--gold); }
+#atkMark { position:absolute; top:-2px; bottom:-2px; width:2px; background:#fff; }
+#help { position:fixed; left:12px; bottom:12px; z-index:2; font-size:12px; color:var(--dim); background:var(--panel); border:1px solid var(--edge); border-radius:8px; padding:8px 10px; line-height:1.55; pointer-events:none; }
+#help b { color:var(--ink); font-family:var(--head); letter-spacing:.5px; }
+#touch { position:fixed; right:12px; bottom:12px; z-index:3; display:none; gap:8px; }
+#touch button { width:64px; height:64px; border-radius:50%; border:1px solid var(--edge); background:var(--panel); color:var(--ink); font-family:var(--head); font-size:18px; }
+.ov { position:fixed; inset:0; z-index:10; display:none; align-items:center; justify-content:center; background:radial-gradient(ellipse at center, #0b0f14cc, #05070aee); padding:18px; overflow:auto; }
+.ov.show { display:flex; }
+.card { width:100%; max-width:780px; background:linear-gradient(#141c26, #0e141b); border:1px solid var(--edge); border-radius:14px; padding:24px 26px; box-shadow:0 20px 60px #000c; }
+h1 { font-family:var(--head); font-size:clamp(40px, 7vw, 64px); margin:0; letter-spacing:3px; line-height:1; }
+h1 em { font-style:normal; color:var(--gold); }
+.sub { color:var(--dim); margin:6px 0 18px; }
+.sec { font-family:var(--head); letter-spacing:2px; text-transform:uppercase; color:var(--gold); font-size:14px; margin:16px 0 8px; }
+.grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+.opt { border:1px solid var(--edge); background:#0b1118; color:var(--ink); border-radius:8px; padding:9px 10px; text-align:left; cursor:pointer; font-family:var(--body); font-size:14px; }
+.opt b { font-family:var(--head); font-size:18px; letter-spacing:.5px; display:block; }
+.opt small { color:var(--dim); font-size:12px; display:block; line-height:1.35; margin-top:2px; }
+.opt.sel { border-color:var(--gold); background:#1b1a10; box-shadow:0 0 0 1px var(--gold) inset; }
+.row { display:flex; gap:8px; flex-wrap:wrap; }
+.row .opt { flex:1; min-width:120px; }
+.checks { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px 16px; font-size:14px; }
+.checks label { display:flex; gap:8px; align-items:center; cursor:pointer; color:var(--ink); }
+.checks input { accent-color:var(--gold); width:16px; height:16px; }
+.slider { display:flex; align-items:center; gap:12px; font-size:14px; }
+.slider input { flex:1; accent-color:var(--gold); }
+.go { display:block; width:100%; margin-top:20px; padding:14px; border:0; border-radius:10px; background:linear-gradient(#ffd56a, #e3a52a); color:#1d1404; font-family:var(--head); font-size:24px; font-weight:700; letter-spacing:3px; cursor:pointer; }
+.go:hover { filter:brightness(1.07); }
+.btns { display:flex; gap:10px; margin-top:16px; }
+.btns button { flex:1; padding:11px; border-radius:8px; border:1px solid var(--edge); background:#0b1118; color:var(--ink); font-family:var(--head); font-size:18px; letter-spacing:1px; cursor:pointer; }
+.btns button:hover { border-color:var(--gold); }
+.note { font-size:12.5px; color:var(--dim); line-height:1.5; margin-top:12px; }
+.res { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:8px; }
+.res div { background:#0b1118; border:1px solid var(--edge); border-radius:8px; padding:8px 10px; }
+.res b { display:block; font-family:var(--head); font-size:28px; line-height:1.05; }
+.res span { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); }
+.grade { font-family:var(--head); font-size:84px; line-height:.9; text-align:center; }
+#chart { width:100%; height:150px; margin-top:12px; background:#0b1118; border:1px solid var(--edge); border-radius:8px; }
+.best { color:var(--gold); font-size:13px; }
+@media (max-width:720px) { .grid { grid-template-columns:repeat(2, 1fr); } .res { grid-template-columns:repeat(2, 1fr); } #help, #feed { display:none; } .stat { min-width:56px; padding:3px 8px; } .stat b { font-size:20px; } #touch { display:flex; } #atk { width:220px; bottom:90px; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="hud">
+  <div class="stat"><b id="vTime">0:00</b><span>Time</span></div>
+  <div class="stat" id="sLH"><b id="vLH">0</b><span>Last hits</span></div>
+  <div class="stat" id="sDN"><b id="vDN">0</b><span>Denies</span></div>
+  <div class="stat"><b id="vMiss">0</b><span>Missed</span></div>
+  <div class="stat"><b id="vCS">–</b><span>CS %</span></div>
+  <div class="stat" id="sGold"><b id="vGold">0</b><span>Gold</span></div>
+</div>
+<div id="feed"></div>
+<div id="atk"><div class="lbl"><span>Attack</span><span id="atkTxt">ready</span></div><div id="atkBar"><div id="atkFill"></div><div id="atkMark"></div></div></div>
+<div id="help"><b>Right-click</b> creep: attack · <b>Right-click</b> ground: move<br><b>A</b> + click: attack (deny your own creep under 50%)<br><b>S</b>: stop / cancel the swing · <b>H</b>: hold · <b>Esc</b>: pause</div>
+<div id="touch"><button id="tStop">STOP</button><button id="tA">A</button></div>
+
+<div class="ov show" id="menu"><div class="card">
+  <h1>LAST HIT <em>DOJO</em></h1>
+  <div class="sub">Practice farming a lane: creep waves fight each other, and you only get the gold if your hit is the one that kills.</div>
+  <div class="sec">Hero</div>
+  <div class="grid" id="heroes"></div>
+  <div class="sec">Drill</div>
+  <div class="row" id="modes"></div>
+  <div class="sec">Rival hero (contests your creeps)</div>
+  <div class="row" id="rivals"></div>
+  <div class="sec">Assists</div>
+  <div class="checks">
+    <label><input type="checkbox" id="oTick" checked> Kill-threshold tick on health bars</label>
+    <label><input type="checkbox" id="oNum"> Show exact HP numbers</label>
+    <label><input type="checkbox" id="oGlow"> Glow when a creep is killable</label>
+    <label><input type="checkbox" id="oSound" checked> Sound</label>
+  </div>
+  <div class="sec">Bonus damage (items)</div>
+  <div class="slider"><input type="range" id="oBonus" min="0" max="60" step="2" value="0"><b id="oBonusV">+0</b></div>
+  <button class="go" id="bGo">START DRILL</button>
+  <div class="best" id="bestLine"></div>
+  <div class="note">Practise the real timing: the attack only lands at the end of the wind-up (and ranged attacks still have to travel), so start the swing early enough that the hit arrives just as the creep's HP drops under your damage. Cancel a swing with S or by moving. You can only deny your own creeps once they are under 50% HP. Creeps have armor, so a melee creep takes about 11% less than your listed damage.</div>
+</div></div>
+
+<div class="ov" id="pause"><div class="card" style="max-width:420px;text-align:center">
+  <h1 style="font-size:46px">PAUSED</h1>
+  <div class="btns"><button id="bResume">Resume</button><button id="bRestart">Restart</button><button id="bMenu">Menu</button></div>
+</div></div>
+
+<div class="ov" id="summary"><div class="card">
+  <div style="display:flex;gap:20px;align-items:center">
+    <div class="grade" id="rGrade">A</div>
+    <div><h1 style="font-size:40px" id="rTitle">Session complete</h1><div class="sub" id="rSub" style="margin:4px 0 0"></div></div>
+  </div>
+  <div class="res" id="rStats"></div>
+  <canvas id="chart"></canvas>
+  <div class="note" id="rTips"></div>
+  <div class="btns"><button id="bAgain">Again</button><button id="bMenu2">Menu</button></div>
+</div></div>
+
+<script>
+'use strict';
+// =====================================================================
+// DATA
+// =====================================================================
+const HEROES = {
+  blade:  { name:'Bladeswift', tag:'Agile melee', dmin:48, dmax:54, bat:1.4, as:120, ap:0.30, range:150, proj:0, speed:315, turn:20, desc:'Fast, light swings. Forgiving.' },
+  long:   { name:'Longshot', tag:'Ranged carry', dmin:41, dmax:47, bat:1.7, as:110, ap:0.40, range:600, proj:1000, speed:290, turn:18, desc:'Quick projectile. Account for travel time.' },
+  iron:   { name:'Ironhide', tag:'Heavy melee', dmin:58, dmax:66, bat:1.7, as:100, ap:0.50, range:150, proj:0, speed:300, turn:13, desc:'Big hits, slow wind-up and slow turning.' },
+  wick:   { name:'Spellwick', tag:'Support caster', dmin:36, dmax:44, bat:1.7, as:100, ap:0.55, range:550, proj:800, speed:290, turn:16, desc:'Weak, slow attack. The real test.' },
+};
+const MODES = {
+  free:  { name:'Free lane', d:'Endless waves meeting in the middle.' },
+  ten:   { name:'10-minute test', d:'Graded run. 20 waves, 80 creeps.' },
+  tower: { name:'Under tower', d:'Enemy pushes into your tower — time around its shots.' },
+};
+const RIVALS = { off:{ name:'None', d:'Just you and the creeps.' }, easy:{ name:'Easy', d:'Slow and sloppy.', delay:[0.25, 0.5], err:0.25 }, med:{ name:'Medium', d:'Reasonable timing.', delay:[0.1, 0.25], err:0.1 }, hard:{ name:'Hard', d:'Rarely misses.', delay:[0.03, 0.09], err:0.03 } };
+const CREEP = {
+  melee:  { hp:550, dmin:19, dmax:23, armor:2, bat:1.0, ap:0.467, range:100, proj:0, speed:325, r:18, gold:[36, 40] },
+  ranged: { hp:300, dmin:21, dmax:26, armor:0, bat:1.0, ap:0.5, range:500, proj:900, speed:325, r:16, gold:[48, 54] },
+};
+const TOWER_X = 1750, SPAWN_X = 2700, WAVE_EVERY = 30;
+const armorMul = a => 1 - (0.06 * a) / (1 + 0.06 * Math.abs(a));
+const rnd = () => Math.random(), rr = (a, b) => a + rnd() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+const OPT = { hero:'blade', mode:'free', rival:'off', tick:true, num:false, glow:false, sound:true, bonus:0 };
+try { Object.assign(OPT, JSON.parse(localStorage.getItem('lhdojo-opt') || '{}')); } catch (e) {}
+let BEST = {}; try { BEST = JSON.parse(localStorage.getItem('lhdojo-best') || '{}'); } catch (e) {}
+const saveOpt = () => { try { localStorage.setItem('lhdojo-opt', JSON.stringify(OPT)); } catch (e) {} };
+
+// =====================================================================
+// STATE
+// =====================================================================
+let G = null, nextId = 1;
+function newUnit(o) { return Object.assign({ id:nextId++, wind:0, cd:rnd() * 0.3, face:o.team ? Math.PI : 0, target:null, dead:false, hit:0, anim:rnd() * 9, aggro:0 }, o); }
+function start() {
+  nextId = 1;
+  const H = HEROES[OPT.hero];
+  G = { t:0, units:[], projs:[], floats:[], parts:[], waveT:1.5, waves:0, over:false, paused:false,
+    lh:0, dn:0, miss:0, missEarly:0, missLate:0, missSkip:0, stolen:0, gold:0, lateMs:[], enemyDied:0, ownDied:0, deniedByRival:0,
+    perMin:[], mouse:{ x:0, y:0 }, aMode:false, shake:0, lastEvent:'', ended:false };
+  G.hero = newUnit({ kind:'hero', team:0, x:-700, y:140, hp:620, maxHp:620, r:24, armor:3, ...H, dmin:H.dmin + OPT.bonus, dmax:H.dmax + OPT.bonus, order:null, hold:false, face:0, isYou:true });
+  G.units.push(G.hero);
+  if (OPT.rival !== 'off') {
+    const R = RIVALS[OPT.rival];
+    G.rival = newUnit({ kind:'hero', team:1, x:700, y:-140, hp:620, maxHp:620, r:24, armor:3, dmin:40, dmax:46, bat:1.7, as:105, ap:0.4, range:600, proj:1000, speed:290, turn:18, face:Math.PI, think:0, R, isRival:true, name:'Rival' });
+    G.units.push(G.rival);
+  }
+  G.towers = [newUnit({ kind:'tower', team:0, x:-TOWER_X, y:-60, hp:1, maxHp:1, r:40, dmin:100, dmax:120, bat:1, as:100, ap:0.1, range:700, proj:900, armor:20 }),
+              newUnit({ kind:'tower', team:1, x:TOWER_X, y:-60, hp:1, maxHp:1, r:40, dmin:100, dmax:120, bat:1, as:100, ap:0.1, range:700, proj:900, armor:20 })];
+  for (const t of G.towers) G.units.push(t);
+  if (OPT.mode === 'tower') { G.hero.x = -TOWER_X + 260; }
+  for (const id of ['menu', 'pause', 'summary']) $(id).classList.remove('show');
+  $('feed').innerHTML = '';
+  audio();
+  feed('Wave incoming. Good luck.', 'info');
+}
+function spawnWave() {
+  G.waves++;
+  for (const team of [0, 1]) {
+    const dir = team ? -1 : 1, x0 = team ? SPAWN_X : -SPAWN_X;
+    let kinds = ['melee', 'melee', 'melee', 'ranged'];
+    if (OPT.mode === 'tower' && team === 0) kinds = ['melee', 'ranged'];
+    kinds.forEach((k, i) => {
+      const C = CREEP[k], row = k === 'ranged' ? 1 : 0;
+      const u = newUnit({ kind:k, team, x:x0 - dir * (row * 110 + rr(0, 30)), y:(k === 'ranged' ? 0 : (i - 1) * 55) + rr(-10, 10), hp:C.hp, maxHp:C.hp, ...C, as:100, laneY:(i - 1.5) * 40, born:G.t });
+      G.units.push(u);
+    });
+  }
+}
+
+// =====================================================================
+// COMBAT CORE
+// =====================================================================
+const interval = u => u.bat / (u.as / 100);
+const apEff = u => u.ap / (u.as / 100);
+const avgEff = (u, t) => (u.dmin + u.dmax) / 2 * armorMul(t.armor);
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const edge = (a, b) => dist(a, b) - a.r - b.r;
+const hostile = (a, b) => a.team !== b.team;
+function canTarget(a, t) {
+  if (!t || t.dead || t.kind === 'tower') return false;
+  if (hostile(a, t)) return true;
+  return a.kind === 'hero' && t.kind !== 'hero' && t.hp < t.maxHp * 0.5;   // deny
+}
+function angTo(a, b) { return Math.atan2(b.y - a.y, b.x - a.x); }
+function turnToward(u, ang, dt) {
+  let d = ang - u.face; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+  const step = (u.turn || 30) * dt;
+  if (Math.abs(d) <= step) { u.face = ang; return true; }
+  u.face += Math.sign(d) * step; return Math.abs(d) < 0.2;
+}
+function beginAttack(u, t) { u.wind = apEff(u); u.windT = t; u.windTot = u.wind; u.cd = interval(u); }
+function release(u) {
+  const t = u.windT; u.windT = null; u.swing = 0.25;
+  if (!t || t.dead) return;
+  const raw = rr(u.dmin, u.dmax);
+  if (u.proj) G.projs.push({ x:u.x + Math.cos(u.face) * u.r, y:u.y + Math.sin(u.face) * u.r, t, raw, src:u, speed:u.proj, born:G.t });
+  else damage(t, raw, u);
+  if (u.isYou) sfx(u.proj ? 'shoot' : 'swing');
+}
+function damage(t, raw, src) {
+  if (t.dead) return;
+  if (t.kind === 'tower') return;
+  const d = raw * armorMul(t.armor);
+  t.hp -= d; t.hit = 0.15;
+  if (src.isYou) { t.youHitAt = G.t; t.youHitSurvive = t.hp > 0; float(t.x, t.y - 46, Math.round(d), '#ffffff', 15); }
+  if (t.kind === 'hero') { t.hp = Math.max(1, t.hp); return; }
+  if (t.hp <= 0) die(t, src);
+}
+function die(t, src) {
+  t.dead = true; t.hp = 0;
+  burst(t.x, t.y, t.team ? '#ee5a43' : '#4fd18b', 16);
+  const byYou = src && src.isYou, byRival = src && src.isRival;
+  if (t.team === 1) {
+    G.enemyDied++;
+    if (byYou) {
+      const g = Math.round(rr(...CREEP[t.kind].gold)); G.lh++; G.gold += g;
+      float(t.x, t.y - 64, `+${g}`, '#f4c24f', 26, true); sfx('coin'); feed(`Last hit · ${t.kind} creep <small>+${g} gold</small>`, 'lh');
+    } else {
+      G.miss++;
+      // why did we miss?
+      const pending = pendingOn(t);
+      let why;
+      if (byRival) { G.stolen++; why = 'rival denied it'; }
+      if (pending !== null) { G.missLate++; G.lateMs.push(pending * 1000); why = (why ? why + ', ' : '') + `late by ${Math.round(pending * 1000)} ms`; }
+      else if (t.youHitAt && G.t - t.youHitAt < 3) { G.missEarly++; why = (why ? why + ', ' : '') + 'hit too early'; }
+      else if (!byRival) { G.missSkip++; why = 'not attempted'; }
+      if (pending !== null || (t.youHitAt && G.t - t.youHitAt < 3) || byRival) float(t.x, t.y - 64, pending !== null ? 'late' : byRival ? 'denied' : 'early', '#ff8a7a', 18, true);
+      feed(`Missed ${t.kind} creep <small>${why}</small>`, 'miss');
+    }
+  } else {
+    G.ownDied++;
+    if (byYou) { G.dn++; float(t.x, t.y - 64, '!', '#9fd3ff', 34, true); sfx('deny'); feed(`Denied · ${t.kind} creep`, 'dn'); }
+    else if (byRival) G.deniedByRival++;
+  }
+}
+// seconds until your attack on t would have landed (or null if nothing in progress)
+function pendingOn(t) {
+  const h = G.hero;
+  let best = null;
+  if (h.wind > 0 && h.windT === t) best = h.wind + (h.proj ? Math.max(0, dist(h, t) - h.r) / h.proj : 0);
+  for (const p of G.projs) if (p.t === t && p.src === h) { const s = Math.max(0, Math.hypot(p.x - t.x, p.y - t.y)) / p.speed; best = best === null ? s : Math.min(best, s); }
+  return best;
+}
+
+// =====================================================================
+// UPDATE
+// =====================================================================
+function update(dt) {
+  G.t += dt;
+  G.waveT -= dt;
+  if (G.waveT <= 0 && !(OPT.mode === 'ten' && G.waves >= 20)) { spawnWave(); G.waveT = WAVE_EVERY; }
+  const min = Math.floor(G.t / 60); if (!G.perMin[min]) G.perMin[min] = { lh:0, dn:0 }; G.perMin[min].lh = G.lh; G.perMin[min].dn = G.dn;
+  for (const u of G.units) {
+    if (u.dead) continue;
+    u.anim += dt; u.cd -= dt; if (u.hit > 0) u.hit -= dt; if (u.swing > 0) u.swing -= dt; if (u.aggro > 0) u.aggro -= dt;
+    if (u.kind === 'hero') { u.hp = Math.min(u.maxHp, u.hp + 2 * dt); if (u.isYou) heroUpdate(u, dt); else rivalUpdate(u, dt); }
+    else if (u.kind === 'tower') towerUpdate(u, dt);
+    else creepUpdate(u, dt);
+  }
+  // separation
+  const live = G.units.filter(u => !u.dead && u.kind !== 'tower');
+  for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+    const a = live[i], b = live[j], dx = b.x - a.x, dy = b.y - a.y, md = (a.r + b.r) * 0.9, d2 = dx * dx + dy * dy;
+    if (d2 >= md * md || d2 === 0) continue;
+    const d = Math.sqrt(d2), push = (md - d) * 0.5, nx = dx / d, ny = dy / d;
+    const wa = a.kind === 'hero' ? 0.3 : (a.wind > 0 ? 0.4 : 1), wb = b.kind === 'hero' ? 0.3 : (b.wind > 0 ? 0.4 : 1), s = wa + wb;
+    a.x -= nx * push * wa / s * 2; a.y -= ny * push * wa / s * 2; b.x += nx * push * wb / s * 2; b.y += ny * push * wb / s * 2;
+  }
+  for (const u of live) u.y = clamp(u.y, -330, 330);
+  // projectiles
+  for (const p of G.projs) {
+    if (p.t.dead) { p.done = true; continue; }
+    const dx = p.t.x - p.x, dy = p.t.y - p.y, d = Math.hypot(dx, dy), s = p.speed * dt;
+    if (d <= s + p.t.r * 0.5) { p.done = true; damage(p.t, p.raw, p.src); }
+    else { p.x += dx / d * s; p.y += dy / d * s; p.ang = Math.atan2(dy, dx); }
+  }
+  G.projs = G.projs.filter(p => !p.done);
+  G.units = G.units.filter(u => !u.dead || u.kind === 'hero');
+  for (const f of G.floats) { f.life -= dt; f.y -= 40 * dt; }
+  G.floats = G.floats.filter(f => f.life > 0);
+  for (const p of G.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 1 - 3 * dt; p.vy *= 1 - 3 * dt; p.life -= dt; }
+  G.parts = G.parts.filter(p => p.life > 0);
+  if (OPT.mode === 'ten' && G.t >= 600 && !G.ended) endSession();
+}
+function moveToward(u, x, y, dt, stopAt = 0) {
+  const d = Math.hypot(x - u.x, y - u.y); if (d <= stopAt + 1) return true;
+  const ang = Math.atan2(y - u.y, x - u.x);
+  const facing = turnToward(u, ang, dt);
+  if (u.kind === 'hero' && !facing) return false;
+  const s = Math.min(d - stopAt, u.speed * dt);
+  u.x += Math.cos(u.face) * s; u.y += Math.sin(u.face) * s;
+  u.moving = true; return false;
+}
+function heroUpdate(h, dt) {
+  h.moving = false;
+  if (h.wind > 0) {
+    if (!h.windT || h.windT.dead || !canTarget(h, h.windT) && !(h.windT.team === h.team && h.windT.hp > 0)) { h.wind = 0; h.cd = 0; h.windT = null; }
+    else { h.wind -= dt; turnToward(h, angTo(h, h.windT), dt); if (h.wind <= 0) release(h); return; }
+  }
+  const o = h.order;
+  if (!o) return;
+  if (o.t === 'move') { if (moveToward(h, o.x, o.y, dt)) h.order = null; return; }
+  if (o.t === 'attack') {
+    const t = o.target;
+    if (!t || t.dead) { h.order = null; return; }
+    if (t.team === h.team && t.hp >= t.maxHp * 0.5) { h.order = null; return; }
+    if (edge(h, t) <= h.range) {
+      const ok = turnToward(h, angTo(h, t), dt);
+      if (ok && h.cd <= 0) beginAttack(h, t);
+    } else if (!h.hold) moveToward(h, t.x, t.y, dt, h.r + t.r + h.range - 5);
+    else h.order = null;
+  }
+}
+function creepUpdate(u, dt) {
+  u.moving = false;
+  if (u.wind > 0) { if (!u.windT || u.windT.dead) { u.wind = 0; u.cd = 0; } else { u.wind -= dt; if (u.wind <= 0) release(u); return; } }
+  // targeting
+  if (u.aggro <= 0 || !u.target || u.target.dead) {
+    if (u.target && (u.target.dead || edge(u, u.target) > 600 || (u.target.kind === 'hero' && u.aggro <= 0))) u.target = null;
+    if (!u.target || (u.retarget = (u.retarget || 0) - dt) <= 0) {
+      u.retarget = 0.5;
+      let best = null, bd = 1e9;
+      for (const o of G.units) {
+        if (o.dead || o.team === u.team || o.kind === 'tower' || o.kind === 'hero') continue;
+        const d = edge(u, o); if (d < 500 && d < bd) { bd = d; best = o; }
+      }
+      if (!best) for (const o of G.units) { if (o.dead || o.team === u.team || o.kind !== 'hero') continue; const d = edge(u, o); if (d < 350 && d < bd) { bd = d; best = o; } }
+      if (best && (!u.target || u.target.kind === 'hero' || bd < edge(u, u.target) - 80)) u.target = best;
+    }
+  }
+  const t = u.target;
+  if (t && !t.dead) {
+    if (edge(u, t) <= u.range) { u.face = angTo(u, t); if (u.cd <= 0) beginAttack(u, t); }
+    else moveToward(u, t.x, t.y, dt, u.r + t.r + u.range - 5);
+    return;
+  }
+  // walk the lane (or stop at the enemy tower)
+  const dir = u.team ? -1 : 1;
+  const enemyTower = u.team ? -TOWER_X : TOWER_X;
+  const stopX = enemyTower - dir * 380;
+  if ((dir > 0 && u.x < stopX) || (dir < 0 && u.x > stopX)) moveToward(u, u.x + dir * 200, u.laneY, dt);
+}
+function towerUpdate(tw, dt) {
+  if (tw.wind > 0) { if (!tw.windT || tw.windT.dead) { tw.wind = 0; tw.cd = 0; } else { tw.wind -= dt; if (tw.wind <= 0) release(tw); } return; }
+  if (!tw.target || tw.target.dead || edge(tw, tw.target) > tw.range) {
+    tw.target = null; let bd = 1e9;
+    for (const o of G.units) { if (o.dead || o.team === tw.team || o.kind === 'tower' || o.kind === 'hero') continue; const d = edge(tw, o); if (d <= tw.range && d < bd) { bd = d; tw.target = o; } }
+  }
+  if (tw.target && tw.cd <= 0) { tw.face = angTo(tw, tw.target); beginAttack(tw, tw.target); }
+}
+// rival: predicts creep HP when its projectile would land
+function incoming(c, within) {
+  let dmg = 0;
+  for (const p of G.projs) if (p.t === c) { const s = Math.hypot(p.x - c.x, p.y - c.y) / p.speed; if (s <= within) dmg += p.raw * armorMul(c.armor); }
+  for (const u of G.units) {
+    if (u.dead || u.target !== c && u.windT !== c) continue;
+    if (u.wind > 0 && u.windT === c) { const land = u.wind + (u.proj ? dist(u, c) / u.proj : 0); if (land <= within) dmg += avgEff(u, c); }
+    else if (u.target === c && u.kind !== 'hero') dmg += avgEff(u, c) * Math.max(0, within - Math.max(0, u.cd)) / interval(u);
+  }
+  return dmg;
+}
+function rivalUpdate(r, dt) {
+  r.moving = false;
+  if (r.wind > 0) { if (!r.windT || r.windT.dead) { r.wind = 0; r.cd = 0; } else { r.wind -= dt; turnToward(r, angTo(r, r.windT), dt); if (r.wind <= 0) release(r); return; } }
+  if (r.plan) {
+    r.plan.delay -= dt;
+    if (r.plan.delay <= 0) {
+      const t = r.plan.t; r.plan = null;
+      if (t && !t.dead && edge(r, t) <= r.range + 40 && r.cd <= 0) { r.face = angTo(r, t); beginAttack(r, t); return; }
+    } else return;
+  }
+  // stand near the front on our side
+  const creeps = G.units.filter(u => !u.dead && (u.kind === 'melee' || u.kind === 'ranged'));
+  const front = creeps.length ? creeps.reduce((s, u) => s + u.x, 0) / creeps.length : 0;
+  const hx = clamp(front + 430, -1200, TOWER_X - 150), hy = -150 + Math.sin(G.t * 0.4) * 60;
+  if (r.cd > 0) { moveToward(r, hx, hy, dt, 30); return; }
+  if ((r.think -= dt) > 0) { moveToward(r, hx, hy, dt, 30); return; }
+  r.think = 0.05;
+  let pickT = null;
+  const minEff = c => r.dmin * armorMul(c.armor);
+  for (const c of creeps) {
+    if (c.team === r.team && c.hp >= c.maxHp * 0.5) continue;
+    const d = edge(r, c); if (d > r.range + 250) continue;
+    const land = apEff(r) + Math.max(0, dist(r, c) - r.r) / r.proj + (d > r.range ? (d - r.range) / r.speed : 0) + 0.05;
+    const hpAt = c.hp - incoming(c, land);
+    const err = 1 + (rnd() * 2 - 1) * r.R.err;
+    if (hpAt > 0 && hpAt <= minEff(c) * err) { pickT = c; break; }
+  }
+  if (pickT) { const R = r.R; r.plan = { t:pickT, delay:rr(R.delay[0], R.delay[1]) }; if (edge(r, pickT) > r.range) moveToward(r, pickT.x, pickT.y, dt, r.r + pickT.r + r.range - 10); }
+  else moveToward(r, hx, hy, dt, 30);
+}
+
+// =====================================================================
+// INPUT
+// =====================================================================
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, S = 1, CAMX = 0;
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; S = Math.min(W / 2300, H / 1050); bg = null; }
+addEventListener('resize', resize);
+const toWorld = (sx, sy) => ({ x:(sx - W / 2) / S + CAMX, y:(sy - H / 2) / S });
+const toScreen = (x, y) => ({ x:(x - CAMX) * S + W / 2, y:y * S + H / 2 });
+function unitAt(x, y) {
+  let best = null, bd = 1e9;
+  for (const u of G.units) { if (u.dead || u.kind === 'tower' || u.isYou) continue; const d = Math.hypot(u.x - x, u.y - y); const rad = u.r + 28; if (d < rad && d < bd) { bd = d; best = u; } }
+  return best;
+}
+function command(sx, sy, attackMode) {
+  if (!G || G.paused || G.ended) return;
+  const w = toWorld(sx, sy), t = unitAt(w.x, w.y), h = G.hero;
+  h.hold = false;
+  if (t && (hostile(h, t) || attackMode)) {
+    if (!canTarget(h, t)) { feed(t.team === h.team ? 'Can only deny creeps under 50% HP' : 'Cannot attack that', 'info'); sfx('nope'); return; }
+    if (h.wind > 0 && h.windT !== t) { h.wind = 0; h.cd = 0; h.windT = null; }
+    h.order = { t:'attack', target:t };
+    if (t.kind === 'hero') { for (const c of G.units) if (!c.dead && c.team !== h.team && (c.kind === 'melee' || c.kind === 'ranged') && dist(c, h) < 500) { c.target = h; c.aggro = 2.3; } }
+    mark(w.x, w.y, '#ee5a43');
+  } else {
+    if (h.wind > 0) { h.wind = 0; h.cd = 0; h.windT = null; }
+    h.order = { t:'move', x:w.x, y:clamp(w.y, -320, 320) };
+    mark(w.x, w.y, '#4fd18b');
+  }
+}
+function stop() { const h = G.hero; if (h.wind > 0) { h.wind = 0; h.cd = 0; h.windT = null; } h.order = null; }
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('mousedown', e => {
+  if (!G || G.paused) return;
+  audio();
+  if (e.button === 2) { command(e.clientX, e.clientY, G.aMode); G.aMode = false; }
+  else if (e.button === 0 && G.aMode) { command(e.clientX, e.clientY, true); G.aMode = false; }
+});
+addEventListener('mousemove', e => { if (G) { G.mouse.x = e.clientX; G.mouse.y = e.clientY; } });
+let touchMoved = false;
+cv.addEventListener('touchstart', e => { touchMoved = false; }, { passive:true });
+cv.addEventListener('touchend', e => { if (!G) return; const t = e.changedTouches[0]; command(t.clientX, t.clientY, G.aMode); G.aMode = false; e.preventDefault(); }, { passive:false });
+$('tStop').addEventListener('click', () => G && stop());
+$('tA').addEventListener('click', () => { if (G) G.aMode = !G.aMode; });
+addEventListener('keydown', e => {
+  if (!G) return;
+  const k = e.key.toLowerCase();
+  if (e.key === 'Escape') { if (G.aMode) { G.aMode = false; return; } if (!G.ended) togglePause(); return; }
+  if (G.paused || G.ended) return;
+  if (k === 's') stop();
+  else if (k === 'a') G.aMode = true;
+  else if (k === 'h') { stop(); G.hero.hold = true; }
+});
+function togglePause() { G.paused = !G.paused; $('pause').classList.toggle('show', G.paused); }
+function mark(x, y, col) { G.parts.push({ x, y, vx:0, vy:0, life:0.4, max:0.4, col, ring:true }); }
+
+// =====================================================================
+// FEEDBACK
+// =====================================================================
+function float(x, y, text, col, size, bold) { G.floats.push({ x, y, text:String(text), col, size, bold, life:1.1 }); }
+function burst(x, y, col, n) { for (let i = 0; i < n; i++) { const a = rnd() * 6.28, s = rr(40, 220); G.parts.push({ x, y, vx:Math.cos(a) * s, vy:Math.sin(a) * s, life:rr(0.3, 0.6), max:0.6, col, size:rr(3, 7) }); } }
+function feed(html, cls) {
+  const box = $('feed'), d = document.createElement('div'); d.className = cls; d.innerHTML = html; box.prepend(d);
+  while (box.children.length > 7) box.lastChild.remove();
+  setTimeout(() => { d.style.opacity = '0'; setTimeout(() => d.remove(), 600); }, 5000);
+}
+let AC = null;
+function audio() { if (AC) { if (AC.state === 'suspended') AC.resume(); return; } try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+function tone(f, d, type, v, slide = 0, delay = 0) {
+  if (!AC || !OPT.sound) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d + 0.05);
+}
+function sfx(n) {
+  if (n === 'coin') { tone(1320, 0.09, 'triangle', 0.12); tone(1980, 0.16, 'triangle', 0.1, 0, 0.07); }
+  else if (n === 'deny') { tone(520, 0.08, 'square', 0.06); tone(390, 0.12, 'square', 0.06, 0, 0.07); }
+  else if (n === 'swing') tone(240, 0.08, 'sawtooth', 0.04, -120);
+  else if (n === 'shoot') tone(700, 0.08, 'triangle', 0.05, -350);
+  else if (n === 'nope') tone(160, 0.12, 'square', 0.05);
+}
+
+// =====================================================================
+// RENDER
+// =====================================================================
+let bg = null;
+function makeBg() {
+  // a world strip from -3000..3000 x, -560..560 y rendered at current scale
+  const ww = 6000, wh = 1200, c = document.createElement('canvas');
+  c.width = Math.ceil(ww * S * DPR); c.height = Math.ceil(wh * S * DPR);
+  const g = c.getContext('2d'); g.scale(S * DPR, S * DPR); g.translate(ww / 2, wh / 2);
+  const gr = g.createLinearGradient(0, -600, 0, 600); gr.addColorStop(0, '#1d3322'); gr.addColorStop(0.5, '#27432b'); gr.addColorStop(1, '#1b2f20');
+  g.fillStyle = gr; g.fillRect(-3000, -600, 6000, 1200);
+  let seed = 7; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 1600; i++) { g.fillStyle = R() < 0.5 ? 'rgba(255,255,255,.025)' : 'rgba(0,0,0,.05)'; g.fillRect(-3000 + R() * 6000, -600 + R() * 1200, 30 + R() * 50, 10 + R() * 18); }
+  // lane
+  g.fillStyle = '#5a5140'; g.beginPath(); g.moveTo(-3000, -260); for (let x = -3000; x <= 3000; x += 100) g.lineTo(x, -250 + Math.sin(x / 400) * 18); for (let x = 3000; x >= -3000; x -= 100) g.lineTo(x, 270 + Math.sin(x / 330 + 1) * 18); g.fill();
+  g.fillStyle = '#6a604b'; g.beginPath(); g.moveTo(-3000, -200); for (let x = -3000; x <= 3000; x += 100) g.lineTo(x, -195 + Math.sin(x / 400) * 14); for (let x = 3000; x >= -3000; x -= 100) g.lineTo(x, 215 + Math.sin(x / 330 + 1) * 14); g.fill();
+  for (let i = 0; i < 700; i++) { const x = -3000 + R() * 6000, y = -220 + R() * 440; g.fillStyle = R() < 0.5 ? 'rgba(40,32,22,.25)' : 'rgba(150,135,105,.18)'; g.beginPath(); g.ellipse(x, y, 6 + R() * 22, 4 + R() * 9, R() * 3, 0, 6.28); g.fill(); }
+  // river
+  const rg = g.createLinearGradient(-160, 0, 160, 0); rg.addColorStop(0, '#2b5a6a'); rg.addColorStop(0.5, '#3a7488'); rg.addColorStop(1, '#2b5a6a');
+  g.fillStyle = rg; g.beginPath(); g.moveTo(-120, -600); g.bezierCurveTo(-60, -300, -190, 200, -90, 600); g.lineTo(110, 600); g.bezierCurveTo(10, 200, 140, -300, 90, -600); g.fill();
+  g.fillStyle = 'rgba(106,96,75,.75)'; g.fillRect(-200, -190, 400, 400);
+  g.strokeStyle = 'rgba(200,230,255,.12)'; g.lineWidth = 3; for (let i = 0; i < 26; i++) { const y = -600 + R() * 1200; if (Math.abs(y) < 230) continue; g.beginPath(); g.moveTo(-40 + R() * 40, y); g.lineTo(10 + R() * 40, y + 6); g.stroke(); }
+  // trees
+  for (let i = 0; i < 380; i++) {
+    const x = -3000 + R() * 6000, top = R() < 0.5, y = top ? -600 + R() * 280 : 340 + R() * 260;
+    if (Math.abs(x) < 220) continue;
+    const r = 34 + R() * 34;
+    g.fillStyle = 'rgba(0,0,0,.28)'; g.beginPath(); g.ellipse(x + 10, y + 14, r, r * 0.6, 0, 0, 6.28); g.fill();
+    g.fillStyle = ['#18301c', '#1f3a22', '#244327', '#2a4a2c'][Math.floor(R() * 4)]; g.beginPath(); g.arc(x, y, r, 0, 6.28); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.05)'; g.beginPath(); g.arc(x - r * 0.3, y - r * 0.3, r * 0.5, 0, 6.28); g.fill();
+  }
+  // team ground tints
+  const lt = g.createLinearGradient(-3000, 0, -1200, 0); lt.addColorStop(0, 'rgba(79,209,139,.10)'); lt.addColorStop(1, 'rgba(79,209,139,0)'); g.fillStyle = lt; g.fillRect(-3000, -600, 1800, 1200);
+  const rt = g.createLinearGradient(3000, 0, 1200, 0); rt.addColorStop(0, 'rgba(238,90,67,.10)'); rt.addColorStop(1, 'rgba(238,90,67,0)'); g.fillStyle = rt; g.fillRect(1200, -600, 1800, 1200);
+  return c;
+}
+function render() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = '#0f1a12'; ctx.fillRect(0, 0, W, H);
+  if (!G) return;
+  const target = clamp(G.hero.x + 250, -3000 + W / 2 / S, 3000 - W / 2 / S);
+  CAMX += (target - CAMX) * 0.08;
+  if (!bg) bg = makeBg();
+  const o = toScreen(-3000, -600);
+  ctx.drawImage(bg, o.x, o.y, 6000 * S, 1200 * S);
+  ctx.save(); ctx.translate(W / 2 - CAMX * S, H / 2); ctx.scale(S, S);
+  // tower ranges (subtle)
+  for (const tw of G.towers) { ctx.strokeStyle = tw.team ? 'rgba(238,90,67,.12)' : 'rgba(79,209,139,.12)'; ctx.lineWidth = 3; ctx.setLineDash([16, 14]); ctx.beginPath(); ctx.arc(tw.x, tw.y, tw.range + tw.r, 0, 6.28); ctx.stroke(); ctx.setLineDash([]); }
+  // your attack range
+  const h = G.hero;
+  ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(h.x, h.y, h.range + h.r, 0, 6.28); ctx.stroke();
+  const list = G.units.filter(u => !u.dead).sort((a, b) => a.y - b.y);
+  for (const u of list) drawUnit(u);
+  for (const p of G.projs) {
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang || 0);
+    const col = p.src.kind === 'tower' ? (p.src.team ? '#ff9a7a' : '#a8ffcc') : p.src.isYou ? '#ffe08a' : p.src.isRival ? '#ff7a5a' : p.src.team ? '#ff9a7a' : '#a8ffcc';
+    ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.ellipse(0, 0, p.src.kind === 'tower' ? 14 : 10, p.src.kind === 'tower' ? 7 : 5, 0, 0, 6.28); ctx.fill();
+    ctx.shadowBlur = 0; ctx.restore();
+  }
+  for (const p of G.parts) {
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    if (p.ring) { ctx.strokeStyle = p.col; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(p.x, p.y, 30 * (1.4 - p.life / p.max), 16 * (1.4 - p.life / p.max), 0, 0, 6.28); ctx.stroke(); }
+    else { ctx.fillStyle = p.col; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); }
+  }
+  ctx.globalAlpha = 1;
+  for (const u of list) if (u.kind !== 'tower') drawBar(u);
+  ctx.textAlign = 'center';
+  for (const f of G.floats) {
+    ctx.globalAlpha = clamp(f.life * 1.5, 0, 1);
+    ctx.font = `${f.bold ? 700 : 600} ${f.size / S * 0.55 + f.size * 0.6}px Barlow Condensed, sans-serif`;
+    ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(f.text, f.x, f.y); ctx.fillStyle = f.col; ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  // hover highlight + cursor hint
+  const w = toWorld(G.mouse.x, G.mouse.y), hov = unitAt(w.x, w.y);
+  if (hov) { const p = toScreen(hov.x, hov.y); ctx.strokeStyle = canTarget(G.hero, hov) ? (hov.team ? '#ff7a5a' : '#9fd3ff') : 'rgba(255,255,255,.3)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(p.x, p.y + hov.r * 0.3 * S, (hov.r + 10) * S, (hov.r + 10) * 0.55 * S, 0, 0, 6.28); ctx.stroke(); }
+  if (G.aMode) { ctx.strokeStyle = '#ee5a43'; ctx.lineWidth = 2; const x = G.mouse.x, y = G.mouse.y; ctx.beginPath(); ctx.arc(x, y, 10, 0, 6.28); ctx.moveTo(x - 16, y); ctx.lineTo(x - 5, y); ctx.moveTo(x + 5, y); ctx.lineTo(x + 16, y); ctx.moveTo(x, y - 16); ctx.lineTo(x, y - 5); ctx.moveTo(x, y + 5); ctx.lineTo(x, y + 16); ctx.stroke(); }
+}
+function drawUnit(u) {
+  const team = u.team ? '#ee5a43' : '#4fd18b', dark = u.team ? '#7a2418' : '#1e6a42';
+  ctx.save(); ctx.translate(u.x, u.y);
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(4, u.r * 0.55, u.r * 1.15, u.r * 0.5, 0, 0, 6.28); ctx.fill();
+  if (u.kind === 'tower') {
+    ctx.fillStyle = '#4a4e57'; ctx.beginPath(); ctx.ellipse(0, 20, 54, 26, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#6b707a'; ctx.fillRect(-30, -110, 60, 128); ctx.fillStyle = '#585d67'; ctx.fillRect(10, -110, 20, 128);
+    ctx.fillStyle = '#7b808a'; ctx.fillRect(-40, -124, 80, 18);
+    for (let k = -36; k < 36; k += 18) ctx.fillRect(k, -136, 10, 14);
+    const pulse = 0.6 + 0.4 * Math.sin(G.t * 3 + u.team);
+    ctx.fillStyle = team; ctx.shadowColor = team; ctx.shadowBlur = 24 * pulse;
+    ctx.beginPath(); ctx.moveTo(0, -176); ctx.lineTo(14, -150); ctx.lineTo(0, -128); ctx.lineTo(-14, -150); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.restore(); return;
+  }
+  const flash = u.hit > 0;
+  if (u.kind === 'hero') {
+    const col = u.isYou ? '#e9c46a' : '#c0504a';
+    if (u.isYou) { ctx.strokeStyle = 'rgba(79,209,139,.7)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, u.r * 0.5, u.r + 12, (u.r + 12) * 0.5, 0, 0, 6.28); ctx.stroke(); }
+    ctx.rotate(u.face);
+    const lean = u.wind > 0 ? -6 * (1 - u.wind / (u.windTot || 1)) : u.swing > 0 ? 8 * u.swing / 0.25 : 0;
+    ctx.fillStyle = u.isYou ? '#2d5a44' : '#5a2d2a'; ctx.beginPath(); ctx.moveTo(-u.r - 10, -16); ctx.lineTo(-u.r - 18, 18); ctx.lineTo(-4, 12); ctx.lineTo(-4, -12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = flash ? '#fff' : col; ctx.beginPath(); ctx.arc(lean, 0, u.r, 0, 6.28); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.arc(lean, 0, u.r, 0.3, 2.9); ctx.fill();
+    ctx.fillStyle = u.isYou ? '#4fd18b' : '#ee5a43'; ctx.beginPath(); ctx.arc(lean + 6, 0, u.r * 0.45, 0, 6.28); ctx.fill();
+    if (u.proj) { ctx.strokeStyle = '#d8c08a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(lean + u.r * 0.6, 0, u.r * 0.9, -1.1, 1.1); ctx.stroke(); }
+    else { ctx.fillStyle = '#d8dee6'; const sw = u.wind > 0 ? -0.9 : u.swing > 0 ? 0.6 : 0; ctx.save(); ctx.translate(lean + 8, u.r * 0.6); ctx.rotate(sw); ctx.fillRect(0, -3, u.r * 1.6, 6); ctx.restore(); }
+    ctx.restore(); return;
+  }
+  ctx.rotate(u.face);
+  const bob = u.moving ? Math.sin(u.anim * 14) * 2 : 0;
+  const lean = u.wind > 0 ? -4 * (1 - u.wind / (u.windTot || 1)) : u.swing > 0 ? 6 * u.swing / 0.25 : 0;
+  if (u.kind === 'melee') {
+    ctx.fillStyle = flash ? '#fff' : (u.team ? '#b8463a' : '#3e9e6c'); ctx.beginPath(); ctx.arc(lean, bob, u.r, 0, 6.28); ctx.fill();
+    ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(lean, bob, u.r, 0.4, 2.7); ctx.fill();
+    ctx.fillStyle = '#9aa3ad'; ctx.beginPath(); ctx.ellipse(lean + u.r * 0.7, -u.r * 0.55 + bob, 7, 10, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#cfd6de'; ctx.save(); ctx.translate(lean + 6, u.r * 0.55 + bob); ctx.rotate(u.wind > 0 ? -1 : u.swing > 0 ? 0.5 : 0.2); ctx.fillRect(0, -2.5, 24, 5); ctx.restore();
+  } else {
+    ctx.fillStyle = flash ? '#fff' : (u.team ? '#9a3d52' : '#2f8a8a'); ctx.beginPath(); ctx.moveTo(lean + u.r, bob); ctx.lineTo(lean - u.r, -u.r + bob); ctx.lineTo(lean - u.r * 0.7, bob); ctx.lineTo(lean - u.r, u.r + bob); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(lean - 2, bob, u.r * 0.55, 0, 6.28); ctx.fill();
+    const orb = u.team ? '#ff9a7a' : '#a8ffcc'; ctx.fillStyle = orb; ctx.shadowColor = orb; ctx.shadowBlur = u.wind > 0 ? 18 : 6; ctx.beginPath(); ctx.arc(lean + u.r * 0.9, bob, 5 + (u.wind > 0 ? 2 : 0), 0, 6.28); ctx.fill(); ctx.shadowBlur = 0;
+  }
+  ctx.restore();
+}
+function drawBar(u) {
+  const hero = u.kind === 'hero', w = hero ? 100 : 80, hgt = hero ? 12 : 11, x = u.x - w / 2, y = u.y - u.r - (hero ? 40 : 30);
+  const f = clamp(u.hp / u.maxHp, 0, 1);
+  const ally = u.team === G.hero.team;
+  ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillRect(x - 2, y - 2, w + 4, hgt + 4);
+  let col = ally ? '#4fd18b' : '#e04b36';
+  const minEff = G.hero.dmin * armorMul(u.armor);
+  const killable = !hero && u.team !== G.hero.team && u.hp <= minEff;
+  const deniable = !hero && ally && u.hp < u.maxHp * 0.5;
+  if (OPT.glow && killable) { ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 16; col = '#ffd04a'; }
+  ctx.fillStyle = col; ctx.fillRect(x, y, w * f, hgt); ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(x, y, w * f, 3);
+  // 100-hp ticks
+  ctx.fillStyle = 'rgba(0,0,0,.45)'; for (let k = 100; k < u.maxHp; k += 100) ctx.fillRect(x + w * k / u.maxHp, y, 1.5, hgt);
+  if (!hero && OPT.tick) {
+    if (u.team !== G.hero.team) { ctx.fillStyle = '#fff'; ctx.fillRect(x + w * minEff / u.maxHp - 1, y - 4, 2.5, hgt + 8); }
+    else { ctx.fillStyle = deniable ? '#9fd3ff' : 'rgba(159,211,255,.5)'; ctx.fillRect(x + w * 0.5 - 1, y - 4, 2.5, hgt + 8); }
+  }
+  if (OPT.num) { ctx.font = '600 15px Barlow Condensed, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.strokeText(Math.ceil(u.hp), u.x, y - 6); ctx.fillStyle = '#fff'; ctx.fillText(Math.ceil(u.hp), u.x, y - 6); }
+}
+
+// =====================================================================
+// HUD & SESSION
+// =====================================================================
+let hudSig = '';
+function hud() {
+  const cs = G.enemyDied ? Math.round(G.lh / G.enemyDied * 100) + '%' : '–';
+  const sig = `${Math.floor(G.t)}|${G.lh}|${G.dn}|${G.miss}|${cs}|${G.gold}`;
+  if (sig !== hudSig) {
+    hudSig = sig;
+    $('vTime').textContent = OPT.mode === 'ten' ? fmt(Math.max(0, 600 - G.t)) : fmt(G.t);
+    $('vLH').textContent = G.lh; $('vDN').textContent = G.dn; $('vMiss').textContent = G.miss; $('vCS').textContent = cs; $('vGold').textContent = G.gold;
+  }
+  const h = G.hero, intv = interval(h);
+  let fill, txt;
+  if (h.wind > 0) { fill = 1 - h.wind / h.windTot; txt = `wind-up ${Math.round(h.wind * 1000)} ms`; $('atkFill').style.background = '#f4c24f'; }
+  else if (h.cd > 0) { fill = 1 - h.cd / intv; txt = `cooldown ${h.cd.toFixed(2)} s`; $('atkFill').style.background = '#5a6b7c'; }
+  else { fill = 1; txt = 'ready'; $('atkFill').style.background = '#4fd18b'; }
+  $('atkFill').style.width = (fill * 100) + '%'; $('atkTxt').textContent = txt;
+  $('atkMark').style.left = h.wind > 0 ? '100%' : (apEff(h) / intv * 100) + '%';
+}
+function endSession() {
+  G.ended = true;
+  const cs = G.enemyDied ? G.lh / G.enemyDied : 0, dp = G.ownDied ? G.dn / G.ownDied : 0;
+  const grade = cs >= 0.9 ? 'S' : cs >= 0.8 ? 'A' : cs >= 0.65 ? 'B' : cs >= 0.5 ? 'C' : 'D';
+  const key = OPT.hero + '|' + OPT.mode + '|' + OPT.rival + '|' + OPT.bonus;
+  const prev = BEST[key];
+  const isBest = !prev || G.lh > prev.lh;
+  if (isBest && OPT.mode === 'ten') { BEST[key] = { lh:G.lh, dn:G.dn }; try { localStorage.setItem('lhdojo-best', JSON.stringify(BEST)); } catch (e) {} }
+  $('rGrade').textContent = grade; $('rGrade').style.color = { S:'#f4c24f', A:'#4fd18b', B:'#9fd3ff', C:'#e8eef4', D:'#ee5a43' }[grade];
+  $('rTitle').textContent = OPT.mode === 'ten' ? (isBest ? 'New personal best!' : '10-minute test complete') : 'Session summary';
+  $('rSub').textContent = `${HEROES[OPT.hero].name} · ${MODES[OPT.mode].name} · rival ${RIVALS[OPT.rival].name.toLowerCase()} · ${fmt(G.t)}${prev && OPT.mode === 'ten' ? ` · previous best ${prev.lh} LH` : ''}`;
+  const avgLate = G.lateMs.length ? Math.round(G.lateMs.reduce((a, b) => a + b, 0) / G.lateMs.length) : 0;
+  const rows = [['Last hits', G.lh, '#4fd18b'], ['Denies', G.dn, '#9fd3ff'], ['CS %', Math.round(cs * 100) + '%'], ['Deny %', Math.round(dp * 100) + '%'],
+    ['Too early', G.missEarly, '#ee5a43'], ['Too late', G.missLate, '#ee5a43'], ['Not attempted', G.missSkip], ['Gold', G.gold, '#f4c24f']];
+  if (OPT.rival !== 'off') rows.push(['Lost to rival', G.stolen + G.deniedByRival, '#ee5a43']);
+  $('rStats').innerHTML = rows.map(([a, b, c]) => `<div><b style="color:${c || 'inherit'}">${b}</b><span>${a}</span></div>`).join('');
+  const tips = [];
+  if (G.missLate > G.missEarly && G.missLate >= 3) tips.push(`Most misses were late (average ${avgLate} ms). Start your swing earlier — when the creep's HP is about one creep hit above your damage.`);
+  if (G.missEarly > G.missLate && G.missEarly >= 3) tips.push('Most misses were early: your hit landed but didn\'t kill. Wait for the HP to drop under the white tick, or cancel the swing with S if it\'s going to land too soon.');
+  if (G.missSkip > G.lh * 0.3 && G.missSkip >= 4) tips.push('Many creeps died without an attempt. Stay close to the wave and watch the low-HP creeps, especially the ranged ones (they die fast).');
+  if (dp < 0.25 && G.ownDied >= 8) tips.push('Deny more: A-click your own creeps once they drop under half HP.');
+  if (!tips.length) tips.push('Clean session. Try turning off the kill-threshold tick, a weaker hero, or a harder rival.');
+  $('rTips').innerHTML = tips.join('<br>');
+  $('summary').classList.add('show');
+  requestAnimationFrame(drawChart);
+}
+function drawChart() {
+  const c = $('chart'), r = c.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+  c.width = r.width * d; c.height = r.height * d; const g = c.getContext('2d'); g.scale(d, d);
+  const w = r.width, h = r.height, pad = 26, mins = Math.max(1, G.perMin.length);
+  const maxLH = Math.max(8, ...G.perMin.map(m => m ? m.lh : 0)) * 1.1;
+  g.strokeStyle = '#2a3644'; g.lineWidth = 1; g.font = '11px Barlow, sans-serif'; g.fillStyle = '#8a99a8';
+  for (let k = 0; k <= 4; k++) { const y = pad / 2 + (h - pad) * k / 4; g.beginPath(); g.moveTo(pad, y); g.lineTo(w - 8, y); g.stroke(); g.fillText(Math.round(maxLH * (1 - k / 4)), 4, y + 4); }
+  const X = i => pad + (w - pad - 10) * i / mins, Y = v => pad / 2 + (h - pad) * (1 - v / maxLH);
+  g.fillText('minutes', w - 52, h - 4);
+  const pts = [0, ...G.perMin.map(m => m ? m.lh : 0)];
+  g.strokeStyle = '#4fd18b'; g.lineWidth = 2.5; g.beginPath(); pts.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(0), Y(v))); g.stroke();
+  const dn = [0, ...G.perMin.map(m => m ? m.dn : 0)];
+  g.strokeStyle = '#9fd3ff'; g.lineWidth = 2; g.beginPath(); dn.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(0), Y(v))); g.stroke();
+  g.fillStyle = '#4fd18b'; g.fillText('last hits', pad + 6, 14); g.fillStyle = '#9fd3ff'; g.fillText('denies', pad + 60, 14);
+}
+
+// =====================================================================
+// MENU
+// =====================================================================
+function menu() {
+  $('heroes').innerHTML = Object.entries(HEROES).map(([k, h]) => `<button class="opt${OPT.hero === k ? ' sel' : ''}" data-h="${k}"><b>${h.name}</b><small>${h.tag}<br>${h.dmin}–${h.dmax} dmg · ${h.proj ? 'ranged' : 'melee'} · ${(h.bat / (h.as / 100)).toFixed(2)}s / hit · ${Math.round(h.ap / (h.as / 100) * 1000)} ms wind-up</small><small>${h.desc}</small></button>`).join('');
+  $('modes').innerHTML = Object.entries(MODES).map(([k, m]) => `<button class="opt${OPT.mode === k ? ' sel' : ''}" data-m="${k}"><b>${m.name}</b><small>${m.d}</small></button>`).join('');
+  $('rivals').innerHTML = Object.entries(RIVALS).map(([k, m]) => `<button class="opt${OPT.rival === k ? ' sel' : ''}" data-r="${k}"><b>${m.name}</b><small>${m.d}</small></button>`).join('');
+  for (const [id, k] of [['oTick', 'tick'], ['oNum', 'num'], ['oGlow', 'glow'], ['oSound', 'sound']]) $(id).checked = OPT[k];
+  $('oBonus').value = OPT.bonus; $('oBonusV').textContent = '+' + OPT.bonus;
+  const key = OPT.hero + '|ten|' + OPT.rival + '|' + OPT.bonus, b = BEST[key];
+  $('bestLine').textContent = b ? `Best 10-minute test with this setup: ${b.lh} last hits, ${b.dn} denies.` : '';
+}
+$('heroes').addEventListener('click', e => { const b = e.target.closest('[data-h]'); if (b) { OPT.hero = b.dataset.h; saveOpt(); menu(); } });
+$('modes').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) { OPT.mode = b.dataset.m; saveOpt(); menu(); } });
+$('rivals').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { OPT.rival = b.dataset.r; saveOpt(); menu(); } });
+for (const [id, k] of [['oTick', 'tick'], ['oNum', 'num'], ['oGlow', 'glow'], ['oSound', 'sound']]) $(id).addEventListener('change', e => { OPT[k] = e.target.checked; saveOpt(); });
+$('oBonus').addEventListener('input', e => { OPT.bonus = +e.target.value; $('oBonusV').textContent = '+' + OPT.bonus; saveOpt(); menu(); });
+$('bGo').addEventListener('click', start);
+$('bResume').addEventListener('click', togglePause);
+$('bRestart').addEventListener('click', start);
+$('bAgain').addEventListener('click', start);
+const toMenu = () => { if (G && !G.ended && G.t > 30 && OPT.mode !== 'ten') { G.paused = false; $('pause').classList.remove('show'); endSession(); return; } G = null; for (const id of ['pause', 'summary']) $(id).classList.remove('show'); $('menu').classList.add('show'); menu(); };
+$('bMenu').addEventListener('click', toMenu);
+$('bMenu2').addEventListener('click', () => { G = null; $('summary').classList.remove('show'); $('menu').classList.add('show'); menu(); });
+
+// =====================================================================
+// LOOP
+// =====================================================================
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (G && !G.paused && !G.ended) { let rem = dt; while (rem > 1e-4) { const s = Math.min(rem, 1 / 120); update(s); rem -= s; } }
+  try { render(); if (G) hud(); } catch (e) { console.error(e); }
+  requestAnimationFrame(frame);
+}
+resize(); menu(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

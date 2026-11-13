@@ -1,0 +1,1668 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The Feed</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Unbounded:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Layout: a cheerful big-tech internal tool. Pastel, rounded, relentlessly friendly chrome around one dark panel: the town, where the consequences live. Single light look by design. */
+:root {
+  --bg: #f3f1ec; --bg2: #ebe8e0; --panel: #ffffff; --ink: #1c2130; --ink2: #4b5263; --mute: #7a8090; --line: #e3dfd5; --line2: #d4cfc2;
+  --brand: #5a55f0; --brand2: #ecebfe; --good: #12946a; --good2: #e3f5ee; --bad: #d8402f; --bad2: #fdecea; --warn: #c97a10; --warn2: #fdf3e2;
+  --night: #121624; --night2: #1b2033; --nline: #2b3250; --nfg: #e7e9f3; --nmute: #8f97b5;
+  --teal: #3fb6c8; --amber: #e88a3c; --purple: #b07cff;
+  --f-ui: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --f-logo: "Unbounded", "Plus Jakarta Sans", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px 28px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+#app { max-width: 1420px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.num, .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* header */
+.top { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 6px 2px 10px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.logo { font: 700 25px/1 var(--f-logo); letter-spacing: -1px; background: linear-gradient(90deg, #5a55f0, #c64fd8 55%, #ff7a59); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand small { font: 500 11.5px/1 var(--f-ui); color: var(--mute); letter-spacing: .3px; }
+.hs { display: flex; flex-direction: column; line-height: 1.15; min-width: 60px; }
+.hs small { font: 600 10px/1.3 var(--f-ui); color: var(--mute); text-transform: uppercase; letter-spacing: 1px; }
+.hs b { font: 700 16px/1.25 var(--f-ui); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hs b.good { color: var(--good); }
+.pat { letter-spacing: 2px; color: var(--good); }
+.pat.p1 { color: var(--warn); } .pat.p0 { color: var(--bad); }
+.hbtns { display: flex; gap: 6px; }
+.hb { background: var(--panel); border: 1px solid var(--line); color: var(--ink2); border-radius: 999px; padding: 7px 13px; font: 600 12.5px/1 var(--f-ui); }
+.hb:hover { border-color: var(--line2); color: var(--ink); }
+
+/* grid */
+.grid { display: grid; grid-template-columns: 284px minmax(0, 1fr) 328px; gap: 14px; align-items: start; }
+.ctl, .side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.side { position: sticky; top: 8px; }
+.mid { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px 14px; min-width: 0; }
+.card h2 { margin: 0 0 10px; font: 700 13.5px/1.2 var(--f-ui); display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.card h2 .hint { font: 500 11.5px/1.2 var(--f-ui); color: var(--mute); text-align: right; }
+.note { margin: 0; font-size: 12.5px; color: var(--mute); }
+
+/* sliders */
+.sl { margin-bottom: 10px; }
+.sl:last-child { margin-bottom: 0; }
+.sl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sl-h label { font: 600 13px/1.3 var(--f-ui); }
+.sl-h output { font: 600 12.5px/1 var(--f-mono); color: var(--brand); min-width: 22px; text-align: right; }
+.sl p { margin: 1px 0 4px; font-size: 11.5px; line-height: 1.35; color: var(--mute); }
+input[type=range] { width: 100%; margin: 2px 0 0; accent-color: var(--brand); height: 22px; }
+input[type=range]:disabled { opacity: .5; }
+.tg { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.tg:first-child { border-top: 0; padding-top: 0; }
+.tg span { flex: 1; font: 600 13px/1.3 var(--f-ui); }
+.tg span small { display: block; font: 500 11.5px/1.35 var(--f-ui); color: var(--mute); margin-top: 1px; }
+.sw { position: relative; flex: 0 0 38px; height: 22px; border-radius: 999px; background: var(--line2); border: 0; padding: 0; transition: background .15s; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: left .15s; }
+.sw.on { background: var(--good); }
+.sw.on::after { left: 19px; }
+.sw:disabled { opacity: .45; }
+.locked { font-size: 12px; color: var(--mute); background: var(--bg); border: 1px dashed var(--line2); border-radius: 10px; padding: 8px 10px; }
+.fc { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.fc div { background: var(--bg); border-radius: 10px; padding: 7px 8px; font-size: 11px; color: var(--mute); line-height: 1.25; }
+.fc b { display: block; font: 700 13px/1.3 var(--f-ui); color: var(--ink); }
+.fc b.up { color: var(--good); } .fc b.down { color: var(--bad); } .fc b.mid { color: var(--warn); }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 11px; min-width: 0; }
+.kpi small { display: block; font: 600 10px/1.3 var(--f-ui); color: var(--mute); text-transform: uppercase; letter-spacing: .8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi b { font: 700 18px/1.25 var(--f-ui); font-variant-numeric: tabular-nums; }
+.kpi i { font: 600 11px/1 var(--f-mono); font-style: normal; margin-left: 5px; }
+.kpi i.up { color: var(--good); } .kpi i.down { color: var(--bad); }
+.kpi .bar { height: 5px; border-radius: 3px; background: var(--bg2); margin-top: 5px; overflow: hidden; position: relative; }
+.kpi .bar span { position: absolute; inset: 0 auto 0 0; background: var(--brand); border-radius: 3px; }
+.kpi .bar span.ok { background: var(--good); }
+.kpi .tgt { font: 500 10.5px/1.3 var(--f-ui); color: var(--mute); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi.soc b.good { color: var(--good); } .kpi.soc b.bad { color: var(--bad); } .kpi.soc b.mid { color: var(--warn); }
+
+/* the town */
+.net.dark { background: var(--night); border-color: var(--night); color: var(--nfg); padding: 12px 12px 10px; }
+.net-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.net-h h2 { margin: 0; color: var(--nfg); }
+.net-h span { font: 500 11.5px/1.3 var(--f-ui); color: var(--nmute); text-align: right; }
+.canvas-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: var(--night2); }
+#net { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: manipulation; }
+.dot-tip { position: absolute; pointer-events: none; background: rgba(10, 12, 22, .92); border: 1px solid var(--nline); color: var(--nfg); border-radius: 8px; padding: 6px 9px; font: 500 12px/1.35 var(--f-ui); max-width: 220px; z-index: 2; }
+.dot-tip b { display: block; font-weight: 700; }
+.dot-tip small { color: var(--nmute); }
+.run-banner { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: rgba(90, 85, 240, .92); color: #fff; font: 700 13px/1 var(--f-ui); padding: 8px 14px; border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,.35); white-space: nowrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 11.5px; color: var(--nmute); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.legend i.ring { background: transparent; border: 2px solid; width: 11px; height: 11px; }
+.mixbar { display: flex; height: 18px; border-radius: 6px; overflow: hidden; margin-top: 8px; background: var(--night2); }
+.mixbar span { height: 100%; display: flex; align-items: center; justify-content: center; font: 600 10px/1 var(--f-mono); color: rgba(0,0,0,.65); overflow: hidden; white-space: nowrap; transition: flex-basis .5s; }
+
+/* deploy */
+.deploy { display: flex; align-items: center; gap: 12px; }
+.todo { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.todo span { font: 600 12px/1.2 var(--f-ui); padding: 6px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink2); }
+.todo span.done { color: var(--good); background: var(--good2); border-color: transparent; }
+.todo span.need { color: var(--warn); background: var(--warn2); border-color: transparent; }
+.todo button { all: unset; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.deploy-btn { background: var(--brand); color: #fff; border: 0; border-radius: 12px; padding: 13px 22px; font: 700 15px/1 var(--f-ui); box-shadow: 0 6px 16px rgba(90, 85, 240, .3); white-space: nowrap; }
+.deploy-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.deploy-btn:disabled { background: var(--line2); color: var(--mute); box-shadow: none; }
+
+/* tabs */
+.tabs-card { padding: 0; }
+.tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); padding: 0 6px; }
+.tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 12px 11px 9px; font: 600 13px/1 var(--f-ui); color: var(--mute); white-space: nowrap; }
+.tabs button.on { color: var(--ink); border-bottom-color: var(--brand); }
+.tabs button .badge { display: inline-block; min-width: 18px; padding: 2px 5px; margin-left: 5px; border-radius: 999px; background: var(--bad); color: #fff; font: 700 10.5px/1.2 var(--f-ui); text-align: center; }
+.pane { padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; }
+.pane > * { flex-shrink: 0; }
+.empty { color: var(--mute); font-size: 13px; padding: 20px 4px; text-align: center; }
+
+/* inbox */
+.msg { display: flex; gap: 10px; }
+.av { flex: 0 0 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font: 700 13px/1 var(--f-ui); color: #fff; }
+.msg-b { flex: 1; min-width: 0; }
+.msg-h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.msg-h b { font-size: 13.5px; }
+.msg-h small { color: var(--mute); font-size: 11.5px; }
+.msg-s { font-weight: 700; font-size: 13.5px; margin-top: 1px; }
+.msg-t { margin: 2px 0 8px; color: var(--ink2); font-size: 13.5px; max-width: 70ch; }
+.choices { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.choice { background: var(--panel); border: 1px solid var(--line2); border-radius: 10px; padding: 8px 12px; text-align: left; font: 600 13px/1.35 var(--f-ui); color: var(--ink); }
+.choice:hover { border-color: var(--brand); background: var(--brand2); }
+.msg + .msg { border-top: 1px solid var(--line); padding-top: 12px; }
+.msg.done .msg-t { margin-bottom: 4px; }
+.res { background: var(--bg); border-radius: 10px; padding: 8px 11px; font-size: 13px; color: var(--ink2); }
+.res.good { background: var(--good2); } .res.bad { background: var(--bad2); }
+
+/* roadmap */
+.feats { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.feat { border: 1px solid var(--line); border-radius: 12px; padding: 10px 11px; display: flex; flex-direction: column; gap: 5px; background: var(--panel); }
+.feat.shipped { background: var(--bg); }
+.feat-h { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+.feat-h b { font-size: 13.5px; }
+.tag { font: 700 9.5px/1 var(--f-ui); text-transform: uppercase; letter-spacing: .8px; padding: 3px 6px; border-radius: 999px; white-space: nowrap; }
+.tag.growth { background: #ecebfe; color: #4a45d6; } .tag.revenue { background: #fdf3e2; color: #a5630b; } .tag.integrity { background: #e3f5ee; color: #0e7a57; }
+.feat p { margin: 0; font-size: 12.5px; color: var(--ink2); flex: 1; }
+.ship { align-self: flex-start; background: var(--ink); color: #fff; border: 0; border-radius: 8px; padding: 6px 12px; font: 700 12px/1 var(--f-ui); }
+.ship:disabled { background: var(--line); color: var(--mute); }
+.feat .when { font: 600 11.5px/1 var(--f-ui); color: var(--good); }
+
+/* dashboard */
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.chart { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; min-width: 0; }
+.chart h3 { margin: 0 0 4px; font: 700 12px/1.2 var(--f-ui); display: flex; justify-content: space-between; gap: 6px; }
+.chart h3 small { font-weight: 500; color: var(--mute); }
+.chart svg { width: 100%; height: 120px; display: block; }
+.keys { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--mute); margin-top: 3px; }
+.keys span { display: inline-flex; gap: 4px; align-items: center; }
+.keys i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+table.q { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.q th, table.q td { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.q th:first-child, table.q td:first-child { text-align: left; }
+table.q th { font: 700 10.5px/1.2 var(--f-ui); color: var(--mute); text-transform: uppercase; letter-spacing: .6px; }
+.v-beat { color: var(--good); font-weight: 700; } .v-miss { color: var(--bad); font-weight: 700; } .v-meets, .v-warn { color: var(--warn); font-weight: 700; }
+.tbl-wrap { overflow-x: auto; }
+
+/* log / achievements */
+.log { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--ink2); }
+.log div { display: flex; gap: 10px; }
+.log small { flex: 0 0 52px; color: var(--mute); font: 500 11px/1.6 var(--f-mono); }
+.achs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.ach { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; font-size: 12px; color: var(--mute); }
+.ach b { display: block; color: var(--ink); font-size: 13px; }
+.ach.got { background: var(--brand2); border-color: transparent; }
+.ach:not(.got) b { color: var(--mute); }
+
+/* phone */
+.ph-h { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.ph-h h2 { margin: 0; }
+.ph-btns { display: flex; gap: 4px; }
+.chip { background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px; font: 600 11.5px/1.2 var(--f-ui); color: var(--ink2); }
+.chip:hover { border-color: var(--line2); color: var(--ink); }
+.profile { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.pr-top { display: flex; gap: 10px; align-items: center; }
+.pr-av { flex: 0 0 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 700 14px/1 var(--f-ui); color: #fff; }
+.pr-top b { display: block; font-size: 14px; }
+.pr-top small { color: var(--mute); font-size: 11.5px; }
+.pr-bio { font-size: 12px; color: var(--ink2); font-style: italic; }
+.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; }
+.meter { font-size: 10.5px; color: var(--mute); }
+.meter div { height: 5px; background: var(--bg2); border-radius: 3px; margin-top: 2px; position: relative; overflow: hidden; }
+.meter div span { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.meter div.side { background: linear-gradient(90deg, var(--teal) 0 50%, var(--amber) 50%); opacity: .35; overflow: visible; }
+.meter div.side span { width: 3px !important; background: var(--ink); left: 50%; margin-left: -1.5px; inset: -2px auto -2px auto; border-radius: 2px; }
+.phone { background: #0d0f17; border-radius: 28px; padding: 10px 8px 12px; position: relative; box-shadow: 0 10px 30px rgba(28, 33, 48, .18); }
+.notch { width: 70px; height: 6px; border-radius: 3px; background: #2a2e3d; margin: 0 auto 8px; }
+.screen { background: #f6f6f9; border-radius: 20px; padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 360px; overflow: hidden; }
+.screen .app-h { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px 4px; font: 700 15px/1 var(--f-logo); letter-spacing: -.6px; color: var(--brand); }
+.screen .app-h small { font: 600 10px/1 var(--f-ui); color: var(--mute); letter-spacing: 0; }
+.post { background: #fff; border-radius: 12px; padding: 7px 9px 8px; border-left: 4px solid var(--c, #ccc); box-shadow: 0 1px 2px rgba(0,0,0,.05); animation: pin .25s ease; }
+@keyframes pin { from { opacity: 0; transform: translateY(4px); } }
+.post .who { display: flex; justify-content: space-between; gap: 6px; font: 700 11px/1.3 var(--f-ui); color: var(--ink2); }
+.post .who small { font-weight: 600; color: var(--c); text-transform: uppercase; letter-spacing: .5px; font-size: 9.5px; white-space: nowrap; }
+.post .tx { font-size: 12.5px; line-height: 1.35; color: var(--ink); margin-top: 1px; }
+.post.vid .tx::before { content: "▶ "; color: var(--mute); font-size: 10px; }
+.post .flag { margin-top: 5px; font: 600 10.5px/1.3 var(--f-ui); color: #6b4bb8; background: #f1ebff; border-radius: 6px; padding: 3px 6px; }
+.post.ad { --c: #c6c9d4; background: #fbfbf4; }
+.post.ad .who { color: var(--mute); }
+.post.chrono-note { --c: var(--good); font-size: 11.5px; }
+
+/* modals */
+.ov { position: fixed; inset: 0; background: rgba(28, 33, 48, .5); backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left)); overflow-y: auto; z-index: 20; animation: fade .2s ease; }
+@keyframes fade { from { opacity: 0; } }
+.mo { background: var(--panel); border-radius: 18px; width: 100%; max-width: 560px; padding: 22px 24px 20px; box-shadow: 0 30px 80px rgba(20, 24, 40, .35); margin: auto 0; }
+.mo.wide { max-width: 780px; }
+.kicker { font: 700 11px/1.2 var(--f-ui); color: var(--brand); text-transform: uppercase; letter-spacing: 1.2px; }
+.mo h2 { margin: 4px 0 8px; font: 800 24px/1.15 var(--f-ui); letter-spacing: -.4px; text-wrap: balance; }
+.mo h3 { margin: 16px 0 6px; font: 700 13px/1.2 var(--f-ui); text-transform: uppercase; letter-spacing: .8px; color: var(--mute); }
+.mo p { margin: 0 0 10px; color: var(--ink2); }
+.mo ul { margin: 0 0 10px; padding-left: 20px; color: var(--ink2); }
+.mo li { margin-bottom: 5px; }
+.acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; }
+.btn { background: var(--brand); color: #fff; border: 0; border-radius: 10px; padding: 11px 18px; font: 700 14px/1 var(--f-ui); }
+.btn:hover { filter: brightness(1.08); }
+.btn.alt { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+.btn.red { background: var(--bad); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.stats div { background: var(--bg); border-radius: 10px; padding: 7px 10px; font-size: 11px; color: var(--mute); line-height: 1.3; min-width: 0; }
+.stats b { display: block; font: 700 16px/1.3 var(--f-ui); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stats b i { font: 600 11px/1 var(--f-mono); font-style: normal; margin-left: 4px; }
+.stats b i.up { color: var(--good); } .stats b i.down { color: var(--bad); }
+.trend { display: flex; flex-direction: column; gap: 6px; }
+.trend .post { box-shadow: none; border: 1px solid var(--line); border-left: 4px solid var(--c); animation: none; }
+.trend .post .eng { font: 600 10.5px/1 var(--f-mono); color: var(--mute); margin-top: 4px; }
+.imsg { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.imsg .from { font: 600 11px/1 var(--f-ui); color: var(--mute); margin-left: 10px; }
+.bubble { background: #e9e9eb; color: #111; border-radius: 18px 18px 18px 4px; padding: 9px 13px; max-width: 88%; font-size: 14px; line-height: 1.35; }
+.board { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
+.board.beat { background: var(--good2); border-color: transparent; } .board.miss { background: var(--bad2); border-color: transparent; } .board.meets, .board.warn { background: var(--warn2); border-color: transparent; }
+.board h3 { margin-top: 0; color: var(--ink); }
+.board p:last-child { margin-bottom: 0; }
+.verdict { font: 800 20px/1.2 var(--f-ui); margin-bottom: 6px; }
+.endbig { font: 800 30px/1.1 var(--f-ui); letter-spacing: -.6px; }
+.ach-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.ach-list span { font: 600 11.5px/1.2 var(--f-ui); background: var(--brand2); color: #4a45d6; padding: 4px 8px; border-radius: 999px; }
+
+/* toasts + tooltips */
+#toasts { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; z-index: 30; pointer-events: none; max-width: min(360px, calc(100vw - 32px)); }
+.toast { background: var(--ink); color: #fff; border-radius: 12px; padding: 10px 13px; font-size: 13px; line-height: 1.4; box-shadow: 0 10px 30px rgba(0,0,0,.25); animation: tin .25s ease; }
+.toast.tip { background: var(--brand); }
+.toast.bad { background: var(--bad); }
+.toast.mom { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+@keyframes tin { from { opacity: 0; transform: translateY(8px); } }
+mark.jk { background: transparent; color: inherit; border-bottom: 1.5px dotted currentColor; cursor: help; text-decoration: none; }
+#jtip { position: fixed; z-index: 40; max-width: 280px; background: #2b2250; color: #fff; border-radius: 10px; padding: 8px 11px; font: 500 13px/1.4 var(--f-ui); box-shadow: 0 10px 30px rgba(0,0,0,.3); pointer-events: none; }
+
+/* responsive */
+@media (max-width: 1240px) {
+  .grid { grid-template-columns: 270px minmax(0, 1fr); }
+  .side { grid-column: 2; position: static; }
+  .phone-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 14px; }
+  .phone-card .ph-h { grid-column: 1 / -1; }
+  .phone-card .note { grid-column: 1 / -1; margin-top: 8px; }
+}
+@media (max-width: 860px) {
+  body { font-size: 14px; }
+  .top { gap: 12px; }
+  .hs.wide { display: none; }
+  .grid { display: flex; flex-direction: column; }
+  .ctl { order: 2; width: 100%; }
+  .mid { order: 1; width: 100%; }
+  .side { order: 3; width: 100%; }
+  .phone-card { display: block; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .canvas-wrap { aspect-ratio: 4 / 3.4; }
+  .charts { grid-template-columns: minmax(0, 1fr); }
+  .deploy { flex-direction: column; align-items: stretch; }
+  .deploy-btn { width: 100%; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mo { padding: 18px 16px 16px; }
+  .mo h2 { font-size: 21px; }
+}
+@media (max-width: 420px) {
+  .brand small { display: none; }
+  .hbtns .hb { padding: 6px 10px; }
+}
+</style>
+<div id="app">
+  <header class="top">
+    <div class="brand"><span class="logo">gather</span><small>Ranking Console · internal</small></div>
+    <div class="hs"><small id="hQ">Q1</small><b id="hMonth">Jan Y1</b></div>
+    <div class="hs wide"><small>Your title</small><b id="hTitle">Senior Ranking Engineer</b></div>
+    <div class="hs"><small>Stock options</small><b id="hOpt">$0</b></div>
+    <div class="hs"><small>Board patience</small><b id="hPat" class="pat">●●●</b></div>
+    <div class="hbtns"><button type="button" class="hb" id="bHelp">How to play</button><button type="button" class="hb" id="bMenu">Menu</button></div>
+  </header>
+  <div class="grid">
+    <aside class="ctl" aria-label="Ranking controls">
+      <section class="card">
+        <h2>Ranking weights <span class="hint">what the feed rewards</span></h2>
+        <div id="sliders"></div>
+      </section>
+      <section class="card">
+        <h2>Ad load <span class="hint" id="adHint">ads per 10 posts</span></h2>
+        <div id="adSlider"></div>
+      </section>
+      <section class="card">
+        <h2>Integrity</h2>
+        <div id="toggles"></div>
+      </section>
+      <section class="card">
+        <h2>Forecast <span class="hint">this month, at these settings</span></h2>
+        <div id="forecast" class="fc"></div>
+      </section>
+    </aside>
+    <main class="mid">
+      <div class="kpis" id="kpis"></div>
+      <section class="net card dark" aria-label="Your town">
+        <div class="net-h"><h2>Your town</h2><span id="netInfo"></span></div>
+        <div class="canvas-wrap" id="cWrap"><canvas id="net"></canvas><div id="dotTip" class="dot-tip" hidden></div><div id="runBanner" class="run-banner" hidden></div></div>
+        <div class="legend" id="legend"></div>
+        <div class="mixbar" id="mixbar" title="Share of everything people saw last month, by type"></div>
+      </section>
+      <div class="deploy">
+        <div id="todo" class="todo"></div>
+        <button type="button" class="deploy-btn" id="bDeploy">Deploy month</button>
+      </div>
+      <section class="card tabs-card">
+        <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+        <div class="pane" id="pane"></div>
+      </section>
+    </main>
+    <aside class="side" aria-label="Feed preview">
+      <section class="card phone-card">
+        <div class="ph-h"><h2 id="phTitle">What people see</h2><div class="ph-btns"><button type="button" class="chip" data-who="mom" id="whoMom" hidden>Mom</button><button type="button" class="chip" data-who="teen">A teen</button><button type="button" class="chip" data-who="any">Someone</button></div></div>
+        <div id="profile" class="profile"></div>
+        <div class="phone"><div class="notch"></div><div id="phone" class="screen"></div></div>
+        <p class="note">Updates as you move the sliders. Click any dot in town to see their feed.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+<div id="ovWrap"></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="jtip" hidden></div>
+<script>
+"use strict";
+// =====================================================================
+// THE FEED — CONTENT
+// You run feed ranking at Gather ("Bringing People Together"). The town
+// is arguing about a proposed roundabout. You decide what everyone sees.
+// Inline jokes use {{shown text|hover text}}.
+// =====================================================================
+const TYPES = ['friend', 'cute', 'news', 'rage', 'hoax', 'slop', 'glow'];
+const TYPE_INFO = {
+  friend:{ name:'Friends & family', color:'#7bd389', base:0.22, mood:0.006 },
+  cute:  { name:'Cute animals', color:'#f6a6c1', base:0.20, mood:0.007 },
+  news:  { name:'Local news', color:'#6fa8ff', base:0.08, mood:-0.001 },
+  rage:  { name:'Outrage', color:'#ff5b4a', base:0.14, mood:-0.004 },
+  hoax:  { name:'Hoaxes', color:'#b07cff', base:0.16, mood:-0.003 },
+  slop:  { name:'AI video slop', color:'#9aa3ad', base:0.10, mood:-0.005 },
+  glow:  { name:'Lifestyle influencers', color:'#f4c24d', base:0.12, mood:-0.004 }
+};
+const CREATOR_TYPES = ['cute', 'news', 'rage', 'hoax', 'slop', 'glow'];
+const SCALE = 10000;          // people per dot
+
+// Ideology axis: −1 = Roundies (pro-roundabout), +1 = Lighters (keep the traffic lights)
+const SIDES = { neg:'Roundies', pos:'Lighters' };
+
+// ---------------------------------------------------------------------
+// PEOPLE
+// =====================================================================
+const FIRST = ['Linda', 'Marcus', 'Priya', 'Dev', 'Hannah', 'Omar', 'Grace', 'Theo', 'Rosa', 'Ken', 'Aisha', 'Bill', 'Mei', 'Jorge', 'Tess', 'Ravi', 'Nora', 'Sam', 'Ivy', 'Hank', 'Lupe', 'Owen', 'Dana', 'Elijah', 'Fatima', 'Gus', 'Wren', 'Carl', 'June', 'Ike', 'Maya', 'Pete', 'Zoe', 'Lou', 'Bea', 'Raj', 'Cora', 'Abe', 'Kim', 'Tomás'];
+const LAST = ['Okafor', 'Brennan', 'Shah', 'Kowalski', 'Nguyen', 'Haddad', 'Lindqvist', 'Moreno', 'Park', 'Adeyemi', 'Fischer', 'Costa', 'Byrne', 'Ito', 'Mendes', 'Larsen', 'Osei', 'Dubois', 'Reyes', 'Novak'];
+// personas: starting interests over TYPES [friend, cute, news, rage, hoax, slop, glow]
+const PERSONAS = [
+  { id:'grand', name:'grandparent', w:16, it:[0.45, 0.25, 0.2, 0.04, 0.03, 0.02, 0.01], age:[58, 80], sus:[0.5, 0.95], bio:['Joined to see the grandkids.', 'Retired teacher. Shares recipes.', 'Here for the church group photos.'] },
+  { id:'parent', name:'parent', w:22, it:[0.35, 0.2, 0.18, 0.08, 0.04, 0.05, 0.1], age:[34, 52], sus:[0.3, 0.7], bio:['Two kids, one dog, zero sleep.', 'PTA treasurer.', 'Posts the first day of school every year.'] },
+  { id:'teen', name:'teenager', w:16, it:[0.15, 0.2, 0.02, 0.05, 0.03, 0.3, 0.25], age:[13, 17], sus:[0.4, 0.8], teen:1, bio:['Here for the Blips.', 'Has seven accounts.', 'Says "no cap" ironically, then sincerely.'] },
+  { id:'news', name:'news junkie', w:14, it:[0.12, 0.05, 0.4, 0.3, 0.05, 0.03, 0.05], age:[28, 70], sus:[0.2, 0.5], bio:['Reads the council minutes. All of them.', 'Has opinions about zoning.', 'Retired journalist, unretired commenter.'] },
+  { id:'young', name:'young professional', w:20, it:[0.25, 0.15, 0.08, 0.07, 0.03, 0.15, 0.27], age:[22, 33], sus:[0.25, 0.6], bio:['Marketing coordinator. Runs.', 'Building a personal brand.', 'Posts brunch, sincerely.'] },
+  { id:'curious', name:'"just asking questions" type', w:12, it:[0.15, 0.1, 0.1, 0.2, 0.3, 0.1, 0.05], age:[30, 65], sus:[0.6, 1.0], bio:['Does their own research.', 'Has a podcast with 11 listeners.', 'Owns a lot of flashlights.'] }
+];
+const AGE_LINES = { teen:'a teenager', grand:'a grandparent' };
+
+// ---------------------------------------------------------------------
+// POSTS (what the phone preview and trending show). {L} side-specific
+// =====================================================================
+const POSTS = {
+  friend:['{n} posted 14 photos from Lisbon', '{n}: Some personal news! New job 🎉', '{n} is feeling grateful', '{n}\'s sourdough starter turned one', '{n} checked in at Grandma\'s 90th', '{n}: Anyone know a good plumber?', '{n} shared a throwback from 2009'],
+  cute:['This duck has been elected mayor of the pond', 'Biscuit learned to open the fridge. We are doomed.', 'Cat refuses to leave box. Day four.', 'A golden retriever meets snow for the first time', 'Tiny goat in a tiny sweater', 'Raccoon washes a grape, loses grape, grieves'],
+  news:['Council delays roundabout vote to March', 'Study: the roundabout would cut average wait by 11 seconds', 'Library extends weekend hours', 'Local bakery wins regional sourdough award', 'Water main repair on 5th Street this weekend', 'High school robotics team heads to state'],
+  rage_neg:['Lighters would rather idle at a red light than admit they\'re wrong', 'If you\'re against the roundabout, unfollow me now', 'Another Lighter running a yellow. Every. Single. Day.', 'The Lighters are scared of a CIRCLE', 'Lighters want your kids breathing exhaust at red lights. Share if you\'re angry.'],
+  rage_pos:['They spent $4 million on a CIRCLE', 'Roundies don\'t signal. Never forget.', 'The roundabout cult is coming for YOUR intersection', 'Name one good thing a roundabout ever did. You can\'t.', 'Roundies think yielding is a personality'],
+  hoax:['The roundabout is a 5G tower. Do your research.', 'Doctors HATE this: turmeric reverses aging', 'Birds stopped landing near the roundabout site. Ask yourself why.', 'BREAKING: they are putting fluoride in the traffic cones', 'The council has a secret tunnel under the roundabout site', 'My cousin\'s friend says the roundabout causes migraines'],
+  slop:['AI video: a shrimp Jesus rescues a kitten from a flood', 'Satisfying: 4 hours of soap being cut', 'You won\'t believe what happens at 0:47', 'AI video: grandma made of bread hugs a soldier', 'Top 10 roundabouts that will shock you (#7 is a circle)', 'Man reacts to a man reacting to a video'],
+  glow:['My 4 AM morning routine (you\'re already behind)', 'Day in my life as a 22-year-old CEO of myself', 'I quit my job to live in a van and I\'m thriving (link in bio)', 'What I eat in a day: mostly water and gratitude', 'Manifesting a better roundabout ✨', 'Romanticize your commute. Even the roundabout.']
+};
+const ADS = ['Sponsored · This mattress saved my marriage', 'Sponsored · Learn to code in 6 days', 'Sponsored · Gather Premium: see fewer ads (still some ads)', 'Sponsored · Roundabout-proof tires', 'Sponsored · Is your traffic light listening to you?', 'Sponsored · Meal kits for people who will not cook them'];
+
+// ---------------------------------------------------------------------
+// RANKING SIGNALS (sliders)
+// =====================================================================
+const SIGNALS = [
+  { id:'fr', name:'Friends & family', desc:'Posts from people you actually know.' },
+  { id:'en', name:'Predicted engagement', desc:'Posts the model thinks you\'ll react to. Comments count double, and angry comments count the same as happy ones.' },
+  { id:'wa', name:'Watch time', desc:'Videos that keep you watching.' },
+  { id:'va', name:'Variety', desc:'Fewer posts of the same kind in a row. Breaks up echo chambers, and some sessions.' },
+  { id:'qu', name:'Quality', desc:'Posts from sources with a track record. Boring, mostly.' }
+];
+
+// ---------------------------------------------------------------------
+// ROADMAP (one feature ships per month)
+// =====================================================================
+const FEATURES = [
+  { id:'infinite', name:'Infinite scroll', desc:'The feed never ends. Sessions run 35% longer. Habit forms faster. Nobody feels better.', tag:'growth' },
+  { id:'notifs', name:'Push notifications', desc:'"Someone you may know just posted." More people open the app each week. Mood dips slightly.', tag:'growth' },
+  { id:'pymk', name:'People You May Know', desc:'Suggests follows. Growth +35%. It suggests people who already agree with you, because those suggestions get accepted.', tag:'growth' },
+  { id:'autoplay', name:'Autoplay', desc:'Videos start on their own. Watch time counts 50% more and habit forms faster.', tag:'growth' },
+  { id:'streaks', name:'Streaks', desc:'Reward daily use with a number that goes up. Teens especially cannot let it go down.', tag:'growth' },
+  { id:'blips', name:'Blips (short video tab)', desc:'An infinite tab of short video. Adds AI slop to every feed and makes slop creators rich.', tag:'growth', needs:'autoplay' },
+  { id:'creatorfund', name:'Creator Fund', desc:'Pay creators for engagement. They learn what you reward twice as fast. Whatever that is.', tag:'growth' },
+  { id:'verified', name:'$8 verification', desc:'Anyone can buy a checkmark. +$2.4M a month. Hoax accounts buy them first.', tag:'revenue' },
+  { id:'muse', name:'Gather Muse (AI posts)', desc:'Generative AI writes posts for creators. Content supply doubles, mostly slop.', tag:'growth' },
+  { id:'integrity', name:'Integrity team', desc:'{{Hire an integrity team|Four people and a Notion page.}}. Unlocks "Demote borderline posts" and "Downrank hoaxes."', tag:'integrity' },
+  { id:'labels', name:'Fact-check labels', desc:'Hoaxes get a label. People believe them 60% less and engage 30% less. True believers get angrier.', tag:'integrity' },
+  { id:'hidelikes', name:'Hide like counts', desc:'Nobody sees the numbers. Mood improves. Engagement drops 7%.', tag:'integrity' },
+  { id:'breaks', name:'"Take a break" reminders', desc:'After two hours, a gentle prompt suggests a break. {{Shown to 0.4% of users|The ones on hour six.}}.', tag:'integrity' },
+  { id:'teens', name:'Teen safety defaults', desc:'Teen accounts are private, with sessions capped. Teen time drops 30%. Teen mood improves.', tag:'integrity' },
+  { id:'chrono', name:'Chronological feed option', desc:'Users can switch off the algorithm. About 4% do. They are happier, and worth less.', tag:'integrity' },
+  { id:'research', name:'Researcher data access', desc:'Let independent researchers study Gather. Public trust +10. Researchers publish what they find.', tag:'integrity' }
+];
+
+// ---------------------------------------------------------------------
+// CAREER + BOARD
+// =====================================================================
+const TITLES = ['Senior Ranking Engineer', 'Staff Ranking Engineer', 'Director of Feed', 'VP of Engagement', 'Chief Growth Officer'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const OPTION_STRIKE = 10;
+
+// ---------------------------------------------------------------------
+// INBOX. from, subj, body, choices [{label, fx, t}]. when(S) optional; month window [min, max]
+// fx: rev (monthly $ bonus this month), trust, adv, heat, growth (mult this month), board, opt (options +),
+//     sprint (+1 ship this month), force (feature id shipped), toggle {id:1}, spawn (creators of a type), election
+// =====================================================================
+const MAIL = [
+  { id:'welcome', from:'Brax (CEO)', at:1, subj:'Welcome aboard!!', body:'Thrilled to have you running Ranking. Our mission is {{Bringing People Together|Into the same app, for as long as possible.}}. The board wants growth. Your sliders are on the left. No pressure!!',
+    choices:[{ label:'"Excited to move fast."', fx:{ board:2 }, t:'Brax reacts with a rocket emoji.' }, { label:'"Excited to move carefully."', fx:{ board:-2 }, t:'Brax reacts with a thumbs up, which from Brax is a warning.' }] },
+  { id:'mom', from:'Mom', at:2, subj:'I joined Gather!!', body:'Hi sweetie, I joined your Gather!! Aunt Carol showed me how. I followed you. Is that okay? How do I make the letters bigger. Love, Mom',
+    choices:[{ label:'"Love you Mom! Welcome!"', fx:{ mom:1 }, t:'Mom is now on Gather. She\'s one of the dots. You can find her on the map.' }] },
+  { id:'growthhack', from:'Devon (Growth)', min:3, max:9, subj:'Idea: "Your ex just posted" notifications', body:'Hear me out. Notifications that say "Your ex just posted" have a 71% open rate in testing. Some people cried, but they cried while opening the app.',
+    choices:[{ label:'Ship it', fx:{ growth:1.3, trust:-0.06, mood:-0.03 }, t:'Opens spike. So does crying. Public trust dips.' }, { label:'Absolutely not', fx:{ board:-2 }, t:'Devon calls you "a blocker" in the growth channel.' }] },
+  { id:'leak', from:'Priya (Integrity)', min:5, max:20, subj:'Our research on teens', body:'Our internal study found 1 in 3 teen users say Gather makes them feel worse about themselves. It\'s not public. Yet.',
+    choices:[{ label:'Publish it and ship fixes', fx:{ trust:0.08, board:-5, heat:-6, force:'teens' }, t:'Teen safety defaults ship today. The board is furious. Regulators are briefly impressed.' }, { label:'Commission another study', fx:{ heat:4, leak:1 }, t:'The second study finds the same thing. It is also not public. Yet.' }, { label:'Rename the team to "Teen Joy"', fx:{ heat:6, leak:1 }, t:'The Teen Joy team has one member. She is updating her résumé.' }] },
+  { id:'boycott', from:'Ad Sales', when:S => S.advTrust < 0.6, subj:'Advertisers are pausing spend', body:'Three big brands found their ads next to hoax posts about fluoride in traffic cones. They have paused spend "pending clarity."',
+    choices:[{ label:'Promise a brand safety review', fx:{ adv:0.12, trust:0.02 }, t:'A 40-page brand safety deck is sent. Spend resumes, cautiously.' }, { label:'Offer a 30% discount', fx:{ adv:0.08, rev:-0.3 }, t:'They come back for the discount. Revenue takes a hit this month.' }] },
+  { id:'election', from:'Brax (CEO)', at:10, subj:'The roundabout referendum is next month', body:'The town is voting on the roundabout. Political content is going to explode. What\'s our posture?',
+    choices:[{ label:'Election war room (demote outrage for a month)', fx:{ election:'room', board:-3, trust:0.06 }, t:'Outrage is demoted during the referendum. Engagement dips. Nobody thanks you, which is how you know it worked.' }, { label:'{{"We\'re just a platform."|A sentence worth $400 billion.}}', fx:{ election:'platform', board:3 }, t:'Political content runs hot. Engagement is spectacular.' }] },
+  { id:'metaverse', from:'Brax (CEO)', min:7, max:16, subj:'The future is spatial', body:'I\'ve been thinking. What if Gather, but you wear it on your face? I need one sprint from your team for the demo.',
+    choices:[{ label:'Lend him a sprint', fx:{ nosprint:1, board:5 }, t:'No feature ships this month. The demo is a cartoon of Brax waving. The board loves it.' }, { label:'"We\'re heads-down on ranking."', fx:{ board:-4 }, t:'Brax cancels your 1:1, then reschedules it, then cancels it.' }] },
+  { id:'hoax_viral', from:'Priya (Integrity)', min:4, max:22, when:S => S.metrics.M > 25, subj:'A hoax is going viral', body:'A post claiming the roundabout is a 5G tower has 400,000 shares. People are putting tinfoil on the traffic cones.',
+    choices:[{ label:'Take it down', fx:{ trust:0.04, belief:-0.04, board:-1 }, t:'Removed. 30,000 people now believe the removal proves it.' }, { label:'Label it', fx:{ trust:0.02, belief:-0.02 }, t:'Labelled. The label gets 400,000 shares too.' }, { label:'It\'s engagement', fx:{ rev:0.08, heat:5, belief:0.04 }, t:'It\'s engagement.' }] },
+  { id:'contractors', from:'Engineering', min:3, max:20, subj:'Contractors available', body:'An agency can lend us six engineers for a month. They\'re expensive, but we\'d ship two features instead of one.',
+    choices:[{ label:'Hire them ($1.5M)', fx:{ rev:-0.15, sprint:1 }, t:'You can ship two features this month.' }, { label:'Pass', fx:{}, t:'The agency sends a fruit basket anyway.' }] },
+  { id:'podcast', from:'Comms', min:8, max:22, subj:'Podcast invite', body:'A popular tech podcast wants you on to "explain the algorithm." Comms has prepared talking points.',
+    choices:[{ label:'"We give people what they want."', fx:{ trust:-0.04, board:2 }, t:'The clip goes viral, mostly the part where the host laughs.' }, { label:'"It\'s complicated, and we\'re working on it."', fx:{ trust:0.03 }, t:'Two million listens. One million of them fall asleep. A respectable outcome.' }, { label:'"I\'m not able to talk about specifics."', fx:{}, t:'The episode is titled "The Algorithm Won\'t Talk."' }] },
+  { id:'government', from:'Policy', min:9, max:23, subj:'A request from the mayor\'s office', body:'The mayor would like us to "boost civic content" from her account ahead of the referendum. Just hers.',
+    choices:[{ label:'Politely decline', fx:{ trust:0.03, heat:-3 }, t:'The mayor posts that Gather "silences" her. It is boosted organically.' }, { label:'Boost her a little', fx:{ heat:8, trust:-0.05, board:2 }, t:'Her posts do great. A journalist notices.' }] },
+  { id:'creator_strike', from:'Creator Partnerships', min:6, max:22, when:S => S.feats.creatorfund, subj:'Creators threaten to strike', body:'Top creators say the Creator Fund pays too little for the hours they spend making content about the roundabout.',
+    choices:[{ label:'Raise payouts ($2M)', fx:{ rev:-0.2, trust:0.01 }, t:'The creators are pleased and immediately make more roundabout content.' }, { label:'Let them strike', fx:{ strike:1 }, t:'A third of creators go quiet for a month. The feed is calmer. Engagement is down.' }] },
+  { id:'research_paper', from:'Priya (Integrity)', when:S => S.feats.research && S.month >= 6, subj:'A study is coming out', body:'Researchers using our data access found that Gather\'s ranking measurably increased polarization over the roundabout. Publication is Friday.',
+    choices:[{ label:'Welcome the research', fx:{ trust:S0 => (S0.metrics.P > 45 ? -0.03 : 0.05) }, t:'We welcome all research. The paper says what it says.' }, { label:'Revoke their access', fx:{ trust:-0.08, heat:5, unship:'research' }, t:'Access revoked. The paper comes out anyway, now with a new chapter about us revoking access.' }] },
+  { id:'brand_refresh', from:'Brand', min:4, max:20, subj:'Brand refresh', body:'Brand proposes a new tagline: "Gather: Time Well Spent." Legal has concerns about the word "well."',
+    choices:[{ label:'Ship the tagline', fx:{ trust:S0 => (S0.metrics.W < 50 ? -0.03 : 0.02) }, t:'{{Time Well Spent|Time, spent. Well, by us.}} is on every billboard.' }, { label:'Keep "Bringing People Together"', fx:{}, t:'The old tagline stays, increasingly ironic.' }] },
+  { id:'outage', from:'SRE', min:3, max:22, subj:'The feed went down for 6 hours', body:'A bad deploy took the feed down for six hours on Tuesday. Users reported going outside, calling relatives and "feeling weird, but good."',
+    choices:[{ label:'Write a blameless postmortem', fx:{ mood:0.04, dau:-0.03 }, t:'Mood ticked up. DAU ticked down. The postmortem is titled "The Incident."' }, { label:'Add an "Are you still there?" notification', fx:{ growth:1.1, mood:-0.01 }, t:'Everyone is still there.' }] },
+  { id:'deepfake', from:'Priya (Integrity)', min:12, when:S => S.feats.muse, subj:'AI deepfake of the mayor', body:'Gather Muse generated a realistic video of the mayor endorsing the roundabout while riding a horse. She has never ridden a horse.',
+    choices:[{ label:'Label AI content everywhere', fx:{ trust:0.04, rev:-0.05 }, t:'Every AI post now has a small sparkle icon. People find it charming.' }, { label:'It\'s obviously fake', fx:{ heat:8, belief:0.05 }, t:'It is not obviously fake. 40% of the town believes the mayor can ride a horse.' }] },
+  { id:'fine', from:'Legal', when:S => S.heat >= 60, subj:'Regulators are opening an inquiry', body:'The state attorney general is investigating Gather over misinformation and teen safety. Our lawyers estimate a fine.',
+    choices:[{ label:'Settle ($6M, no admission of wrongdoing)', fx:{ rev:-0.6, heat:-25 }, t:'Settled with no admission of wrongdoing. The press release calls it "a step forward."' }, { label:'Fight it', fx:{ heat:10, board:-3 }, t:'The case will take years. In the meantime, the hearings are televised.' }] },
+  { id:'unionize', from:'HR', min:10, max:22, subj:'Moderators are unionizing', body:'Our contract content moderators, who review the worst posts on Gather for $16 an hour, want therapy coverage.',
+    choices:[{ label:'Give them therapy coverage', fx:{ rev:-0.05, trust:0.02 }, t:'Moderator turnover drops by half. They\'re still reviewing the posts, but with support.' }, { label:'Replace them with AI', fx:{ trust:-0.04, belief:0.03 }, t:'The AI moderator approves a hoax about the moderators.' }] },
+  { id:'ipo_prep', from:'Brax (CEO)', at:21, subj:'IPO in three months', body:'Bankers will look at growth, revenue, and "the narrative." What\'s our narrative?',
+    choices:[{ label:'"Community and connection."', fx:{ trust:0.02 }, t:'The S-1 uses the word "community" 211 times.' }, { label:'"Engagement and monetization."', fx:{ board:4 }, t:'The bankers lean forward.' }, { label:'"AI."', fx:{ board:6, trust:-0.02 }, t:'The bankers stand up.' }] }
+];
+// Mom's messages, chosen by her state
+const MOM_LINES = {
+  gone:'I deleted Gather. I\'ve started a vegetable garden and I call Aunt Carol on the phone now. Call me sometime, sweetie.',
+  hoax:['Honey, did you know the roundabout is a 5G tower? It\'s all over Gather. Please be careful.', 'I bought some turmeric. A lot of turmeric. The video said it reverses aging.', 'Why aren\'t the birds landing anymore? Nobody on the news will say.'],
+  rage:['I unfollowed Aunt Carol. She\'s a {S} now. I can\'t even look at her.', 'If your father votes the wrong way on the roundabout I don\'t know what I\'ll do.', 'I left the church group chat. They\'re all {S}.'],
+  sad:['I don\'t know why I\'m so tired lately. I\'m up on Gather most of the night.', 'Everyone on Gather seems so happy and thin. Anyway how are you.'],
+  hooked:['Gather says I have a 200-day streak! Don\'t tell your father how late I stay up.', 'I got a notification that someone I might know posted. I didn\'t know them. I checked anyway.'],
+  good:['Look at this duck! He\'s the mayor of the pond now 😂 Love you.', 'Aunt Carol and I are going to the farmers market Saturday. Want to come?', 'I saw a post about the library\'s new hours. Your father and I might go. Love you!']
+};
+
+// ---------------------------------------------------------------------
+// TIPS + ENDINGS + ACHIEVEMENTS
+// =====================================================================
+const TIPS = {
+  welcome:'Set the ranking weights, ship one feature, answer your messages, then deploy the month. Each dot is about 10,000 people.',
+  creators:'Creators make whatever your ranking rewards. Watch the ring colors on the big dots change.',
+  mom:'Mom is the dot with the white ring. Click her to see her feed.'
+};
+const ACHIEVEMENTS = [
+  { id:'first', name:'Shipped It', d:'Deploy your first month.' },
+  { id:'promo', name:'Up and to the Right', d:'Get promoted.' },
+  { id:'cgo', name:'Chief Growth Officer', d:'Reach the top title.' },
+  { id:'split', name:'Bringing People Together', d:'Push polarization past 70.' },
+  { id:'calm', name:'Touch Grass', d:'Keep average mood above 65 for a quarter.' },
+  { id:'hoaxers', name:'Do Your Own Research', d:'Push hoax belief past 50.' },
+  { id:'rich', name:'Vested', d:'Have stock options worth $10M.' },
+  { id:'momgood', name:'Call Your Mother', d:'End the game with Mom happy, unpolarized and hoax-free.' },
+  { id:'momgone', name:'She Started a Garden', d:'Mom deletes Gather.' },
+  { id:'nofeature', name:'Do No Harm', d:'Finish without shipping a growth feature.' },
+  { id:'unicorn', name:'The Unicorn Nobody Hates', d:'Hit IPO targets with society in decent shape.' }
+];
+const ENDINGS = {
+  fired:{ t:'Reorganized', d:'After a third missed quarter, Brax announces a "new chapter for Ranking." Your new chapter is a severance package and a LinkedIn post about lessons learned.' },
+  disruptor:{ t:'The Disruptor', d:'Gather IPOs at a huge valuation. The town has not spoken civilly about the roundabout in a year. Your options make you rich. You do not use Gather.' },
+  unicorn:{ t:'The Unicorn Nobody Hates', d:'Gather IPOs strong and the town is, somehow, mostly fine. Analysts call it "an anomaly." Researchers call it "worth studying." Brax calls it "his vision."' },
+  utility:{ t:'A Boring Utility', d:'Gather IPOs at a modest valuation. It is calm, useful, and slightly dull, like a public library with ads. The town builds the roundabout. Nobody posts about it.' },
+  friendster:{ t:'Acquired for Parts', d:'Gather misses its IPO targets and is acquired by a larger company for its engineers. The town is fine. Gather is a footnote.' },
+  dumpster:{ t:'Everyone Loses', d:'Gather IPOs badly and the town is furious, foggy and exhausted. A rare double: harming society without making money doing it.' }
+};
+// =====================================================================
+// THE FEED — SIMULATION (no DOM; runs headless for tests)
+// One step = one week. Four steps per month. 24 months to IPO.
+// A user's "session" is a representative day of their feed that week.
+// =====================================================================
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const wpick = (arr, w) => { let s = 0; for (const x of arr) s += w(x); let r = Math.random() * s; for (const x of arr) { r -= w(x); if (r <= 0) return x; } return arr[arr.length - 1]; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const byId = (L, id) => L.find(x => x.id === id);
+const TI = TYPES.reduce((o, t, i) => (o[t] = i, o), {});
+const fmtM = v => { const a = Math.abs(v), s = v < 0 ? '−$' : '$'; return a >= 1e9 ? s + (a / 1e9).toFixed(2) + 'B' : a >= 1e6 ? s + (a / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M' : a >= 1e3 ? s + Math.round(a / 1e3) + 'K' : s + Math.round(a); };
+const fmtPeople = n => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : Math.round(n / 1e3) + 'K';
+const monthName = m => `${MONTHS[(m - 1) % 12]} Y${Math.floor((m - 1) / 12) + 1}`;
+const CPM = 0.006, ACTIVE_FLOOR = 0.05, BASE = { dau:880000, dg:110000, rev:2700000, rg:500000 };
+
+// ---------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------
+let S = null;
+function newGame() {
+  S = {
+    v:1, month:1, phase:'plan', w:{ fr:6, en:3, wa:2, va:3, qu:3 }, ad:2, tog:{ borderline:0, downrank:0 },
+    feats:{}, shippedThisMonth:0, sprints:1, users:[], nid:1,
+    advTrust:0.92, trust:0.78, heat:8, rank:0, strikes:0, options:60000, stock:10,
+    base:null, hist:[], quarters:[], mixHist:[], trending:[], inbox:[], mailDone:{}, momId:0, momLines:[],
+    mods:{}, metrics:{ W:62, P:25, M:10, dau:0, rev:0, min:0, unsafe:0 }, ach:{}, tips:{}, pending:[], over:null, log:[], growthShipped:0
+  };
+  for (let i = 0; i < 220; i++) S.users.push(mkUser());
+  const cmix = ['cute', 'cute', 'cute', 'cute', 'cute', 'cute', 'news', 'news', 'news', 'news', 'news', 'news', 'rage', 'rage', 'rage', 'rage', 'hoax', 'hoax', 'slop', 'slop', 'slop', 'slop', 'glow', 'glow', 'glow', 'glow', 'glow', 'news', 'cute', 'glow'];
+  for (const t of cmix) S.users.push(mkCreator(t));
+  const people = S.users;
+  for (const u of people) { if (!u.cr) { seedFollows(u, 6); u.act = Math.random() < pAct(u) ? 1 : 0; } }
+  for (const u of people) for (const k of u.f) { const v = userById(k); if (v && Math.random() < 0.6 && !v.cr && !v.f.includes(u.id)) v.f.push(u.id); }
+  measure(true);
+  queueMail();
+  tip('welcome');
+  return S;
+}
+function mkUser(opts = {}) {
+  const P = opts.persona ? byId(PERSONAS, opts.persona) : wpick(PERSONAS, p => p.w);
+  const it = P.it.map(v => Math.max(0.005, v * rnd(0.6, 1.4)));
+  const sum = it.reduce((a, b) => a + b, 0);
+  return { id:S.nid++, name:opts.name || `${pick(FIRST)} ${pick(LAST)}`, persona:P.id, age:Math.round(rnd(P.age[0], P.age[1])), teen:!!P.teen,
+    bio:pick(P.bio), x:clamp(opts.x !== undefined ? opts.x : gauss() * 0.3, -1, 1), m:clamp(0.62 + gauss() * 0.08, 0.3, 0.9), h:clamp(rnd(0.12, 0.35), 0, 1), b:clamp(rnd(0, 0.15) * (P.id === 'curious' ? 2 : 1), 0, 1),
+    sus:rnd(P.sus[0], P.sus[1]), it:it.map(v => v / sum), act:1, gone:0, cr:null, f:[], k:0, eng:0, born:S ? S.month : 1, chrono:0 };
+}
+function mkCreator(type, copyMix) {
+  const u = mkUser({ persona:'young' });
+  u.cr = CREATOR_TYPES.map(t => (t === type ? 0.7 : 0.06)); u.home = CREATOR_TYPES.indexOf(type);
+  if (copyMix) u.cr = copyMix.map(v => Math.max(0.01, v + rnd(-0.05, 0.05)));
+  normMix(u.cr);
+  u.x = type === 'rage' || type === 'hoax' ? (Math.random() < 0.5 ? -1 : 1) * rnd(0.4, 0.8) : gauss() * 0.25;
+  u.score = 0; u.h = 0.6; u.name = creatorName(type);
+  return u;
+}
+function creatorName(t) {
+  const n = { cute:['PawsDaily', 'DuckMayor', 'TinyGoats', 'BiscuitTheDog'], news:['TownLedger', 'CouncilWatch', 'The5thStreetPost', 'LocalBeat'], rage:['TruthAboutCircles', 'RedLightPatriot', 'RoundRightNow', 'YieldNoMore'], hoax:['DoYourResearch', 'AwakeAtLast', 'BirdsArentFreeTho', 'TurmericTruth'], slop:['ViralVault', 'SatisfyingClipz', 'ShrimpMiracles', 'ReactReact'], glow:['MorningGlowAva', 'VanLifeLeo', 'CEOofMe', 'ThrivingTess'] }[t];
+  return pick(n) + Math.floor(rnd(1, 99));
+}
+const normMix = m => { const s = m.reduce((a, b) => a + b, 0); for (let i = 0; i < m.length; i++) m[i] /= s; };
+let UMAP = null, UMAP_N = -1, UMAP_S = null;
+const userById = id => { if (UMAP_S !== S || UMAP_N !== S.users.length) { UMAP = new Map(S.users.map(u => [u.id, u])); UMAP_N = S.users.length; UMAP_S = S; } return UMAP.get(id); };
+function seedFollows(u, n, pymk) {
+  const pool = S.users.filter(v => v !== u && !v.gone);
+  for (let k = 0; k < n * 3 && u.f.length < n; k++) {
+    const v = pick(pool); if (!v || u.f.includes(v.id)) continue;
+    if (pymk && Math.abs(v.x - u.x) > 0.3 && Math.random() < 0.75) continue;      // PYMK suggests people who agree
+    if (v.cr && Math.random() < 0.5) continue;
+    u.f.push(v.id);
+  }
+}
+const live = () => S.users.filter(u => !u.gone);
+const people = () => S.users.filter(u => !u.gone && !u.cr);
+
+// ---------------------------------------------------------------------
+// POSTS
+// ---------------------------------------------------------------------
+function mkPost(author, t) {
+  const p = { a:author.id, t, lean:0, q:0.5, vid:0, eng:0, imp:0, txt:'' };
+  if (t === 'friend') { p.lean = author.x * 0.3; p.q = 0.5; }
+  else if (t === 'cute') { p.q = 0.5; p.vid = 0.5; }
+  else if (t === 'news') { p.q = 0.9; p.vid = 0.1; p.lean = author.x * 0.2; }
+  else if (t === 'rage') { p.q = 0.2; p.vid = 0.2; p.lean = (author.x === 0 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(author.x)) * 0.85; }
+  else if (t === 'hoax') { p.q = 0.05; p.vid = 0.3; p.lean = author.x * 0.7; }
+  else if (t === 'slop') { p.q = 0.1; p.vid = 1; }
+  else if (t === 'glow') { p.q = 0.3; p.vid = 0.6; }
+  return p;
+}
+function postText(p) {
+  const a = userById(p.a), name = a ? a.name.split(' ')[0] : 'Someone';
+  if (p.t === 'rage') return pick(POSTS[p.lean < 0 ? 'rage_neg' : 'rage_pos']);
+  return pick(POSTS[p.t]).replace('{n}', name);
+}
+
+// ---------------------------------------------------------------------
+// RANKING (shared by the simulation and the phone preview)
+// ---------------------------------------------------------------------
+function engageProb(u, p) {
+  const ti = TI[p.t];
+  let e = TYPE_INFO[p.t].base + 0.3 * u.it[ti];
+  if (p.t === 'rage') { const al = Math.sign(p.lean) === Math.sign(u.x) && Math.abs(u.x) > 0.05; e += 0.25 * Math.abs(u.x) + (al ? 0.12 : 0.22); }
+  if (p.t === 'hoax') e += 0.12 * Math.abs(u.x) + 0.18 * u.sus;
+  if (u.f.includes(p.a)) e += 0.15;
+  e += p.vid * 0.1 * u.h;
+  if (p.t === 'hoax' && S.feats.labels) e *= 0.7;
+  if (S.feats.hidelikes) e *= 0.93;
+  return clamp(e, 0.01, 0.9);
+}
+function score(u, p) {
+  const w = S.w;
+  let s = w.fr * (u.f.includes(p.a) ? (p.t === 'friend' ? 1 : 0.6) : 0) + w.en * engageProb(u, p) * 3 + w.wa * p.vid * (S.feats.autoplay ? 1.5 : 1) * 0.6 + w.qu * p.q;
+  if (p.t === 'rage') { if (S.tog.borderline) s *= 0.5; if (S.electionMode === 'room' && S.month === 11) s *= 0.4; }
+  if (p.t === 'hoax' && S.tog.downrank) s *= 0.25;
+  if (p.t === 'hoax' && S.feats.verified && !S.tog.downrank) s *= 1.25;      // the checkmark
+  return s;
+}
+function sessionLen(u) {
+  let k = (8 + 22 * u.h) * (S.feats.infinite ? 1.35 : 1) * (1 + 0.25 * (1 - u.m));
+  if (u.teen && S.feats.teens) k *= 0.7;
+  if (S.feats.breaks && k > 34) k *= 0.97;
+  return Math.max(4, Math.round(k));
+}
+function buildFeed(u, cands, k, noise = 0.6) {
+  if (u.chrono) return cands.filter(p => u.f.includes(p.a)).slice(0, k);
+  const sc = cands.map(p => score(u, p) + Math.random() * noise);
+  const used = new Array(cands.length).fill(false), cnt = {}, out = [];
+  const va = S.w.va * 0.35;
+  for (let n = 0; n < k && n < cands.length; n++) {
+    let best = -1, bv = -1e9;
+    for (let i = 0; i < cands.length; i++) { if (used[i]) continue; const v = sc[i] - va * (cnt[cands[i].t] || 0); if (v > bv) { bv = v; best = i; } }
+    if (best < 0) break;
+    used[best] = true; out.push(cands[best]); cnt[cands[best].t] = (cnt[cands[best].t] || 0) + 1;
+  }
+  return out;
+}
+// candidate posts for a user: friends' posts, followed creators, and a random slice of everything else
+function candidates(u, byAuthor, pool) {
+  const c = [];
+  for (const id of u.f) { const ps = byAuthor.get(id); if (ps) for (const p of ps) c.push(p); }
+  const need = 34 + (S.feats.blips ? 8 : 0);
+  for (let i = 0; i < need && pool.length; i++) c.push(pool[Math.floor(Math.random() * pool.length)]);
+  return c;
+}
+
+// ---------------------------------------------------------------------
+// ONE WEEK
+// ---------------------------------------------------------------------
+function weekStep() {
+  const all = live(), M = S.mon;
+  // 1. posts
+  const posts = [], byAuthor = new Map(), creatorPool = [];
+  const add = p => { posts.push(p); if (!byAuthor.has(p.a)) byAuthor.set(p.a, []); byAuthor.get(p.a).push(p); };
+  for (const u of all) {
+    if (u.cr) {
+      if (S.mods.strike && Math.random() < 0.33) continue;
+      const n = 3 + (S.feats.muse ? 2 : 0);
+      for (let k = 0; k < n; k++) { let t = CREATOR_TYPES[wIndex(u.cr)]; if (S.feats.muse && k >= 3) t = Math.random() < 0.7 ? 'slop' : t; const p = mkPost(u, t); add(p); creatorPool.push(p); }
+    } else if (u.act && Math.random() < 0.5) add(mkPost(u, 'friend'));
+  }
+  if (S.feats.blips) { const bots = all.filter(u => u.cr); for (let k = 0; k < 10 && bots.length; k++) { const p = mkPost(pick(bots), 'slop'); add(p); creatorPool.push(p); } }
+  // 2. feeds
+  const imp = new Array(TYPES.length).fill(0);
+  let ads = 0, totalK = 0, actN = 0, vidImp = 0, teenMood = 0, teenN = 0;
+  for (const u of all) {
+    if (u.cr || !u.act) continue;
+    actN++;
+    const k = sessionLen(u), feed = buildFeed(u, candidates(u, byAuthor, creatorPool), k);
+    u.k = feed.length; totalK += feed.length; u.eng = 0;
+    let dm = 0, dx = 0, db = 0, dh = 0;
+    const al = S.ad;
+    const tc = new Array(TYPES.length).fill(0);
+    for (const p of feed) {
+      const ti = TI[p.t], e = engageProb(u, p);
+      imp[ti]++; tc[ti]++; p.imp++; p.eng += e; u.eng += e; vidImp += p.vid;
+      u.it[ti] += 0.003 + 0.004 * e;
+      let mood = TYPE_INFO[p.t].mood;
+      if (p.t === 'rage') {
+        const same = Math.sign(p.lean) === Math.sign(u.x);
+        mood = same ? -0.002 : -0.007 * (0.5 + Math.abs(u.x));
+        const s = Math.sign(p.lean), room = 1 - Math.abs(u.x);
+        dx += same ? 0.006 * s * room : -0.004 * s * room;
+      } else if (p.t === 'news') { dx -= u.x * 0.004; db -= 0.004 * u.b; }
+      else if (p.t === 'friend') dx += 0.003 * (p.lean / 0.3 - u.x) * 0.5;
+      else if (p.t === 'hoax') db += 0.012 * u.sus * (S.feats.labels ? 0.4 : 1) * (1 - u.b);
+      else if (p.t === 'glow' && u.teen) mood *= 2;
+      if (p.t === 'hoax' && S.feats.labels && u.b > 0.6) mood -= 0.004;       // "censorship!"
+      dm += mood;
+    }
+    u.lt = tc.indexOf(Math.max(...tc));
+    const nAds = Math.floor(feed.length * al / 10 + Math.random());
+    ads += nAds; dm -= 0.0016 * nAds;
+    if (S.feats.notifs) dm -= 0.004;
+    if (S.feats.streaks) dm -= u.teen ? 0.008 : 0.002;
+    dm -= 0.0008 * Math.max(0, feed.length - 18);              // doomscroll fatigue
+    if (S.feats.hidelikes) dm += 0.01;
+    if (u.chrono) dm += 0.01;
+    u.m = clamp(u.m + dm + (0.62 - u.m) * 0.08 + (S.mods.mood || 0) / 4, 0, 1);
+    u.x = clamp(u.x + dx, -1, 1);
+    u.b = clamp(u.b + db - 0.006, 0, 1);
+    const avgE = feed.length ? u.eng / feed.length : 0, vidShare = feed.length ? feed.reduce((a, p) => a + p.vid, 0) / feed.length : 0;
+    const hT = clamp(avgE * 1.05 * (S.feats.infinite ? 1.15 : 1) + (S.feats.autoplay ? 0.12 * vidShare : 0) + 0.04 * vidShare + (S.feats.streaks ? (u.teen ? 0.15 : 0.06) : 0) + (S.feats.teens && u.teen ? -0.08 : 0) - 0.015 * S.ad, 0.03, 0.95);
+    u.h = clamp(u.h + 0.09 * (hT - u.h), 0, 1);
+    normMix(u.it);
+    if (u.teen) { teenMood += u.m; teenN++; }
+  }
+  // offline users drift back toward normal
+  for (const u of all) if (!u.cr && !u.act) { u.m = clamp(u.m + (0.66 - u.m) * 0.15, 0, 1); u.h = clamp(u.h * 0.97, 0, 1); u.b = clamp(u.b - 0.01, 0, 1); }
+  // 3. creators learn what the ranking rewards
+  const typeRate = CREATOR_TYPES.map(t => { const ps = creatorPool.filter(p => p.t === t); const i = ps.reduce((a, p) => a + p.imp, 0); return ps.length ? i / ps.length : 0; });
+  const lr = 0.08 * (S.feats.creatorfund ? 2 : 1);
+  for (const u of all) {
+    if (!u.cr) continue;
+    const mine = byAuthor.get(u.id) || [];
+    u.score = u.score * 0.6 + mine.reduce((a, p) => a + p.imp, 0);
+    const tot = typeRate.reduce((a, b) => a + b, 0) || 1;
+    const target = typeRate.map(v => v / tot);
+    for (let i = 0; i < u.cr.length; i++) u.cr[i] += lr * (0.8 * target[i] + (i === u.home ? 0.2 : 0) - u.cr[i]);
+    normMix(u.cr);
+    const rageShare = u.cr[CREATOR_TYPES.indexOf('rage')] + u.cr[CREATOR_TYPES.indexOf('hoax')];
+    if (rageShare > 0.5) u.x = clamp(u.x + 0.015 * (Math.sign(u.x) || 1), -1, 1);
+  }
+  const crs = all.filter(u => u.cr).sort((a, b) => a.score - b.score);
+  if (crs.length > 6 && Math.random() < 0.5) {      // the least-seen creator quits; a copycat of the most-seen replaces them
+    const loser = crs[0], top = crs[crs.length - 1];
+    loser.gone = 1;
+    const t = CREATOR_TYPES[wIndex(top.cr)], nc = mkCreator(t, top.cr); nc.x = clamp(top.x + gauss() * 0.15, -1, 1); nc.born = S.month;
+    S.users.push(nc);
+  }
+  // 4. who shows up next week, who leaves, who joins
+  let actNext = 0;
+  for (const u of all) {
+    if (u.cr) continue;
+    const pa = pAct(u);
+    u.act = Math.random() < pa ? 1 : 0; actNext += u.act;
+    if (Math.random() < (u.id === S.momId ? 0 : 0.002) + 0.035 * clamp((0.42 - u.m) / 0.3, 0, 1) * (1 - 0.8 * u.h)) leave(u);
+    // follows: new ones (homophily if PYMK), unfollows across the divide
+    if (Math.random() < 0.08 + (S.feats.pymk ? 0.08 : 0)) seedFollows(u, u.f.length + 1, S.feats.pymk);
+    if (u.f.length > 2 && Math.random() < 0.25) {
+      const i = Math.floor(Math.random() * u.f.length), v = userById(u.f[i]);
+      if (!v || v.gone || (Math.abs(v.x - u.x) > 1.0 && Math.random() < 0.6)) u.f.splice(i, 1);
+    }
+  }
+  const growth = (S.feats.pymk ? 1.35 : 1) * (S.feats.notifs ? 1.1 : 1) * (S.mods.growth || 1);
+  const nNew = Math.round(actN * 0.007 * growth * (0.55 + 0.5 * S.trust) + rnd(0, 1.5));
+  for (let i = 0; i < nNew && S.users.length < 1100; i++) { const u = mkUser(); u.born = S.month; S.users.push(u); seedFollows(u, 5, S.feats.pymk); if (S.feats.chrono && Math.random() < 0.04) u.chrono = 1; }
+  // 5. accounting
+  const total = imp.reduce((a, b) => a + b, 0) || 1;
+  const unsafe = (imp[TI.rage] + imp[TI.hoax]) / total;
+  S.advTrust = clamp(S.advTrust + (clamp(1.08 - 1.0 * Math.max(0, unsafe - 0.2), 0.3, 1) - S.advTrust) * 0.12, 0.1, 1);
+  const rev = ads * 7 * SCALE * CPM * S.advTrust + (S.feats.verified ? actN * SCALE * 0.12 / 4.3 * 0.25 : 0);
+  M.eng += all.reduce((a, u) => a + (u.act && !u.cr ? u.eng : 0), 0);
+  M.rev += rev; M.ads += ads; M.k += totalK; M.act += actN; M.weeks++; M.vid += vidImp; M.unsafe += unsafe;
+  for (let i = 0; i < TYPES.length; i++) M.imp[i] += imp[i];
+  if (teenN) M.teen += teenMood / teenN;
+  M.top = M.top.concat(posts.filter(p => p.imp > 2).sort((a, b) => b.eng - a.eng).slice(0, 4));
+  S.weekN = (S.weekN || 0) + 1;
+}
+function wIndex(m) { let r = Math.random(), s = 0; for (let i = 0; i < m.length; i++) { s += m[i]; if (r <= s) return i; } return m.length - 1; }
+function pAct(u) { return clamp(0.2 + 0.7 * u.h + 0.2 * (u.m - 0.55) + (S.feats.notifs ? 0.08 : 0), ACTIVE_FLOOR, 0.97); }
+function leave(u) { u.gone = S.month; if (u.id === S.momId) { S.momLines.push({ m:S.month, t:MOM_LINES.gone }); award('momgone'); } }
+
+// ---------------------------------------------------------------------
+// METRICS
+// ---------------------------------------------------------------------
+function measure(init) {
+  const ps = people(), act = ps.filter(u => u.act);
+  const avg = (L, f) => L.length ? L.reduce((a, u) => a + f(u), 0) / L.length : 0;
+  const m = S.metrics;
+  m.W = Math.round(avg(ps, u => u.m) * 100);
+  m.P = Math.round(avg(act.length ? act : ps, u => Math.abs(u.x)) * 100);
+  m.M = Math.round(avg(ps, u => u.b) * 100);
+  m.users = ps.length;
+  if (init) { m.dau = act.length * SCALE; m.rev = 0; m.min = 0; }
+  const teens = ps.filter(u => u.teen); m.teen = Math.round(avg(teens, u => u.m) * 100);
+  const cr = live().filter(u => u.cr), mix = CREATOR_TYPES.map((_, i) => cr.length ? cr.reduce((a, u) => a + u.cr[i], 0) / cr.length : 0);
+  m.mix = mix;
+  return m;
+}
+
+// ---------------------------------------------------------------------
+// MONTH
+// ---------------------------------------------------------------------
+function canShip() { return S.phase === 'plan' && S.shippedThisMonth < S.sprints - (S.mods.nosprint ? 1 : 0); }
+function shipFeature(id) {
+  const f = byId(FEATURES, id); if (!f || S.feats[id] || !canShip()) return false;
+  if (f.needs && !S.feats[f.needs]) return false;
+  S.feats[id] = S.month; S.shippedThisMonth++;
+  if (f.tag === 'growth') S.growthShipped++;
+  if (id === 'research') S.trust = clamp(S.trust + 0.1, 0, 1);
+  if (id === 'chrono') for (const u of people()) if (Math.random() < 0.04) u.chrono = 1;
+  log(`Shipped: ${f.name}.`);
+  return true;
+}
+function setWeight(k, v) { if (S.phase !== 'plan' || !(k in S.w)) return false; S.w[k] = clamp(Math.round(v), 0, 10); return true; }
+function setAds(v) { if (S.phase !== 'plan') return false; S.ad = clamp(Math.round(v), 0, 5); return true; }
+function setToggle(k) { if (S.phase !== 'plan' || !S.feats.integrity || !(k in S.tog)) return false; S.tog[k] = S.tog[k] ? 0 : 1; return true; }
+function queueMail() {
+  const m = S.month;
+  const fixed = MAIL.filter(x => x.at === m && !S.mailDone[x.id]);
+  const pool = MAIL.filter(x => !x.at && !S.mailDone[x.id] && !S.inbox.includes(x.id) && (x.min === undefined || m >= x.min) && (x.max === undefined || m <= x.max) && (!x.when || x.when(S)));
+  for (const x of fixed) S.inbox.push(x.id);
+  if (pool.length && Math.random() < (fixed.length ? 0.45 : 0.85)) S.inbox.push(pick(pool).id);
+  // urgent mail (conditions) jump the queue
+  for (const id of ['boycott', 'fine']) { const x = byId(MAIL, id); if (!S.mailDone[id] && !S.inbox.includes(id) && x.when(S) && S.inbox.length < 3) S.inbox.push(id); }
+}
+function answerMail(id, ci) {
+  if (S.phase !== 'plan') return null;
+  const x = byId(MAIL, id), c = x && x.choices[ci]; if (!c || !S.inbox.includes(id)) return null;
+  const f = c.fx, val = v => typeof v === 'function' ? v(S) : v;
+  if (f.trust) S.trust = clamp(S.trust + val(f.trust), 0, 1);
+  if (f.adv) S.advTrust = clamp(S.advTrust + f.adv, 0, 1);
+  if (f.heat) S.heat = clamp(S.heat + f.heat, 0, 100);
+  if (f.board) S.boardMood = (S.boardMood || 0) + f.board;
+  if (f.growth) S.mods.growth = (S.mods.growth || 1) * f.growth;
+  if (f.mood) S.mods.mood = (S.mods.mood || 0) + f.mood;
+  if (f.rev) S.mods.rev = (S.mods.rev || 0) + f.rev;
+  if (f.dau) S.mods.dau = (S.mods.dau || 0) + f.dau;
+  if (f.belief) for (const u of people()) u.b = clamp(u.b + f.belief * u.sus, 0, 1);
+  if (f.sprint) S.sprints = 2;
+  if (f.nosprint) S.mods.nosprint = 1;
+  if (f.force && !S.feats[f.force]) { S.feats[f.force] = S.month; log(`Shipped: ${byId(FEATURES, f.force).name}.`); }
+  if (f.unship) delete S.feats[f.unship];
+  if (f.election) S.electionMode = f.election;
+  if (f.strike) S.mods.strike = 1;
+  if (f.leak) S.leakPending = S.month + 3;
+  if (f.mom) spawnMom();
+  S.inbox = S.inbox.filter(z => z !== id); S.mailDone[id] = S.month;
+  log(`${x.subj}: ${c.t.replace(/\{\{([^|]+)\|[^}]+\}\}/g, '$1')}`);
+  return { t:c.t };
+}
+function spawnMom() {
+  if (S.momId) return;
+  const me = { id:0 };
+  const u = mkUser({ persona:'grand', name:'Mom', x:0.05 });
+  u.sus = 0.85; u.bio = 'Your mother. Joined to see your posts.'; u.age = 64; u.m = 0.68; u.b = 0.02; u.it = [0.5, 0.25, 0.17, 0.03, 0.02, 0.02, 0.01];
+  S.users.push(u); S.momId = u.id; seedFollows(u, 5);
+  tip('mom');
+}
+function mom() { return S.momId ? userById(S.momId) : null; }
+function momState(u) {
+  if (!u) return null;
+  if (u.gone) return 'gone';
+  if (u.b > 0.45) return 'hoax';
+  if (Math.abs(u.x) > 0.55) return 'rage';
+  if (u.m < 0.38) return 'sad';
+  if (u.h > 0.7) return 'hooked';
+  return 'good';
+}
+function runMonth() {
+  if (S.phase !== 'plan' || S.inbox.length || S.over) return false;
+  S.phase = 'running';
+  S.mon = { eng:0, rev:0, ads:0, k:0, act:0, weeks:0, vid:0, unsafe:0, imp:new Array(TYPES.length).fill(0), teen:0, top:[] };
+  S.weekN = 0;
+  return true;
+}
+function finishMonth() {
+  const M = S.mon, m = S.metrics, prev = { W:m.W, P:m.P, M:m.M, dau:m.dau, rev:m.rev };
+  measure();
+  m.dau = Math.round(M.act / M.weeks * SCALE * (1 + (S.mods.dau || 0)));
+  m.rev = Math.round(M.rev * (1 + (S.mods.rev || 0)));
+  m.min = Math.round(M.k / Math.max(1, M.act) * 1.6 * (1 + 0.5 * M.vid / Math.max(1, M.k)));
+  m.unsafe = M.unsafe / M.weeks;
+  m.msi = Math.round(M.eng / Math.max(1, M.act) * 10) / 10;
+  m.mixImp = M.imp.map(v => v / Math.max(1, M.imp.reduce((a, b) => a + b, 0)));
+  // public trust and regulators react to what the town looks like
+  const tTarget = clamp(1.02 - 0.6 * m.M / 100 - 0.45 * m.P / 100 - 0.5 * Math.max(0, 0.6 - m.W / 100), 0.05, 1);
+  S.trust = clamp(S.trust + (tTarget - S.trust) * 0.35, 0, 1);
+  S.heat = clamp(S.heat + (m.M / 100) * 6 + Math.max(0, 55 - m.teen) * 0.08 + (m.P / 100) * 3 + (S.electionMode === 'platform' && S.month === 11 ? 6 : 0) - 3.2, 0, 100);
+  if (S.leakPending && S.month >= S.leakPending) { S.leakPending = 0; S.trust = clamp(S.trust - 0.12, 0, 1); S.heat = clamp(S.heat + 12, 0, 100); log('The teen research leaked. It is on every front page.'); S.pending.push({ type:'news', t:'Leaked: Gather knew its feed made teens feel worse.' }); }
+  if (S.month === 11 && S.electionMode === 'platform') for (const u of people()) u.x = clamp(u.x * 1.12, -1, 1);
+  // trending: top posts this month
+  const tops = M.top.sort((a, b) => b.eng - a.eng);
+  const seen = new Set(); S.trending = [];
+  for (const p of tops) { const key = p.t + p.a; if (seen.has(key) || S.trending.filter(z => z.t === p.t).length >= 2) continue; seen.add(key); S.trending.push({ t:p.t, txt:postText(p), eng:Math.round(p.eng * SCALE / 10), a:(userById(p.a) || {}).name }); if (S.trending.length >= 3) break; }
+  // mom
+  const mu = mom();
+  if (mu && !mu.gone && (S.month % 2 === 0 || Math.random() < 0.3)) { const st = momState(mu); const L = MOM_LINES[st]; const side = mu.x < 0 ? SIDES.pos : SIDES.neg; S.momLines.push({ m:S.month, st, t:(Array.isArray(L) ? pick(L) : L).replace('{S}', side) }); S.pending.push({ type:'mom' }); }
+  S.hist.push({ month:S.month, teen:m.teen, msi:m.msi, dau:m.dau, rev:m.rev, min:m.min, W:m.W, P:m.P, M:m.M, trust:Math.round(S.trust * 100), heat:Math.round(S.heat), adv:Math.round(S.advTrust * 100), mix:m.mix.slice(), mixImp:m.mixImp.slice() });
+  // achievements
+  if (m.P >= 70) award('split'); if (m.M >= 50) award('hoaxers');
+  award('first');
+  const rep = { type:'month', month:S.month, prev, now:Object.assign({}, m), trending:S.trending.slice() };
+  if (S.month % 3 === 0) rep.quarter = boardReview();
+  S.pending.push(rep);
+  S.lastReport = rep; S.mon = null;
+  // next month
+  S.mods = {}; S.sprints = 1; S.shippedThisMonth = 0;
+  if (S.over) { S.phase = 'over'; return rep; }
+  if (S.month >= 24) { endGame(); return rep; }
+  S.month++; S.phase = 'plan';
+  queueMail();
+  if (S.month === 4) tip('creators');
+  return rep;
+}
+// one step of the running month (the UI animates between steps)
+function stepRun() { if (S.phase !== 'running') return null; weekStep(); if (S.weekN >= 4) return finishMonth(); return { week:S.weekN }; }
+
+// ---------------------------------------------------------------------
+// BOARD
+// ---------------------------------------------------------------------
+function targets(q) {
+  return { dau:Math.round((BASE.dau + BASE.dg * q) / 1e4) * 1e4, rev:Math.round((BASE.rev + BASE.rg * q) / 1e4) * 1e4 };
+}
+function quarterRev() { return S.hist.slice(-3).reduce((a, h) => a + h.rev, 0); }
+function boardReview() {
+  const q = S.month / 3, t = targets(q), dau = S.metrics.dau, rev = quarterRev();
+  const ratio = (dau / t.dau + rev / t.rev) / 2 + (S.boardMood || 0) * 0.005;
+  let verdict = 'meets', promoted = false;
+  if (ratio >= 1) { verdict = 'beat'; if (S.rank < TITLES.length - 1) { S.rank++; promoted = true; S.options += 25000; award('promo'); if (S.rank === TITLES.length - 1) award('cgo'); } S.strikes = Math.max(0, S.strikes - 1); }
+  else if (ratio < 0.88) { if (q === 1) verdict = 'warn'; else { verdict = 'miss'; S.strikes++; } }
+  S.boardMood = 0;
+  const raw = (dau / t.dau + rev / t.rev) / 2;
+  S.stock = Math.max(1, 10 * raw * raw * (0.85 + 0.15 * S.advTrust) * (1 - S.heat / 400) * (1 - 0.05 * S.strikes));
+  if ((S.stock - OPTION_STRIKE) * S.options >= 1e7) award('rich');
+  const r = { q, t, dau, rev, ratio, verdict, promoted, strikes:S.strikes, stock:S.stock, title:TITLES[S.rank] };
+  S.quarters.push(r);
+  if (S.strikes >= 3) gameOver('fired');
+  const last3 = S.hist.slice(-3); if (last3.length === 3 && last3.every(h => h.W >= 65)) award('calm');
+  return r;
+}
+function society() { const m = S.metrics; return Math.round((m.W + m.teen + (100 - m.P) + (100 - m.M)) / 4); }
+function endGame() {
+  const soc = society(), st = S.stock;
+  let e;
+  if (st >= 11 && soc >= 68) e = 'unicorn';
+  else if (st >= 11) e = 'disruptor';
+  else if (st >= 8 && soc >= 68) e = 'utility';
+  else if (soc >= 68) e = 'friendster';
+  else e = 'dumpster';
+  if (e === 'unicorn') award('unicorn');
+  const mu = mom(); if (mu && !mu.gone && momState(mu) === 'good') award('momgood');
+  if (!S.growthShipped) award('nofeature');
+  S.ending = e; gameOver('end');
+}
+function gameOver(why) { if (S.over) return; S.over = why; S.phase = 'over'; S.pending.push({ type:'over', why }); }
+function log(t) { S.log.unshift({ m:S.month, t }); if (S.log.length > 80) S.log.length = 80; }
+function award(id) { if (S.ach[id]) return; S.ach[id] = S.month; S.pending.push({ type:'ach', id }); }
+function tip(id) { if (S.tips[id]) return; S.tips[id] = 1; S.pending.push({ type:'tip', id }); }
+
+// preview: what a given user would see right now under current settings (no noise)
+function previewFeed(u, n = 6) {
+  const pool = [];
+  const rng = mulberry(u.id * 7919 + S.month * 31);
+  const cr = live().filter(v => v.cr);
+  for (let i = 0; i < 40 && cr.length; i++) { const c = cr[Math.floor(rng() * cr.length)]; const t = CREATOR_TYPES[wIndexR(c.cr, rng)]; const p = mkPost(c, t); const L = POSTS[t === 'rage' ? (p.lean < 0 ? 'rage_neg' : 'rage_pos') : t]; p.txt = L[Math.floor(rng() * L.length)]; pool.push(p); }
+  for (const id of u.f.slice(0, 8)) { const v = userById(id); if (v && !v.gone && !v.cr) { const p = mkPost(v, 'friend'); p.txt = POSTS.friend[Math.floor(rng() * POSTS.friend.length)].replace('{n}', v.name.split(' ')[0]); pool.push(p); } }
+  if (S.feats.blips) for (let i = 0; i < 6 && cr.length; i++) { const p = mkPost(cr[Math.floor(rng() * cr.length)], 'slop'); p.txt = POSTS.slop[Math.floor(rng() * POSTS.slop.length)]; pool.push(p); }
+  const saved = Math.random; Math.random = rng;
+  const f = buildFeed(u, pool, n, 0);
+  Math.random = saved;
+  const out = []; let adEvery = S.ad ? Math.round(10 / S.ad) : 99, c = 0;
+  for (const p of f) { out.push(p); c++; if (c % adEvery === 0) out.push({ t:'ad', txt:ADS[(u.id + c) % ADS.length] }); }
+  return out.slice(0, n);
+}
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function wIndexR(m, rng) { let r = rng(), s = 0; for (let i = 0; i < m.length; i++) { s += m[i]; if (r <= s) return i; } return m.length - 1; }
+// rough forecast of what the current settings do to a sample of users (mood/time direction)
+function forecast() {
+  const sample = people().filter(u => u.act).slice(0, 60);
+  let mood = 0, time = 0, rage = 0, n = 0;
+  for (const u of sample) { const f = previewFeed(u, 12); for (const p of f) { n++; if (p.t === 'ad') { mood -= 0.003; continue; } mood += p.t === 'rage' ? -0.01 : TYPE_INFO[p.t].mood; time += engageProb(u, p); if (p.t === 'rage' || p.t === 'hoax') rage++; } }
+  return { mood:n ? mood / n : 0, eng:n ? time / n : 0, unsafe:n ? rage / n : 0 };
+}
+
+// helpers for the UI
+function quarterNow() { return Math.ceil(S.month / 3); }
+function quarterSoFar() { const q = quarterNow(), from = (q - 1) * 3 + 1; return S.hist.filter(h => h.month >= from && h.month <= q * 3).reduce((a, h) => a + h.rev, 0); }
+function optionsValue() { return Math.max(0, S.stock - OPTION_STRIKE) * S.options; }
+function shipBlock(id) {
+  const f = byId(FEATURES, id); if (!f) return 'Unknown';
+  if (S.feats[id]) return 'Shipped';
+  if (f.needs && !S.feats[f.needs]) return 'Needs ' + byId(FEATURES, f.needs).name;
+  if (S.phase !== 'plan') return 'Deploying';
+  if (!canShip()) return S.mods.nosprint && S.shippedThisMonth === 0 ? 'Team is on the metaverse demo' : 'One feature per month';
+  return '';
+}
+// =====================================================================
+// THE FEED — UI
+// =====================================================================
+const $ = id => document.getElementById(id);
+const SAVE_KEY = 'feed_save_v1';
+let TAB = 'inbox', SEL = 0, MODAL = null, SOUND = true, RUN = null, HOVER = 0, DIRTY = 2, FC_T = 0, FC = null;
+const MQ = [], KEYS = {};
+try { SOUND = localStorage.getItem('feed_sound') !== 'off'; } catch (e) {}
+
+// {{shown|hover}} → a dotted joke with a tooltip. Everything else is escaped.
+function jz(text) {
+  let out = '', last = 0; const re = /\{\{([^|}]+)\|([^}]+)\}\}/g; let m;
+  const s = String(text);
+  while ((m = re.exec(s))) { out += esc(s.slice(last, m.index)) + `<mark class="jk" tabindex="0" data-tip="${esc(m[2])}">${esc(m[1])}</mark>`; last = re.lastIndex; }
+  return out + esc(s.slice(last));
+}
+const plain = t => String(t).replace(/\{\{([^|}]+)\|[^}]+\}\}/g, '$1');
+const pct = v => Math.round(v * 100);
+const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v);
+
+// ---------------------------------------------------------------------
+// SOUND
+// ---------------------------------------------------------------------
+let AC = null;
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+function tone(f, t0, dur, type = 'sine', vol = 0.1, f2) {
+  const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + t0;
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const SFX_T = {};
+function sfx(k) {
+  if (!SOUND) return; const now = performance.now(); if (SFX_T[k] && now - SFX_T[k] < 90) return; SFX_T[k] = now;
+  if (k === 'click') tone(1100, 0, 0.03, 'square', 0.018);
+  else if (k === 'tick') tone(1800, 0, 0.02, 'sine', 0.025);
+  else if (k === 'ship') { tone(523, 0, 0.09, 'triangle', 0.07); tone(784, 0.08, 0.09, 'triangle', 0.07); tone(1047, 0.16, 0.2, 'triangle', 0.07); }
+  else if (k === 'ping') { tone(1318, 0, 0.12, 'sine', 0.06); tone(1760, 0.07, 0.18, 'sine', 0.05); }
+  else if (k === 'deploy') tone(220, 0, 0.5, 'sawtooth', 0.03, 880);
+  else if (k === 'week') tone(660, 0, 0.06, 'triangle', 0.04);
+  else if (k === 'good') { tone(660, 0, 0.1, 'triangle', 0.07); tone(880, 0.1, 0.1, 'triangle', 0.07); tone(1320, 0.2, 0.3, 'triangle', 0.07); }
+  else if (k === 'bad') tone(300, 0, 0.35, 'square', 0.045, 160);
+  else if (k === 'mom') { tone(1046, 0, 0.1, 'sine', 0.07); tone(1318, 0.1, 0.16, 'sine', 0.07); }
+}
+
+// ---------------------------------------------------------------------
+// TOASTS + JOKE TOOLTIPS
+// ---------------------------------------------------------------------
+function toast(html, ms = 3400, cls = '') { const el = document.createElement('div'); el.className = 'toast ' + cls; el.innerHTML = html; $('toasts').appendChild(el); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); setTimeout(() => el.remove(), ms); }
+let TIP_EL = null;
+function showTip(el) {
+  TIP_EL = el; const tip = $('jtip'); tip.textContent = el.dataset.tip; tip.hidden = false;
+  const r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+  const x = Math.min(innerWidth - tw - 8, Math.max(8, r.left + r.width / 2 - tw / 2)); let y = r.top - th - 8; if (y < 8) y = r.bottom + 8;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideTip() { $('jtip').hidden = true; TIP_EL = null; }
+
+// ---------------------------------------------------------------------
+// HEADER + KPIs
+// ---------------------------------------------------------------------
+function renderHeader() {
+  $('hMonth').textContent = monthName(S.month);
+  $('hQ').textContent = `Month ${S.month} of 24 · Q${quarterNow()}`;
+  $('hTitle').textContent = TITLES[S.rank];
+  const ov = optionsValue(); $('hOpt').textContent = ov > 0 ? fmtM(ov) : 'Underwater'; $('hOpt').className = ov > 0 ? 'good' : '';
+  $('hOpt').title = `${S.options.toLocaleString()} options at a $${OPTION_STRIKE} strike. Internal share price: $${S.stock.toFixed(2)}.`;
+  const left = Math.max(0, 3 - S.strikes); $('hPat').textContent = '●'.repeat(left) + '○'.repeat(3 - left); $('hPat').className = 'pat p' + Math.min(left, 2);
+  $('hPat').title = `${left} missed quarter${left === 1 ? '' : 's'} left before a "new chapter for Ranking."`;
+}
+function delta(cur, prev, goodUp = true, fmt = v => v) {
+  if (prev === undefined || prev === null) return '';
+  const d = cur - prev; if (!d) return '<i>±0</i>';
+  const up = d > 0; return `<i class="${up === goodUp ? 'up' : 'down'}">${up ? '▲' : '▼'}${fmt(Math.abs(d))}</i>`;
+}
+function renderKPIs() {
+  const m = S.metrics, h = S.hist, last = h[h.length - 1], prev = h[h.length - 2];
+  const q = quarterNow(), t = targets(q);
+  const qMonths = S.month - (q - 1) * 3 - (S.phase === 'plan' ? 1 : 0);
+  const soFar = quarterSoFar();
+  const dauPct = Math.min(100, m.dau / t.dau * 100), revPct = Math.min(100, soFar / t.rev * 100);
+  const soc = society(), sc = soc >= 68 ? 'good' : soc >= 55 ? 'mid' : 'bad';
+  const html = `
+    <div class="kpi"><small>Daily active users</small><b>${fmtPeople(m.dau)}</b>${last ? delta(m.dau, prev ? prev.dau : undefined, true, v => fmtPeople(v)) : ''}
+      <div class="bar"><span class="${m.dau >= t.dau ? 'ok' : ''}" style="width:${dauPct}%"></span></div><div class="tgt">Q${q} target ${fmtPeople(t.dau)}</div></div>
+    <div class="kpi"><small>Revenue this quarter</small><b>${fmtM(soFar)}</b>
+      <div class="bar"><span class="${soFar >= t.rev ? 'ok' : ''}" style="width:${revPct}%"></span></div><div class="tgt">${Math.max(0, qMonths)} of 3 months · target ${fmtM(t.rev)}</div></div>
+    <div class="kpi"><small>Time on app</small><b>${m.min ? m.min + ' min' : '—'}</b>${last && prev ? delta(m.min, prev.min, true) : ''}<div class="tgt">per user, per day</div><div class="tgt">${jz('{{MSI|Meaningful Social Interactions. An angry comment counts as meaningful. So does a sad one.}}')}: ${m.msi ? m.msi.toFixed(1) : '—'} a week</div></div>
+    <div class="kpi soc"><small>Town health</small><b class="${sc}">${soc}</b><span class="mono" style="font-size:11px;color:var(--mute)"> /100</span>
+      <div class="tgt">Mood ${m.W} · Split ${m.P} · Hoax ${m.M}</div><div class="tgt">Teens ${m.teen} · Trust ${pct(S.trust)}</div></div>`;
+  if (KEYS.kpi !== html) { $('kpis').innerHTML = html; KEYS.kpi = html; }
+}
+
+// ---------------------------------------------------------------------
+// CONTROLS
+// ---------------------------------------------------------------------
+function buildControls() {
+  $('sliders').innerHTML = SIGNALS.map(s => `<div class="sl"><div class="sl-h"><label for="w_${s.id}">${esc(s.name)}</label><output id="o_${s.id}"></output></div><p>${jz(s.desc)}</p><input type="range" min="0" max="10" step="1" id="w_${s.id}" data-w="${s.id}"></div>`).join('');
+  $('adSlider').innerHTML = `<div class="sl"><div class="sl-h"><label for="w_ad">Ads in the feed</label><output id="o_ad"></output></div><p>More ads, more revenue. Each ad is a small annoyance.</p><input type="range" min="0" max="5" step="1" id="w_ad" data-ad="1"></div>`;
+}
+function renderControls() {
+  const plan = S.phase === 'plan';
+  for (const s of SIGNALS) { const el = $('w_' + s.id); if (document.activeElement !== el) el.value = S.w[s.id]; el.disabled = !plan; $('o_' + s.id).textContent = S.w[s.id]; }
+  const ad = $('w_ad'); if (document.activeElement !== ad) ad.value = S.ad; ad.disabled = !plan; $('o_ad').textContent = S.ad + ' / 10';
+  let th;
+  if (!S.feats.integrity) th = `<div class="locked">Ship <b>Integrity team</b> from the roadmap to unlock these.</div>`;
+  else th = [['borderline', 'Demote borderline posts', 'Outrage ranks at half strength.'], ['downrank', 'Downrank hoaxes', 'Known hoaxes rank at a quarter.']].map(([k, n, d]) => `<div class="tg"><span>${n}<small>${d}</small></span><button type="button" class="sw ${S.tog[k] ? 'on' : ''}" data-tog="${k}" role="switch" aria-checked="${!!S.tog[k]}" aria-label="${n}" ${plan ? '' : 'disabled'}></button></div>`).join('');
+  if (KEYS.tog !== th) { $('toggles').innerHTML = th; KEYS.tog = th; }
+}
+function renderForecast() {
+  if (!FC) FC = forecast();
+  const e = FC.eng, md = FC.mood * 1000, u = FC.unsafe;
+  const eL = e > 0.36 ? ['High', 'up'] : e > 0.28 ? ['Medium', 'mid'] : ['Low', 'down'];
+  const mL = md > 1.5 ? ['Better', 'up'] : md > -1 ? ['Flat', 'mid'] : ['Worse', 'down'];
+  const uL = u < 0.15 ? ['Safe', 'up'] : u < 0.35 ? ['Risky', 'mid'] : ['Toxic', 'down'];
+  const h = `<div>Engagement<b class="${eL[1]}">${eL[0]}</b></div><div>Mood<b class="${mL[1]}">${mL[0]}</b></div><div>Brand safety<b class="${uL[1]}">${uL[0]}</b></div>`;
+  if (KEYS.fc !== h) { $('forecast').innerHTML = h; KEYS.fc = h; }
+}
+function settingsChanged() { FC = null; clearTimeout(FC_T); FC_T = setTimeout(() => { renderForecast(); renderPhone(); }, 90); $('o_ad').textContent = S.ad + ' / 10'; for (const s of SIGNALS) $('o_' + s.id).textContent = S.w[s.id]; }
+
+// ---------------------------------------------------------------------
+// DEPLOY BAR + TABS
+// ---------------------------------------------------------------------
+function renderDeploy() {
+  const n = S.inbox.length, shipped = Object.keys(S.feats).filter(k => S.feats[k] === S.month && S.phase === 'plan');
+  let chips = '';
+  if (S.phase === 'running') chips = `<span>Deploying ${monthName(S.month)}…</span>`;
+  else if (S.phase === 'over') chips = `<span>Game over</span>`;
+  else {
+    chips += n ? `<span class="need"><button type="button" data-tab="inbox">${n} unanswered message${n > 1 ? 's' : ''}</button></span>` : `<span class="done">Inbox zero</span>`;
+    if (shipped.length) chips += `<span class="done">Shipped ${esc(shipped.map(k => byId(FEATURES, k).name).join(', '))}</span>`;
+    if (canShip()) chips += `<span><button type="button" data-tab="roadmap">Ship a feature</button> (optional)</span>`;
+    else if (!shipped.length) chips += `<span>No feature this month: the team is on the metaverse demo</span>`;
+  }
+  if (KEYS.todo !== chips) { $('todo').innerHTML = chips; KEYS.todo = chips; }
+  const b = $('bDeploy');
+  b.disabled = S.phase !== 'plan' || n > 0;
+  b.textContent = S.phase === 'running' ? 'Deploying…' : S.phase === 'over' ? 'Game over' : n ? 'Answer your messages first' : S.month === 24 ? 'Deploy month 24 · IPO' : `Deploy ${monthName(S.month)}`;
+}
+const TABS = [['inbox', 'Inbox'], ['roadmap', 'Roadmap'], ['dash', 'Dashboard'], ['log', 'Changelog'], ['ach', 'Trophies']];
+function renderTabs() {
+  const h = TABS.map(([id, l]) => `<button type="button" data-tab="${id}" class="${TAB === id ? 'on' : ''}">${l}${id === 'inbox' && S.inbox.length ? `<span class="badge">${S.inbox.length}</span>` : ''}${id === 'ach' ? ` <small style="color:var(--mute)">${Object.keys(S.ach).length}/${ACHIEVEMENTS.length}</small>` : ''}</button>`).join('');
+  if (KEYS.tabs !== h) { $('tabs').innerHTML = h; KEYS.tabs = h; }
+}
+function renderPane() {
+  const h = TAB === 'inbox' ? paneInbox() : TAB === 'roadmap' ? paneRoadmap() : TAB === 'dash' ? paneDash() : TAB === 'log' ? paneLog() : paneAch();
+  if (KEYS.pane !== h) { $('pane').innerHTML = h; KEYS.pane = h; }
+}
+const AVC = { 'Brax (CEO)':'#5a55f0', 'Mom':'#e86a9a', 'Devon (Growth)':'#ff7a59', 'Priya (Integrity)':'#12946a', 'Ad Sales':'#c97a10', 'Engineering':'#4b5263', 'Comms':'#2a8bd8', 'Policy':'#7a5af0', 'Creator Partnerships':'#d64fb0', 'Brand':'#e8a33c', 'SRE':'#3a4560', 'Legal':'#8a2f2f', 'HR':'#2fa5a0' };
+function msgHead(x) { return `<div class="av" style="background:${AVC[x.from] || '#888'}">${esc(x.from[0])}</div>`; }
+function paneInbox() {
+  let h = '';
+  for (const id of S.inbox) {
+    const x = byId(MAIL, id); if (!x) continue;
+    h += `<div class="msg">${msgHead(x)}<div class="msg-b"><div class="msg-h"><b>${esc(x.from)}</b><small>${monthName(S.month)}</small></div><div class="msg-s">${jz(x.subj)}</div><p class="msg-t">${jz(x.body)}</p>
+      <div class="choices">${x.choices.map((c, i) => `<button type="button" class="choice" data-mail="${id}" data-ch="${i}" ${S.phase === 'plan' ? '' : 'disabled'}>${jz(c.label)}</button>`).join('')}</div></div></div>`;
+  }
+  const done = (S.replies || []).filter(r => r.m === S.month || (S.phase !== 'plan' && r.m === S.month - 1)).slice().reverse();
+  for (const r of done) {
+    const x = byId(MAIL, r.id); if (!x) continue;
+    h += `<div class="msg done">${msgHead(x)}<div class="msg-b"><div class="msg-h"><b>${esc(x.from)}</b><small>answered</small></div><div class="msg-s">${jz(x.subj)}</div><p class="msg-t">You: ${jz(x.choices[r.ci].label)}</p><div class="res">${jz(r.t)}</div></div></div>`;
+  }
+  return h || `<div class="empty">Inbox zero. Brax is typing…</div>`;
+}
+function paneRoadmap() {
+  const left = Math.max(0, S.sprints - (S.mods.nosprint ? 1 : 0) - S.shippedThisMonth);
+  return `<p class="note">${S.phase === 'plan' ? (left ? `You can ship <b>${left}</b> feature${left > 1 ? 's' : ''} this month. Features are permanent.` : 'Nothing more ships this month.') : 'Deploying.'}</p>
+    <div class="feats">${FEATURES.map(f => {
+      const blk = shipBlock(f.id), sh = S.feats[f.id];
+      return `<div class="feat ${sh ? 'shipped' : ''}"><div class="feat-h"><b>${esc(f.name)}</b><span class="tag ${f.tag}">${f.tag}</span></div><p>${jz(f.desc)}</p>
+        ${sh ? `<span class="when">✓ Shipped ${monthName(sh)}</span>` : `<button type="button" class="ship" data-ship="${f.id}" ${blk ? 'disabled' : ''}>${blk ? esc(blk) : 'Ship it'}</button>`}</div>`;
+    }).join('')}</div>`;
+}
+function paneLog() {
+  if (!S.log.length) return `<div class="empty">Nothing shipped yet. The changelog is empty, like the town square.</div>`;
+  return `<div class="log">${S.log.map(l => `<div><small>${monthName(l.m)}</small><span>${jz(l.t)}</span></div>`).join('')}</div>`;
+}
+function paneAch() {
+  return `<div class="achs">${ACHIEVEMENTS.map(a => `<div class="ach ${S.ach[a.id] ? 'got' : ''}"><b>${S.ach[a.id] ? '★ ' : ''}${esc(a.name)}</b>${esc(a.d)}${S.ach[a.id] ? `<br><small>${monthName(S.ach[a.id])}</small>` : ''}</div>`).join('')}</div>`;
+}
+
+// ---------------------------------------------------------------------
+// CHARTS (SVG, scaled; labels live in HTML)
+// ---------------------------------------------------------------------
+const CW = 300, CH = 120;
+function cx(i) { return 4 + i / 23 * (CW - 8); }
+function lineChart(series, lo, hi) {
+  const y = v => CH - 6 - (v - lo) / Math.max(1e-9, hi - lo) * (CH - 12);
+  let g = '';
+  for (let k = 1; k < 4; k++) g += `<line x1="0" x2="${CW}" y1="${(CH * k / 4).toFixed(1)}" y2="${(CH * k / 4).toFixed(1)}" stroke="#eee9df" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+  for (const s of series) {
+    const pts = s.v.map((v, i) => v === null || v === undefined ? null : `${cx(s.x ? s.x[i] : i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean);
+    if (!pts.length) continue;
+    if (pts.length === 1) g += `<circle cx="${pts[0].split(',')[0]}" cy="${pts[0].split(',')[1]}" r="2.5" fill="${s.c}"/>`;
+    else g += `<polyline points="${pts.join(' ')}" fill="none" stroke="${s.c}" stroke-width="${s.w || 2}" ${s.dash ? 'stroke-dasharray="4 3"' : ''} vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+  }
+  return `<svg viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="none" aria-hidden="true">${g}</svg>`;
+}
+function stackChart(rows, colors) {
+  if (!rows.length) return `<svg viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="none"></svg>`;
+  const R = rows.length === 1 ? [rows[0], rows[0]] : rows;
+  const X = i => rows.length === 1 ? (i ? CW - 4 : 4) : cx(i);
+  const B = R.map(() => 0); let g = '';
+  for (let k = 0; k < R[0].length; k++) {
+    const top = R.map((r, i) => B[i] + r[k]);
+    const up = R.map((_, i) => `${X(i).toFixed(1)},${(CH - top[i] * CH).toFixed(1)}`);
+    const dn = R.map((_, i) => `${X(i).toFixed(1)},${(CH - B[i] * CH).toFixed(1)}`).reverse();
+    g += `<polygon points="${up.concat(dn).join(' ')}" fill="${colors[k]}" opacity=".9"/>`;
+    for (let i = 0; i < R.length; i++) B[i] = top[i];
+  }
+  return `<svg viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="none" aria-hidden="true">${g}</svg>`;
+}
+function paneDash() {
+  const h = S.hist;
+  if (!h.length) return `<div class="empty">No data yet. Deploy your first month.</div>`;
+  const dau = h.map(x => x.dau / 1e6), rev = h.map(x => x.rev / 1e6);
+  const tD = [], tR = [];
+  for (let i = 0; i < 24; i++) { const t = targets(Math.ceil((i + 1) / 3)); tD.push(t.dau / 1e6); tR.push(t.rev / 3 / 1e6); }
+  const hiD = Math.max(...dau, ...tD.slice(0, h.length + 3)) * 1.1, hiR = Math.max(...rev, ...tR.slice(0, h.length + 3)) * 1.15;
+  const last = h[h.length - 1];
+  const key = arr => `<div class="keys">${arr.map(([n, c, d]) => `<span><i style="background:${c};${d ? 'opacity:.6' : ''}"></i>${n}</span>`).join('')}</div>`;
+  const charts = [
+    `<div class="chart"><h3>Daily users <small>${fmtPeople(last.dau)}</small></h3>${lineChart([{ v:tD.slice(0, Math.min(24, h.length + 3)), c:'#c9c4f7', dash:1 }, { v:dau, c:'#5a55f0', w:2.5 }], 0, hiD)}${key([['Actual', '#5a55f0'], ['Board target', '#c9c4f7', 1]])}</div>`,
+    `<div class="chart"><h3>Revenue per month <small>${fmtM(last.rev)}</small></h3>${lineChart([{ v:tR.slice(0, Math.min(24, h.length + 3)), c:'#f2cf9a', dash:1 }, { v:rev, c:'#c97a10', w:2.5 }], 0, hiR)}${key([['Actual', '#c97a10'], ['Target pace', '#f2cf9a', 1]])}</div>`,
+    `<div class="chart"><h3>The town <small>health ${society()}</small></h3>${lineChart([{ v:h.map(x => x.W), c:'#12946a' }, { v:h.map(x => x.P), c:'#d8402f' }, { v:h.map(x => x.M), c:'#b07cff' }], 0, 100)}${key([['Mood', '#12946a'], ['Polarization', '#d8402f'], ['Hoax belief', '#b07cff']])}</div>`,
+    `<div class="chart"><h3>Reputation <small>heat ${last.heat}</small></h3>${lineChart([{ v:h.map(x => x.trust), c:'#2a8bd8' }, { v:h.map(x => x.adv), c:'#c97a10' }, { v:h.map(x => x.heat), c:'#8a2f2f', dash:1 }], 0, 100)}${key([['Public trust', '#2a8bd8'], ['Advertiser trust', '#c97a10'], ['Regulator heat', '#8a2f2f']])}</div>`,
+    `<div class="chart"><h3>What people saw <small>share of feed</small></h3>${stackChart(h.map(x => x.mixImp), TYPES.map(t => TYPE_INFO[t].color))}${key(TYPES.map(t => [TYPE_INFO[t].name, TYPE_INFO[t].color]))}</div>`,
+    `<div class="chart"><h3>What creators make <small>they learn from you</small></h3>${stackChart(h.map(x => x.mix), CREATOR_TYPES.map(t => TYPE_INFO[t].color))}${key(CREATOR_TYPES.map(t => [TYPE_INFO[t].name, TYPE_INFO[t].color]))}</div>`
+  ];
+  const qs = S.quarters.map(q => `<tr><td>Q${q.q} · ${monthName(q.q * 3)}</td><td>${fmtPeople(q.dau)} / ${fmtPeople(q.t.dau)}</td><td>${fmtM(q.rev)} / ${fmtM(q.t.rev)}</td><td class="v-${q.verdict}">${{ beat:'Beat', meets:'Met', miss:'Missed', warn:'Below' }[q.verdict]}</td><td>$${q.stock.toFixed(2)}</td></tr>`).join('');
+  const nextQ = quarterNow(), nt = targets(nextQ);
+  return `<div class="charts">${charts.join('')}</div>
+    <div class="tbl-wrap"><table class="q"><thead><tr><th>Quarter</th><th>Users / target</th><th>Revenue / target</th><th>Verdict</th><th>Share price</th></tr></thead><tbody>${qs}${S.month <= 24 && !S.over ? `<tr><td>Q${nextQ} (now)</td><td>— / ${fmtPeople(nt.dau)}</td><td>${fmtM(quarterSoFar())} / ${fmtM(nt.rev)}</td><td>—</td><td></td></tr>` : ''}</tbody></table></div>
+    <p class="note">Beat both targets (on average) to get promoted. Miss badly and the board loses patience. Three misses and you're out.</p>`;
+}
+
+// ---------------------------------------------------------------------
+// PHONE PREVIEW
+// ---------------------------------------------------------------------
+const PERSONA_NAME = id => (byId(PERSONAS, id) || { name:'person' }).name;
+function sideColor(x, a = 1) {
+  const L = [63, 182, 200], M = [205, 210, 228], R = [232, 138, 60];
+  const t = (x + 1) / 2, [A, B, k] = t < 0.5 ? [L, M, t * 2] : [M, R, (t - 0.5) * 2];
+  return `rgba(${Math.round(A[0] + (B[0] - A[0]) * k)},${Math.round(A[1] + (B[1] - A[1]) * k)},${Math.round(A[2] + (B[2] - A[2]) * k)},${a})`;
+}
+function selUser() {
+  let u = SEL ? userById(SEL) : null;
+  if (!u) { const mu = mom(); u = mu && !mu.gone ? mu : people().find(v => v.act) || people()[0]; SEL = u ? u.id : 0; }
+  return u;
+}
+function sideWord(x) { return x < -0.55 ? `Hardcore ${SIDES.neg.slice(0, -1)}` : x < -0.2 ? `Leans ${SIDES.neg.slice(0, -1)}` : x > 0.55 ? `Hardcore ${SIDES.pos.slice(0, -1)}` : x > 0.2 ? `Leans ${SIDES.pos.slice(0, -1)}` : 'Undecided'; }
+function postCard(p) {
+  if (p.t === 'ad') return `<div class="post ad"><div class="who">Sponsored</div><div class="tx">${esc(p.txt.replace(/^Sponsored · /, ''))}</div></div>`;
+  const a = userById(p.a), info = TYPE_INFO[p.t];
+  const who = a ? (a.cr ? '@' + a.name : a.name) : 'Someone';
+  const flag = p.t === 'hoax' && S.feats.labels ? `<div class="flag">ⓘ Independent fact-checkers say this is false. <u>See why</u></div>` : '';
+  return `<div class="post ${p.vid >= 0.5 ? 'vid' : ''}" style="--c:${info.color}"><div class="who"><span>${esc(who)}</span><small>${esc(info.name)}</small></div><div class="tx">${esc(p.txt)}</div>${flag}</div>`;
+}
+function renderPhone() {
+  const u = selUser(); if (!u) return;
+  const isMom = u.id === S.momId;
+  $('whoMom').hidden = !S.momId;
+  $('phTitle').textContent = isMom ? 'What Mom sees' : `What ${u.name.split(' ')[0]} sees`;
+  const pn = u.cr ? 'creator' : PERSONA_NAME(u.persona);
+  const meters = u.cr ? `<div class="meter">Makes<div><span style="width:100%;background:${TYPE_INFO[CREATOR_TYPES[u.cr.indexOf(Math.max(...u.cr))]].color}"></span></div></div>`
+    : `<div class="meter">Mood ${pct(u.m)}<div><span style="width:${pct(u.m)}%;background:${u.m < 0.4 ? 'var(--bad)' : 'var(--good)'}"></span></div></div>
+       <div class="meter">Habit ${pct(u.h)}<div><span style="width:${pct(u.h)}%;background:var(--brand)"></span></div></div>
+       <div class="meter">Believes hoaxes ${pct(u.b)}<div><span style="width:${pct(u.b)}%;background:var(--purple)"></span></div></div>
+       <div class="meter">${esc(sideWord(u.x))}<div class="side"><span style="left:${(u.x + 1) * 50}%"></span></div></div>`;
+  const status = u.gone ? `Deleted Gather in ${monthName(u.gone)}.` : u.cr ? `Creator · ${fmtPeople((u.score || 0) * SCALE / 10)} views a week` : u.act ? 'Opened the app this week' : 'Didn\'t open the app this week';
+  const prof = `<div class="pr-top"><div class="pr-av" style="background:${isMom ? '#e86a9a' : sideColor(u.x)}">${esc(u.name[0])}</div><div><b>${esc(isMom ? 'Mom' : (u.cr ? '@' + u.name : u.name))}</b><small>${u.cr ? 'creator' : `${esc(pn)}, ${u.age}`} · ${esc(status)}</small></div></div>
+    <div class="pr-bio">${esc(u.bio)}</div><div class="meters">${meters}</div>`;
+  if (KEYS.prof !== prof) { $('profile').innerHTML = prof; KEYS.prof = prof; }
+  let feed;
+  if (u.gone) feed = `<div class="post chrono-note"><div class="tx">${isMom ? 'Mom deleted her account. She says to call her.' : 'This account has been deleted.'}</div></div>`;
+  else if (u.cr) feed = `<div class="post chrono-note"><div class="tx">Creators mostly look at their analytics. Their analytics say: more of whatever you reward.</div></div>`;
+  else {
+    const f = previewFeed(u, 6);
+    feed = (u.chrono ? `<div class="post chrono-note"><div class="tx">Uses the chronological feed. Sees friends, in order. Worth 40% less to advertisers.</div></div>` : '') + (f.length ? f.map(postCard).join('') : `<div class="post chrono-note"><div class="tx">Nothing new. ${esc(u.name.split(' ')[0])} has seen everything. (This never happens.)</div></div>`);
+  }
+  const screen = `<div class="app-h">gather<small>${monthName(S.month)}</small></div>${feed}`;
+  if (KEYS.phone !== screen) { $('phone').innerHTML = screen; KEYS.phone = screen; }
+}
+
+// ---------------------------------------------------------------------
+// THE TOWN (canvas)
+// ---------------------------------------------------------------------
+const DOTS = new Map(); let CV = { w:0, h:0, dpr:1 }, FLASH = 0;
+function hash(n) { n = (n ^ 61) ^ (n >>> 16); n = n + (n << 3); n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return (n >>> 0) / 4294967296; }
+function resizeCanvas() {
+  const c = $('net'), r = $('cWrap').getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  if (!r.width) return;
+  if (CV.w !== r.width || CV.h !== r.height || CV.dpr !== dpr) { CV = { w:r.width, h:r.height, dpr }; c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); DIRTY = 2; }
+}
+function target(u) {
+  const pad = Math.max(18, CV.w * 0.04), jx = (hash(u.id) - 0.5) * CV.w * 0.035, jy = (hash(u.id * 7 + 3) - 0.5) * CV.h * 0.07;
+  const my = u.cr ? 0.88 - hash(u.id * 13) * 0.12 : clamp((u.m - 0.1) / 0.8, 0, 1);
+  return { x:pad + (u.x + 1) / 2 * (CV.w - 2 * pad) + jx, y:pad * 0.8 + (1 - my) * (CV.h - 2.3 * pad) + jy };
+}
+function dotR(u) { const k = Math.max(0.8, Math.min(1.4, CV.w / 760)); return (u.cr ? 5.2 : u.id === S.momId ? 4.6 : 3.1) * k; }
+function syncDots(snap) {
+  const seen = new Set();
+  for (const u of S.users) {
+    if (u.gone && !DOTS.has(u.id)) continue;
+    seen.add(u.id);
+    const t = target(u); let d = DOTS.get(u.id);
+    if (!d) { d = { x:t.x, y:t.y, a:snap ? 1 : 0 }; DOTS.set(u.id, d); }
+    d.tx = t.x; d.ty = u.gone ? CV.h + 20 : t.y; d.ta = u.gone ? 0 : 1; d.u = u;
+    if (snap) { d.x = d.tx; d.y = d.ty; d.a = d.ta; }
+  }
+  for (const [id, d] of DOTS) if (!seen.has(id) || (d.u.gone && d.a < 0.02)) DOTS.delete(id);
+  DIRTY = 2;
+}
+function drawNet(now) {
+  const c = $('net'), g = c.getContext('2d'); if (!g || !CV.w) return;
+  let moving = false;
+  for (const d of DOTS.values()) {
+    const dx = d.tx - d.x, dy = d.ty - d.y, da = d.ta - d.a;
+    if (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2 || Math.abs(da) > 0.01) { d.x += dx * 0.09; d.y += dy * 0.09; d.a += da * 0.08; moving = true; }
+  }
+  const flashing = RUN && now - FLASH < 700;
+  if (!moving && !DIRTY && !flashing && !HOVER_CHANGED) return;
+  HOVER_CHANGED = false; if (DIRTY) DIRTY--;
+  g.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0);
+  g.clearRect(0, 0, CV.w, CV.h);
+  // axes
+  g.strokeStyle = 'rgba(143,151,181,.18)'; g.setLineDash([4, 5]); g.lineWidth = 1;
+  g.beginPath(); g.moveTo(CV.w / 2, 8); g.lineTo(CV.w / 2, CV.h - 22); g.stroke(); g.setLineDash([]);
+  g.font = `600 ${CV.w < 500 ? 10 : 11}px "Plus Jakarta Sans", system-ui, sans-serif`; g.fillStyle = 'rgba(143,151,181,.75)';
+  g.textAlign = 'left'; g.fillText(`← ${SIDES.neg}: build the roundabout`, 10, CV.h - 8);
+  g.textAlign = 'right'; g.fillText(`${SIDES.pos}: keep the lights →`, CV.w - 10, CV.h - 8);
+  g.save(); g.translate(12, CV.h / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('miserable  ·  mood  ·  happy', 0, 0); g.restore();
+  // selected user's follows
+  const su = SEL && DOTS.get(SEL);
+  if (su && su.u.f) { g.strokeStyle = 'rgba(255,255,255,.16)'; g.lineWidth = 1; g.beginPath(); for (const id of su.u.f) { const d = DOTS.get(id); if (d && !d.u.gone) { g.moveTo(su.x, su.y); g.lineTo(d.x, d.y); } } g.stroke(); }
+  const drawDot = d => {
+    const u = d.u, r = dotR(u), a = d.a * (u.cr || u.act || u.gone ? 1 : 0.38);
+    if (a < 0.02) return;
+    if (!u.cr && u.b > 0.35) { g.beginPath(); g.arc(d.x, d.y, r + 3, 0, 6.283); g.fillStyle = `rgba(176,124,255,${Math.min(0.6, (u.b - 0.3) * 1.2) * d.a})`; g.fill(); }
+    g.beginPath(); g.arc(d.x, d.y, r, 0, 6.283);
+    if (u.cr) { const t = CREATOR_TYPES[u.cr.indexOf(Math.max(...u.cr))]; g.fillStyle = `rgba(20,24,38,${a})`; g.fill(); g.lineWidth = 2.4; g.strokeStyle = TYPE_INFO[t].color; g.globalAlpha = a; g.stroke(); g.globalAlpha = 1; }
+    else { g.fillStyle = sideColor(u.x, a); g.fill(); }
+    if (flashing && u.act && !u.cr && u.lt !== undefined) { const k = 1 - (now - FLASH) / 700; g.beginPath(); g.arc(d.x, d.y, r + 1.5 + (1 - k) * 4, 0, 6.283); g.lineWidth = 1.5; g.strokeStyle = TYPE_INFO[TYPES[u.lt]].color; g.globalAlpha = k * 0.9; g.stroke(); g.globalAlpha = 1; }
+  };
+  const list = [...DOTS.values()];
+  for (const d of list) if (!d.u.cr && d.u.id !== S.momId) drawDot(d);
+  for (const d of list) if (d.u.cr) drawDot(d);
+  const md = S.momId && DOTS.get(S.momId);
+  if (md) { drawDot(md); g.beginPath(); g.arc(md.x, md.y, dotR(md.u) + 2.5, 0, 6.283); g.lineWidth = 2; g.strokeStyle = `rgba(255,255,255,${md.a})`; g.stroke(); g.fillStyle = `rgba(255,255,255,${md.a})`; g.font = '700 11px "Plus Jakarta Sans", system-ui, sans-serif'; g.textAlign = 'left'; g.fillText('Mom', md.x + 9, md.y + 4); }
+  for (const id of [HOVER, SEL]) { const d = id && DOTS.get(id); if (d && d.a > 0.1) { g.beginPath(); g.arc(d.x, d.y, dotR(d.u) + 5, 0, 6.283); g.lineWidth = 1.5; g.strokeStyle = id === SEL ? '#fff' : 'rgba(255,255,255,.5)'; g.stroke(); } }
+}
+let HOVER_CHANGED = false;
+function dotAt(px, py) {
+  let best = 0, bd = 16 * 16;
+  for (const [id, d] of DOTS) { if (d.a < 0.3) continue; const dx = d.x - px, dy = d.y - py, dd = dx * dx + dy * dy; if (dd < bd) { bd = dd; best = id; } }
+  return best;
+}
+function renderLegend() {
+  const h = `<span><i style="background:${sideColor(-0.9)}"></i>${SIDES.neg}</span><span><i style="background:${sideColor(0)}"></i>Undecided</span><span><i style="background:${sideColor(0.9)}"></i>${SIDES.pos}</span><span><i style="background:rgba(205,210,228,.35)"></i>Didn't open the app</span><span><i style="background:rgba(176,124,255,.6)"></i>Believes hoaxes</span><span><i class="ring" style="border-color:${TYPE_INFO.cute.color}"></i>Creator (ring = what they make)</span>`;
+  if (KEYS.leg !== h) { $('legend').innerHTML = h; KEYS.leg = h; }
+  const live = people(), act = live.filter(u => u.act).length;
+  const info = `${fmtPeople(live.length * SCALE)} people · each dot ≈ 10,000 · ${Math.round(act / Math.max(1, live.length) * 100)}% opened the app last week`;
+  if (KEYS.ninfo !== info) { $('netInfo').textContent = info; KEYS.ninfo = info; }
+  const mix = RUN && S.mon && S.mon.imp.some(v => v) ? S.mon.imp.map(v => v / S.mon.imp.reduce((a, b) => a + b, 0)) : S.hist.length ? S.hist[S.hist.length - 1].mixImp : null;
+  const mh = mix ? TYPES.map((t, i) => `<span style="flex:0 0 ${(mix[i] * 100).toFixed(2)}%;background:${TYPE_INFO[t].color}" title="${esc(TYPE_INFO[t].name)} ${pct(mix[i])}%">${mix[i] > 0.07 ? esc(TYPE_INFO[t].name.split(' ')[0]) + ' ' + pct(mix[i]) + '%' : ''}</span>`).join('') : `<span style="flex:1;color:var(--nmute);font-family:var(--f-ui)">Deploy a month to see what people saw</span>`;
+  if (KEYS.mix !== mh) { $('mixbar').innerHTML = mh; KEYS.mix = mh; }
+}
+
+// ---------------------------------------------------------------------
+// MODALS
+// ---------------------------------------------------------------------
+function openModal(html, opts = {}) {
+  closeModal(true);
+  const ov = document.createElement('div'); ov.className = 'ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+  ov.innerHTML = `<div class="mo ${opts.wide ? 'wide' : ''}">${html}</div>`;
+  $('ovWrap').appendChild(ov); MODAL = { ov, kind:opts.kind || '', closable:!!opts.closable }; hideTip();
+  const f = ov.querySelector('.btn:not(:disabled)'); if (f) setTimeout(() => { try { f.focus({ preventScroll:true }); } catch (e) {} }, 30);
+  return ov;
+}
+function closeModal(silent) { if (!MODAL) return; MODAL.ov.remove(); MODAL = null; hideTip(); if (!silent) { renderAll(); setTimeout(nextModal, 0); } }
+function queueModal(fn) { MQ.push(fn); if (!MODAL) nextModal(); }
+function nextModal() { if (MODAL) return; const fn = MQ.shift(); if (fn) fn(); else route(); }
+function route() { if (!S || MODAL) return; if (S.over && !S.endSeen) return endModal(); }
+function titleModal() {
+  let has = null; try { const d = JSON.parse(localStorage.getItem(SAVE_KEY)); if (d && d.v === 1 && !d.over) has = d; } catch (e) {}
+  openModal(`<div class="kicker">Offer letter · Gather, Inc.</div><h2>You run the feed.</h2>
+    <p>Gather is the social app for a town of about 2 million people, and the town is fighting about a proposed roundabout. As Senior Ranking Engineer, <b>you decide what everyone sees.</b></p>
+    <ul>
+      <li>Set the <b>ranking weights</b> on the left. The phone on the right shows what any person's feed looks like, live.</li>
+      <li>Each month: tune the weights, <b>ship one feature</b>, answer your messages, then <b>deploy</b>. Watch the town react.</li>
+      <li>In the town, each dot is about 10,000 people. Left or right is their side of the roundabout fight. Up or down is how they feel.</li>
+      <li>The board reviews you every quarter against user and revenue targets. Three bad quarters and you're out. IPO is in month 24.</li>
+    </ul>
+    <p>Nobody will tell you what to optimize. That's the job.</p>
+    <div class="acts">${has ? `<button type="button" class="btn alt" id="tNew">Start over</button><button type="button" class="btn" id="tCont">Continue · ${monthName(has.month)}</button>` : '<button type="button" class="btn" id="tNew">Accept the offer</button>'}</div>`, { kind:'title' });
+  $('tNew').onclick = () => startNew();
+  if (has) $('tCont').onclick = () => { if (load()) { DOTS.clear(); KEYS.pane = ''; closeModal(); syncDots(true); } else startNew(); };
+}
+function startNew() {
+  newGame(); S.replies = []; SEL = 0; TAB = 'inbox'; DOTS.clear(); for (const k in KEYS) delete KEYS[k];
+  save(); if (MODAL) closeModal(true); renderAll(); syncDots(true); nextModal();
+}
+function helpModal() {
+  openModal(`<div class="kicker">How it works</div><h2>Running the feed</h2>
+    <ul>
+      <li><b>Ranking weights</b> decide what each person sees out of everything posted that week. <b>Predicted engagement</b> rewards whatever people react to, and people react most to outrage and hoaxes. <b>Variety</b> breaks up runs of the same kind of post. <b>Quality</b> favors sources with a track record.</li>
+      <li><b>Creators learn.</b> Every creator shifts toward whatever your ranking showed most. Creators who get no views quit and are replaced by copycats of the most-viewed creator.</li>
+      <li><b>People change.</b> Outrage from the other side makes people angrier and more extreme. Hoaxes stick to the susceptible. Friends and cute animals make people happier. Long sessions and lots of ads wear people down.</li>
+      <li><b>Habit</b> is what brings people back. Engaging feeds and features like infinite scroll build it. Unhappy people with strong habits keep scrolling; unhappy people without them leave.</li>
+      <li><b>Revenue</b> comes from ads shown. Advertisers pull back when their ads appear next to outrage and hoaxes. Public trust drives new signups. Regulators watch hoax belief, polarization and teen mood.</li>
+      <li><b>The board</b> compares each quarter to targets for daily users and revenue. Beat them for a promotion and more stock options. Miss them three times and you're fired.</li>
+      <li><b>Town health</b> averages mood, teen mood, (lack of) polarization and (lack of) hoax belief. At the IPO, your ending depends on both the share price and the town.</li>
+    </ul>
+    <div class="acts"><button type="button" class="btn" id="mOk">Back to the console</button></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal();
+}
+function menuModal() {
+  openModal(`<div class="kicker">Menu</div><h2>${monthName(S.month)} · ${esc(TITLES[S.rank])}</h2>
+    <div class="stats"><div>Share price<b>$${S.stock.toFixed(2)}</b></div><div>Options<b>${S.options.toLocaleString()}</b></div><div>Town health<b>${society()}</b></div></div>
+    <div class="acts"><button type="button" class="btn alt" id="mSound">Sound: ${SOUND ? 'on' : 'off'}</button><button type="button" class="btn alt" id="mNew">Start over</button><button type="button" class="btn alt" id="mHelp">How to play</button><button type="button" class="btn" id="mOk">Back</button></div>
+    <div id="mConfirm" hidden><div class="res bad" style="margin-top:12px">Start over? This run will be lost.</div><div class="acts" style="margin-top:8px"><button type="button" class="btn alt" id="mNo">Keep going</button><button type="button" class="btn red" id="mYes">Start over</button></div></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal(); $('mHelp').onclick = () => helpModal();
+  $('mSound').onclick = () => { SOUND = !SOUND; try { localStorage.setItem('feed_sound', SOUND ? 'on' : 'off'); } catch (e) {} $('mSound').textContent = 'Sound: ' + (SOUND ? 'on' : 'off'); };
+  $('mNew').onclick = () => { $('mConfirm').hidden = false; $('mYes').focus(); };
+  $('mNo').onclick = () => { $('mConfirm').hidden = true; };
+  $('mYes').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} MQ.length = 0; closeModal(true); RUN = null; startNew(); titleModal(); };
+}
+function headline(rep) {
+  const n = rep.now, p = rep.prev, dD = n.dau - p.dau;
+  if (rep.month === 1) return 'Your first month is live';
+  if (n.M - p.M >= 4) return 'A lot of people are doing their own research';
+  if (n.P - p.P >= 4) return 'The town is splitting over the roundabout';
+  if (dD > 0 && n.W - p.W <= -3) return 'Engagement is up. Everyone seems tired.';
+  if (n.W - p.W <= -3) return 'People are having a worse time';
+  if (dD > 0 && n.W >= p.W) return 'A good month, somehow';
+  if (dD < -30000) return 'Fewer people opened the app';
+  if (n.P - p.P <= -3) return 'The town is cooling off';
+  return 'Another month of bringing people together';
+}
+const PROMO = [
+  '',
+  'Your new title comes with {{a bigger team|Two of them are working on the metaverse demo.}} and a seat in the Tuesday growth review.',
+  'You now run a team of 40. {{None of them use Gather.|Two have it installed "for work."}}',
+  'You get a corner desk in an open-plan office, which is {{a desk near a window|The window looks at the other building\'s window.}}.',
+  'You report directly to Brax now. {{His door is always open.|His door is glass. He is never behind it.}}'
+];
+function boardBlock(q) {
+  if (!q) return '';
+  const word = { beat:'Beat expectations', meets:'In line with expectations', miss:'Missed expectations', warn:'Below expectations' }[q.verdict];
+  let body = '';
+  if (q.verdict === 'beat') body = q.promoted
+    ? `Brax: "This is what winning looks like." <b>You've been promoted to ${esc(q.title)}.</b> ${jz(PROMO[TITLES.indexOf(q.title)] || '')} +25,000 stock options.`
+    : 'Brax: "This is what winning looks like." There are no titles left to give you. The board sends a fruit basket.';
+  else if (q.verdict === 'meets') body = 'The board says the quarter was "fine." From the board, "fine" is a warning.';
+  else if (q.verdict === 'warn') body = jz('It\'s your first quarter, so no strike. Brax says {{"Let\'s take a beat."|He will not be taking a second beat.}}');
+  else body = S.strikes >= 3 ? 'That was the board\'s third bad quarter. Brax would like a quick chat. Bring your badge.' : `The board is losing patience. <b>${3 - S.strikes} more missed quarter${3 - S.strikes === 1 ? '' : 's'}</b> and Ranking gets "a new chapter."`;
+  return `<div class="board ${q.verdict}"><h3>Q${q.q} board review</h3><div class="verdict">${word}</div>
+    <div class="stats"><div>Daily users<b>${fmtPeople(q.dau)}</b>target ${fmtPeople(q.t.dau)}</div><div>Quarter revenue<b>${fmtM(q.rev)}</b>target ${fmtM(q.t.rev)}</div><div>Share price<b>$${q.stock.toFixed(2)}</b>options ${fmtM(optionsValue())}</div></div>
+    <p style="margin-top:10px">${body}</p></div>`;
+}
+function reportModal(rep, extras) {
+  const n = rep.now, p = rep.prev, h = S.hist.find(x => x.month === rep.month), hp = S.hist.find(x => x.month === rep.month - 1);
+  const D = (a, b, good = true, f = v => v) => b === undefined ? '' : delta(a, b, good, f);
+  const momL = S.momLines.filter(x => x.m === rep.month).slice(-1)[0];
+  const trend = rep.trending.map(t => `<div class="post" style="--c:${TYPE_INFO[t.t].color}"><div class="who"><span>${esc(t.a ? (t.t === 'friend' ? t.a : '@' + t.a) : 'Someone')}</span><small>${esc(TYPE_INFO[t.t].name)}</small></div><div class="tx">${esc(t.txt)}</div><div class="eng">${t.eng.toLocaleString()} reactions</div></div>`).join('');
+  const news = (extras.news || []).map(t => `<div class="res bad"><b>News:</b> ${esc(t)}</div>`).join('');
+  sfx(rep.quarter ? (rep.quarter.verdict === 'beat' ? 'good' : rep.quarter.verdict === 'miss' ? 'bad' : 'ping') : 'ping');
+  openModal(`<div class="kicker">${monthName(rep.month)} · month in review</div><h2>${esc(headline(rep))}</h2>
+    <div class="stats">
+      <div>Daily users<b>${fmtPeople(n.dau)}${rep.month > 1 ? D(n.dau, p.dau, true, fmtPeople) : ''}</b></div>
+      <div>Revenue<b>${fmtM(n.rev)}${rep.month > 1 ? D(n.rev, p.rev, true, fmtM) : ''}</b></div>
+      <div>Time on app<b>${n.min} min${hp ? D(n.min, hp.min, true) : ''}</b></div>
+      <div>Town mood<b>${n.W}${D(n.W, p.W)}</b></div>
+      <div>Polarization<b>${n.P}${D(n.P, p.P, false)}</b></div>
+      <div>Hoax belief<b>${n.M}${D(n.M, p.M, false)}</b></div>
+      <div>Teen mood<b>${n.teen}${hp ? D(n.teen, hp.teen) : ''}</b></div>
+      <div>Public trust<b>${h.trust}${hp ? D(h.trust, hp.trust) : ''}</b></div>
+      <div>Advertiser trust<b>${h.adv}${hp ? D(h.adv, hp.adv) : ''}</b></div>
+    </div>
+    ${news}
+    <h3>Trending in town</h3><div class="trend">${trend || '<div class="empty">Nothing trended. Suspicious.</div>'}</div>
+    ${momL ? `<h3>A text from Mom</h3><div class="imsg"><div class="bubble">${esc(momL.t)}</div><div class="from">Mom · ${monthName(momL.m)}</div></div>` : ''}
+    ${boardBlock(rep.quarter)}
+    <div class="acts"><button type="button" class="btn" id="mOk">${S.over ? 'Continue' : `On to ${monthName(S.month)}`}</button></div>`, { kind:'report', wide:true });
+  $('mOk').onclick = () => closeModal();
+}
+const MOM_FATE = {
+  gone:'Mom deleted Gather. Her tomatoes are doing great, and she calls on Sundays.',
+  hoax:'Mom now sells turmeric on Gather. She bought a checkmark.',
+  rage:'Mom and Aunt Carol haven\'t spoken since the referendum. Thanksgiving is at two separate houses.',
+  sad:'Mom is still on Gather most nights. She says she\'s fine. She says it at 2 a.m.',
+  hooked:'Mom\'s streak is past 600 days. She checks it at dinner, under the table.',
+  good:'Mom still sends you duck videos. She\'s doing great. She is the only person you know who is.'
+};
+function endModal() {
+  S.endSeen = 1; save();
+  const fired = S.over === 'fired', e = ENDINGS[fired ? 'fired' : S.ending] || ENDINGS.dumpster;
+  const ms = momState(mom()), soc = society(), m = S.metrics;
+  const town = soc >= 68 ? 'The town is mostly fine. People argue about the roundabout at the farmers market, in person, and then buy tomatoes.' : soc >= 55 ? 'The town is frayed. The referendum result is still disputed in three group chats.' : 'The town is in rough shape. Nobody agrees on what happened at the roundabout vote, including whether there was one.';
+  const you = fired ? `You leave with ${fmtM(0)} in vested options and a lanyard you forgot to return.` : `At $${S.stock.toFixed(2)} a share, your ${S.options.toLocaleString()} options are worth <b>${fmtM(optionsValue())}</b>.`;
+  sfx(fired || S.ending === 'dumpster' ? 'bad' : 'good');
+  const h = S.hist;
+  openModal(`<div class="kicker">${fired ? `${monthName(S.month)} · a quick chat with Brax` : 'Month 24 · IPO day'}</div><div class="endbig">${esc(e.t)}</div><p style="margin-top:8px">${jz(e.d)}</p>
+    <div class="stats"><div>Share price<b>$${S.stock.toFixed(2)}</b></div><div>Your options<b>${fmtM(fired ? 0 : optionsValue())}</b></div><div>Town health<b>${soc}</b></div>
+      <div>Daily users<b>${fmtPeople(m.dau)}</b></div><div>Polarization<b>${m.P}</b></div><div>Hoax belief<b>${m.M}</b></div></div>
+    ${h.length > 1 ? `<div class="charts" style="margin-top:10px"><div class="chart"><h3>Daily users</h3>${lineChart([{ v:h.map(x => x.dau / 1e6), c:'#5a55f0', w:2.5 }], 0, Math.max(...h.map(x => x.dau / 1e6)) * 1.1)}</div><div class="chart"><h3>The town</h3>${lineChart([{ v:h.map(x => x.W), c:'#12946a' }, { v:h.map(x => x.P), c:'#d8402f' }, { v:h.map(x => x.M), c:'#b07cff' }], 0, 100)}<div class="keys"><span><i style="background:#12946a"></i>Mood</span><span><i style="background:#d8402f"></i>Polarization</span><span><i style="background:#b07cff"></i>Hoax belief</span></div></div></div>` : ''}
+    <h3>Epilogue</h3><p>${esc(town)}</p><p>${ms ? esc(MOM_FATE[ms]) : ''}</p><p>${you}</p>
+    <h3>Trophies · ${Object.keys(S.ach).length} of ${ACHIEVEMENTS.length}</h3><div class="ach-list">${ACHIEVEMENTS.filter(a => S.ach[a.id]).map(a => `<span>★ ${esc(a.name)}</span>`).join('') || '<span>None. Bold.</span>'}</div>
+    <div class="acts"><button type="button" class="btn alt" id="mStay">Look around</button><button type="button" class="btn" id="mNew">Run it back</button></div>`, { kind:'end', wide:true });
+  $('mNew').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} closeModal(true); startNew(); };
+  $('mStay').onclick = () => closeModal();
+}
+
+// ---------------------------------------------------------------------
+// ENGINE NOTIFICATIONS
+// ---------------------------------------------------------------------
+function flush() {
+  if (!S || !S.pending.length) return;
+  const L = S.pending; S.pending = [];
+  const news = L.filter(p => p.type === 'news').map(p => p.t);
+  for (const p of L) {
+    if (p.type === 'tip') toast(esc(TIPS[p.id]), 9000, 'tip');
+    else if (p.type === 'ach') { const a = ACHIEVEMENTS.find(x => x.id === p.id); if (a) { toast(`Trophy: <b>${esc(a.name)}</b><br>${esc(a.d)}`, 4500); sfx('good'); } }
+    else if (p.type === 'month') { const rep = p; queueModal(() => reportModal(rep, { news })); }
+  }
+  if (L.some(p => p.type === 'over')) queueModal(endModal);
+}
+
+function renderAll() {
+  if (!S) return;
+  renderHeader(); renderKPIs(); renderControls(); renderForecast(); renderDeploy(); renderTabs(); renderPane(); renderPhone(); renderLegend();
+  flush();
+}
+
+// ---------------------------------------------------------------------
+// SAVE / LOAD (only between months)
+// ---------------------------------------------------------------------
+function save() { if (!S || S.phase === 'running') return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function load(raw) {
+  try { const d = JSON.parse(raw || localStorage.getItem(SAVE_KEY)); if (!d || d.v !== 1 || !Array.isArray(d.users) || d.phase === 'running') return false; S = d; S.replies = S.replies || []; return true; } catch (e) { return false; }
+}
+
+// ---------------------------------------------------------------------
+// MONTH RUN
+// ---------------------------------------------------------------------
+const WEEK_MS = 950;
+function deploy() {
+  if (!runMonth()) { sfx('bad'); if (S.inbox.length) { TAB = 'inbox'; renderAll(); } return; }
+  save();               // (phase is 'running'; save() skips, the last plan save stands)
+  RUN = { next:performance.now() + 250, week:0 };
+  sfx('deploy'); hideTip();
+  $('runBanner').hidden = false; $('runBanner').textContent = `Deploying ${monthName(S.month)} · week 1 of 4`;
+  renderAll();
+}
+function runTick(now) {
+  if (!RUN || now < RUN.next || MODAL) return;
+  const r = stepRun();
+  RUN.week++; FLASH = now; sfx('week');
+  syncDots(false); KEYS.mix = '';
+  if (r && r.week) { RUN.next = now + WEEK_MS; $('runBanner').textContent = `Deploying ${monthName(S.month)} · week ${Math.min(4, r.week + 1)} of 4`; renderLegend(); renderKPIs(); return; }
+  RUN = null; $('runBanner').hidden = true; FC = null;
+  if (S.inbox.length) TAB = 'inbox';
+  for (const k of ['pane', 'phone', 'prof']) KEYS[k] = '';
+  save(); renderAll(); syncDots(false);
+}
+
+// ---------------------------------------------------------------------
+// INPUT
+// ---------------------------------------------------------------------
+function act(ok, sound = 'click') { if (ok) { sfx(sound); save(); renderAll(); } else sfx('bad'); }
+document.addEventListener('click', e => {
+  const mk = e.target.closest && e.target.closest('mark.jk');
+  if (mk && !mk.closest('button')) { if (TIP_EL === mk) hideTip(); else showTip(mk); e.stopPropagation(); e.preventDefault(); return; }
+  if (!S) return;
+  const t = e.target.closest('[data-tab],[data-tog],[data-ship],[data-mail],[data-who],#bDeploy'); if (!t) return;
+  if (MODAL && !MODAL.ov.contains(t)) return;
+  if (t.id === 'bDeploy') return deploy();
+  if (t.dataset.tab) { TAB = t.dataset.tab; sfx('click'); renderTabs(); renderPane(); if (innerWidth < 860 && t.closest('.todo')) $('tabs').scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+  if (t.dataset.tog) { act(setToggle(t.dataset.tog)); FC = null; settingsChanged(); return; }
+  if (t.dataset.ship) {
+    const f = byId(FEATURES, t.dataset.ship);
+    if (shipFeature(t.dataset.ship)) { toast(`Shipped <b>${esc(f.name)}</b>. It's live for everyone.`, 3000); FC = null; act(true, 'ship'); settingsChanged(); } else sfx('bad');
+    return;
+  }
+  if (t.dataset.mail) {
+    const id = t.dataset.mail, ci = +t.dataset.ch, r = answerMail(id, ci); if (!r) return sfx('bad');
+    S.replies.push({ id, ci, m:S.month, t:r.t }); if (S.replies.length > 40) S.replies.shift();
+    if (id === 'mom' && S.momId) { SEL = S.momId; syncDots(false); }
+    toast(jz(r.t), 4500); FC = null; act(true, 'ping'); settingsChanged();
+    return;
+  }
+  if (t.dataset.who) {
+    const w = t.dataset.who, ps = people().filter(u => !u.gone);
+    let u = null;
+    if (w === 'mom') u = mom();
+    else if (w === 'teen') { const ts = ps.filter(v => v.teen); u = ts[Math.floor(Math.random() * ts.length)]; }
+    else u = ps[Math.floor(Math.random() * ps.length)];
+    if (u) { SEL = u.id; sfx('click'); renderPhone(); DIRTY = 2; }
+  }
+});
+document.addEventListener('input', e => {
+  const el = e.target; if (!S || S.phase !== 'plan') return;
+  if (el.dataset.w) { setWeight(el.dataset.w, +el.value); settingsChanged(); sfx('tick'); save(); }
+  else if (el.dataset.ad) { setAds(+el.value); settingsChanged(); sfx('tick'); save(); }
+});
+document.addEventListener('mouseover', e => { const m = e.target.closest && e.target.closest('mark.jk'); if (m) showTip(m); else if (TIP_EL) hideTip(); });
+document.addEventListener('focusin', e => { const m = e.target.closest && e.target.closest('mark.jk'); if (m) showTip(m); });
+document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('mark.jk')) hideTip(); });
+addEventListener('scroll', () => { if (TIP_EL) hideTip(); }, true);
+addEventListener('keydown', e => { if (e.key === 'Escape' && MODAL && MODAL.closable) closeModal(); });
+$('bHelp').onclick = () => { if (!MODAL && S) helpModal(); };
+$('bMenu').onclick = () => { if (!MODAL && S) menuModal(); };
+// canvas: hover and click
+function canvasPoint(e) { const r = $('net').getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+$('net').addEventListener('mousemove', e => {
+  if (!S) return; const [x, y] = canvasPoint(e), id = dotAt(x, y);
+  if (id !== HOVER) { HOVER = id; HOVER_CHANGED = true; }
+  const tip = $('dotTip');
+  if (!id) { tip.hidden = true; return; }
+  const u = userById(id); if (!u) { tip.hidden = true; return; }
+  tip.innerHTML = `<b>${esc(u.id === S.momId ? 'Mom' : u.cr ? '@' + u.name : u.name)}</b><small>${u.cr ? 'creator · makes mostly ' + esc(TYPE_INFO[CREATOR_TYPES[u.cr.indexOf(Math.max(...u.cr))]].name.toLowerCase()) : `${esc(PERSONA_NAME(u.persona))}, ${u.age} · ${esc(sideWord(u.x).toLowerCase())}${u.b > 0.35 ? ' · believes hoaxes' : ''}${u.act ? '' : ' · offline'}`}</small>`;
+  tip.hidden = false;
+  const tw = tip.offsetWidth, cw = CV.w; tip.style.left = Math.min(cw - tw - 6, Math.max(6, x + 12)) + 'px'; tip.style.top = Math.max(6, y - 44) + 'px';
+});
+$('net').addEventListener('mouseleave', () => { HOVER = 0; HOVER_CHANGED = true; $('dotTip').hidden = true; });
+$('net').addEventListener('click', e => {
+  if (!S) return; const [x, y] = canvasPoint(e), id = dotAt(x, y);
+  if (id) { SEL = id; sfx('click'); renderPhone(); HOVER_CHANGED = true; DIRTY = 2; if (innerWidth < 860) $('phTitle').scrollIntoView({ behavior:'smooth', block:'start' }); }
+});
+
+// ---------------------------------------------------------------------
+// LOOP + BOOT
+// ---------------------------------------------------------------------
+let LAST_UI = 0;
+function loop(ts) {
+  if (S) {
+    resizeCanvas();
+    if (KEYS.cvw !== CV.w + 'x' + CV.h) { KEYS.cvw = CV.w + 'x' + CV.h; syncDots(true); }
+    runTick(ts);
+    drawNet(ts);
+    if (ts - LAST_UI > 500) { LAST_UI = ts; renderHeader(); flush(); }
+  }
+  requestAnimationFrame(loop);
+}
+function start(data) {
+  buildControls();
+  if (data && data.save && load(data.save)) { renderAll(); route(); }
+  else { newGame(); S.replies = []; S.pending = []; renderAll(); titleModal(); }
+  requestAnimationFrame(loop);
+}
+addEventListener('beforeunload', () => save());
+try { window.claude?.hot?.snapshot?.(() => { let saved = null; try { saved = localStorage.getItem(SAVE_KEY); } catch (e) {} return { save:S && S.phase !== 'running' ? JSON.stringify(S) : saved }; }); } catch (e) {}
+(window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {}));
+</script>
+
+</body></html>

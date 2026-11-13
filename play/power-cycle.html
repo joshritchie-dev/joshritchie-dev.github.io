@@ -1,0 +1,1323 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Power Cycle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Unbounded:wght@300;700;800&display=swap" rel="stylesheet">
+<style>
+/* Power Cycle. Flat and dark; the accent is whatever gradient your deepest reset unlocked.
+   --g (the gradient), --c1/--c2 (its ends) are set from script. */
+:root {
+  --bg:#0c0e13; --panel:#151922; --panel2:#1c2130; --line:#2a3142; --ink:#e9edf5; --mute:#8d96aa; --bad:#ff5d5d; --good:#6fe0a0;
+  --c1:#b5ad92; --c2:#e6dfc8; --g:linear-gradient(90deg, #b5ad92, #e6dfc8);
+  --display:'Unbounded', 'Arial Black', system-ui, sans-serif;
+  --body:'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  color-scheme:dark;
+}
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html, body { height:100%; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 var(--body); padding:10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); overflow:hidden; }
+button { font:inherit; color:inherit; cursor:pointer; }
+button:disabled { cursor:not-allowed; opacity:0.45; }
+:focus-visible { outline:2px solid var(--c2); outline-offset:2px; }
+.ghost { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:6px 11px; }
+.ghost:hover { border-color:var(--c1); }
+.btn { border:0; border-radius:8px; padding:8px 13px; font-weight:600; background:var(--g); color:#0c0e13; }
+.btn:hover:not(:disabled) { filter:brightness(1.08); }
+.btn.alt { background:var(--panel2); color:var(--ink); border:1px solid var(--line); }
+.btn.sm { padding:5px 9px; font-size:13px; }
+.mono { font-family:var(--mono); }
+.mute { color:var(--mute); }
+
+#app { height:100%; max-width:1500px; margin:0 auto; display:grid; grid-template-columns:minmax(0, 1fr) 380px; grid-template-rows:auto minmax(0, 1fr); gap:10px; grid-template-areas:'top top' 'stage side'; }
+
+/* ---- top ---- */
+.top { grid-area:top; display:flex; align-items:center; gap:10px 20px; flex-wrap:wrap; }
+.brand { display:flex; flex-direction:column; gap:3px; }
+.logo { font:800 20px/1 var(--display); letter-spacing:0.5px; background:var(--g); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.logo b { font-weight:300; margin-left:4px; }
+.era { font:500 11px/1 var(--mono); color:var(--mute); text-transform:uppercase; letter-spacing:0.8px; }
+.money { display:flex; flex-direction:column; min-width:150px; }
+.money b { font:600 24px/1.05 var(--mono); }
+.money span { font:13px/1.2 var(--mono); color:var(--mute); }
+.plan { display:flex; flex-direction:column; gap:4px; min-width:200px; flex:0 1 260px; }
+.pl { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--mute); }
+.pl b { font:500 12px/1.2 var(--mono); color:var(--ink); }
+.bar { display:block; height:6px; border-radius:3px; background:var(--panel2); overflow:hidden; }
+.bar b { display:block; height:100%; width:0; background:var(--g); border-radius:3px; }
+.plan.thr .pl span::after { content:' · throttled'; color:var(--c2); }
+.pl2 { font:11px/1.2 var(--mono); color:var(--mute); }
+.pl2 b { color:var(--ink); font-weight:500; }
+.tools { margin-left:auto; display:flex; gap:6px; }
+
+/* ---- stage ---- */
+.stage { grid-area:stage; position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--line); min-height:260px; touch-action:none; background:#101218; }
+#cv { display:block; width:100%; height:100%; }
+.hint { position:absolute; left:12px; right:12px; bottom:10px; text-align:center; font-size:13px; color:var(--mute); pointer-events:none; text-shadow:0 1px 2px #000; }
+.hint b { color:var(--ink); font-weight:600; }
+.ticket { position:absolute; left:12px; top:12px; width:min(300px, calc(100% - 24px)); background:#f4f1e8; color:#1c1b17; border-radius:10px; padding:10px 12px 12px; box-shadow:0 10px 30px rgba(0,0,0,0.45); font-size:13px; animation:tin .25s ease-out; }
+.ticket .th { display:flex; justify-content:space-between; font:600 11px/1 var(--mono); color:#6b6656; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+.ticket p { margin:0 0 9px; font-weight:500; }
+.ticket .btn { width:100%; color:#0c0e13; }
+.ticket .tbar { height:3px; background:#d9d3c1; border-radius:2px; margin-top:8px; overflow:hidden; }
+.ticket .tbar b { display:block; height:100%; background:#1c1b17; }
+
+/* ---- side ---- */
+.side { grid-area:side; display:flex; flex-direction:column; min-height:0; background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.tabs { display:flex; border-bottom:1px solid var(--line); }
+.tabs button { flex:1; background:none; border:0; padding:11px 6px; font-weight:600; color:var(--mute); position:relative; border-bottom:2px solid transparent; }
+.tabs button.on { color:var(--ink); border-bottom-color:var(--c2); }
+.tabs .dot { position:absolute; top:9px; margin-left:4px; width:7px; height:7px; border-radius:50%; background:var(--c2); display:inline-block; }
+.pane { overflow:auto; padding:12px; min-height:0; flex:1; }
+h3 { font:700 12px/1 var(--display); letter-spacing:0.5px; text-transform:uppercase; margin:14px 0 8px; color:var(--mute); }
+h3:first-child { margin-top:2px; }
+
+.toolrow { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+.dirbtn { display:inline-flex; align-items:center; gap:6px; }
+.dirbtn i { display:inline-block; font-style:normal; transition:transform .15s; }
+.parts { display:grid; gap:6px; }
+.prt { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; gap:4px 10px; align-items:center; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:6px 8px 6px 6px; }
+.prt.on { border-color:var(--c2); box-shadow:inset 0 0 0 1px var(--c2); }
+.prt .pick { display:contents; }
+.prt .pickb { background:none; border:0; padding:0; display:flex; align-items:center; gap:10px; text-align:left; grid-column:1 / 3; min-width:0; }
+.prt img { width:36px; height:36px; flex:none; }
+.prt .nm { font-weight:600; display:block; }
+.prt .st { font-size:12px; color:var(--mute); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.prt .cost { font:12px/1.2 var(--mono); color:var(--c2); }
+.prt .cost.no { color:var(--bad); }
+.prt .up { grid-column:3; grid-row:1; font:12px/1.15 var(--mono); padding:5px 8px; border-radius:8px; border:1px solid var(--line); background:var(--panel); text-align:right; min-width:120px; }
+.prt .up small { display:block; color:var(--mute); }
+.prt .up:not(:disabled):hover { border-color:var(--c1); }
+.prt.locked { opacity:0.55; }
+.prt.locked .pickb { cursor:default; }
+.upall { display:flex; gap:8px; align-items:center; margin:10px 0 4px; flex-wrap:wrap; }
+.tog { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--mute); cursor:pointer; user-select:none; }
+.tog input { accent-color:var(--c2); width:16px; height:16px; }
+.insp { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px; }
+.insp .hd { display:flex; gap:10px; align-items:center; }
+.insp .hd img { width:40px; height:40px; }
+.insp p { margin:6px 0; font-size:13px; color:var(--mute); }
+.insp { margin:0 0 12px; border-color:var(--c1); }
+.lvtag { font:600 11px/1 var(--mono); background:var(--g); color:#0c0e13; border-radius:5px; padding:3px 6px; margin-left:4px; vertical-align:2px; }
+.nownext { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:13px; margin:8px 0; }
+.nownext span { color:var(--mute); }
+.nownext b { font:500 12px/1.4 var(--mono); }
+.insp .acts { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* ---- the reset ladder ---- */
+.rung { border:1px solid var(--line); border-radius:12px; margin-bottom:8px; background:var(--panel2); overflow:hidden; }
+.rung .sw { height:6px; }
+.rung .in { padding:9px 11px 11px; }
+.rung .rh { display:flex; align-items:baseline; gap:8px; justify-content:space-between; }
+.rung .rn { font-weight:700; }
+.rung .lv { font:600 11px/1 var(--mono); color:var(--mute); white-space:nowrap; }
+.rung .q { font-size:12px; color:var(--mute); margin:3px 0 7px; font-style:italic; }
+.rung .req { font:12px/1.3 var(--mono); color:var(--mute); display:flex; justify-content:space-between; gap:8px; }
+.rung .bar { margin:5px 0 8px; }
+.rung .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.rung .have { font:12px/1.35 var(--mono); }
+.rung .have b { color:var(--ink); }
+.rung .bonus { color:var(--mute); }
+.rung .shop { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+.rung .shop button { text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:6px 8px; font-size:12px; line-height:1.3; }
+.rung .shop button b { display:block; font-size:12px; }
+.rung .shop button span { color:var(--mute); display:block; }
+.rung .shop button em { font:normal 11px/1.2 var(--mono); color:var(--c2); display:block; margin-top:2px; }
+.rung .shop button:not(:disabled):hover { border-color:var(--c1); }
+.rung.locked { opacity:0.5; }
+.rung.locked .sw { background:repeating-linear-gradient(90deg, #2a3142 0 8px, #1c2130 8px 16px); }
+.rung.next { border-color:var(--c1); }
+.rung .unl { font-size:12px; margin-top:6px; }
+.rung details summary { cursor:pointer; font-size:12px; color:var(--mute); margin-top:6px; }
+
+.log { list-style:none; margin:0; padding:0; }
+.log li { border-bottom:1px dashed var(--line); padding:7px 0; font-size:13px; }
+.log li small { display:block; font:11px/1.3 var(--mono); color:var(--mute); }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.stats div { background:var(--panel2); border-radius:8px; padding:7px 9px; font-size:12px; color:var(--mute); }
+.stats b { display:block; font:600 15px/1.2 var(--mono); color:var(--ink); }
+
+/* ---- modals ---- */
+#ovWrap .ov { position:fixed; inset:0; background:rgba(5,6,9,0.72); display:grid; place-items:center; padding:16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); z-index:20; overflow:auto; }
+.modal { width:min(560px, 100%); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 20px; max-height:calc(100vh - 32px); overflow:auto; box-shadow:0 30px 60px rgba(0,0,0,0.5); }
+.modal h1 { font:800 22px/1.15 var(--display); margin:0 0 8px; }
+.modal p { margin:6px 0; }
+.modal .foot { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:16px; }
+.modal ul { padding-left:18px; margin:6px 0; } .modal li { margin:5px 0; }
+.title { text-align:center; }
+.title .big { font:800 40px/0.95 var(--display); background:var(--g); -webkit-background-clip:text; background-clip:text; color:transparent; margin:6px 0 10px; }
+.title .big b { font-weight:300; display:block; }
+.title .foot { justify-content:center; }
+.title .stripes { display:flex; height:8px; border-radius:4px; overflow:hidden; margin:14px 0 4px; }
+.title .stripes i { flex:1; }
+.era-ov { position:fixed; inset:0; z-index:25; display:grid; place-items:center; padding:20px; text-align:center; color:#0c0e13; animation:eraIn .5s ease-out; }
+.era-ov .card { max-width:520px; }
+.era-ov .k { font:600 13px/1 var(--mono); letter-spacing:1px; text-transform:uppercase; opacity:0.75; }
+.era-ov h1 { font:800 34px/1.05 var(--display); margin:10px 0; }
+.era-ov p { font-size:16px; margin:8px 0; }
+.era-ov .btn { background:#0c0e13; color:#fff; margin-top:14px; padding:10px 18px; }
+@keyframes eraIn { from { opacity:0; transform:scale(1.04); } }
+
+#toasts { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); display:flex; flex-direction:column; gap:6px; align-items:center; z-index:30; pointer-events:none; width:min(460px, calc(100% - 32px)); }
+.toast { background:#1c2130; border:1px solid var(--line); border-left:4px solid var(--c2); border-radius:8px; padding:8px 12px; box-shadow:0 10px 24px rgba(0,0,0,0.4); animation:tin .2s ease-out; font-size:13px; }
+.toast.bad { border-left-color:var(--bad); }
+@keyframes tin { from { transform:translateY(6px); opacity:0; } }
+
+@media (max-width: 900px) {
+  body { overflow:auto; height:auto; } html { height:auto; }
+  #app { height:auto; grid-template-columns:minmax(0, 1fr); grid-template-rows:none; grid-template-areas:'top' 'stage' 'side'; }
+  .stage { height:clamp(260px, 72vw, 520px); }
+  .side { max-height:none; }
+  .pane { overflow:visible; }
+  .plan { flex:1 1 100%; order:5; }
+  .money { min-width:0; }
+  .tools { margin-left:auto; }
+}
+@media (max-width: 480px) {
+  .money b { font-size:20px; }
+  .logo { font-size:17px; }
+  #bHelp { display:none; }
+  .rung .shop { grid-template-columns:1fr; }
+  .prt .up { min-width:84px; }
+}
+</style>
+<div id="app">
+  <header class="top">
+    <div class="brand"><span class="logo">POWER<b>CYCLE</b></span><span class="era" id="era"></span></div>
+    <div class="money"><b id="bytes">0 B</b><span id="rate">0 B/s</span></div>
+    <div class="plan" id="plan" title="Your internet plan. Income past it is throttled hard. Each new kind of reset upgrades the plan.">
+      <div class="pl"><span>ISP plan</span><b id="planTxt"></b></div>
+      <i class="bar"><b id="planBar"></b></i>
+      <div class="pl2" id="vpnTxt" hidden></div>
+    </div>
+    <div class="tools"><button type="button" class="ghost" id="bHelp">How to play</button><button type="button" class="ghost" id="bMenu">Menu</button></div>
+  </header>
+  <main class="stage" id="stage">
+    <canvas id="cv" aria-label="The server room. Pick a part, then click a square."></canvas>
+    <div class="ticket" id="ticket" hidden></div>
+    <div class="hint" id="hint"></div>
+  </main>
+  <aside class="side">
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="build" class="on" aria-selected="true">Build</button>
+      <button type="button" role="tab" data-tab="resets" aria-selected="false">Resets<i class="dot" id="resetDot" hidden></i></button>
+      <button type="button" role="tab" data-tab="desk" aria-selected="false">Help desk</button>
+    </nav>
+    <section class="pane" id="tab-build"></section>
+    <section class="pane" id="tab-resets" hidden></section>
+    <section class="pane" id="tab-desk" hidden></section>
+  </aside>
+</div>
+<div id="ovWrap"></div>
+<div id="toasts" aria-live="polite"></div>
+<script>
+"use strict";
+// =====================================================================
+// POWER CYCLE — content
+// =====================================================================
+// Every amount (bytes, layer currencies, packet values) is stored as log10(x). LZ means zero.
+const LZ = -1e9;
+const lg = x => x > 0 ? Math.log10(x) : LZ;
+function lAdd(a, b) { if (b > a) { const t = a; a = b; b = t; } if (b <= LZ + 1) return a; const d = b - a; if (d < -16) return a; return a + Math.log10(1 + Math.pow(10, d)); }
+function lSub(a, b) { if (b <= LZ + 1) return a; const d = b - a; if (d >= -1e-12) return LZ; if (d < -16) return a; return a + Math.log10(1 - Math.pow(10, d)); }
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+// floor() of a log-space amount (only matters while it's small)
+function lFloor(l) { if (l <= LZ + 1) return LZ; if (l >= 15) return l; const f = Math.floor(Math.pow(10, l) + 1e-9); return f >= 1 ? Math.log10(f) : LZ; }
+
+const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+function fmtL(l) {   // a plain count, log-space in
+  if (l <= LZ + 1 || l < -6) return '0';
+  if (l < 3) { const n = Math.pow(10, l); return n < 10 && Math.abs(n - Math.round(n)) > 0.05 ? n.toFixed(1) : Math.round(n).toString(); }
+  const e = Math.floor(l / 3 + 1e-9);
+  if (e < SUF.length) { const v = Math.pow(10, l - e * 3); return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + SUF[e]; }
+  let ex = Math.floor(l), m = Math.pow(10, l - ex); if (m >= 9.995) { m = 1; ex++; } return m.toFixed(2) + 'e' + ex;
+}
+// bytes, the SI way, until the SI runs out of prefixes
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB', 'RB', 'QB'];
+function fmtB(l) {
+  if (l <= LZ + 1 || l < -6) return '0 B';
+  if (l < 3) { const n = Math.pow(10, l); return (n < 10 && n % 1 > 0.05 ? n.toFixed(1) : Math.floor(n)) + ' B'; }
+  const e = Math.floor(l / 3 + 1e-9);
+  if (e < BYTE_UNITS.length) { const v = Math.pow(10, l - e * 3); return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v)) + ' ' + BYTE_UNITS[e]; }
+  let ex = Math.floor(l), m = Math.pow(10, l - ex); if (m >= 9.995) { m = 1; ex++; } return m.toFixed(2) + 'e' + ex + ' B';
+}
+const fmtN = n => n < 1000 ? String(Math.floor(n)) : fmtL(Math.log10(n));
+
+// ---------------------------------------------------------------------
+// THE TEN RESETS
+// ---------------------------------------------------------------------
+// req: log10 bytes earned since your last reset of this level or deeper.
+// w: how hard this layer's currency (earned this cycle) multiplies bytes: x(1+E)^w.
+// grad: the colours of the whole game once you've done this reset at least once.
+const LAYERS = [
+  { n:'Factory Default', gname:'Beige Box', grad:['#b5ad92', '#e6dfc8'] },
+  { n:'Refresh the Page', verb:'Refresh', cur:'Refreshes', one:'Refresh', req:6, w:1.0, gname:'Loading Spinner', grad:['#36d1dc', '#5b86e5'],
+    quip:'Press F5. Everything on the page goes away. The page comes back. Somehow it\'s better.', unlock:'Overclockers' },
+  { n:'Close and Reopen the App', verb:'Relaunch', cur:'Relaunches', one:'Relaunch', req:10, w:1.2, gname:'Splash Screen', grad:['#f7971e', '#ffd200'],
+    quip:'Not minimise. Close. All the way. Even the little icon by the clock.', unlock:'Routers, VPNs, and Auto-Upgrade' },
+  { n:'Reboot the Computer', verb:'Reboot', cur:'Reboots', one:'Reboot', req:15, w:1.4, gname:'Blue Screen', grad:['#1d4fd8', '#6dd5fa'],
+    quip:'Save your work. Just kidding, there\'s no saving. Hold the power button.', unlock:'Blockchains, and Auto-Refresh' },
+  { n:'Unplug the Router and Wait 30 Seconds', verb:'Unplug', cur:'Unplugs', one:'Unplug', req:21, w:1.6, gname:'Blinking Lights', grad:['#00b09b', '#96c93d'],
+    quip:'The full thirty. Not twenty. The router can tell.', unlock:'a bigger board (10×7), and Auto-Relaunch' },
+  { n:'Reinstall the Operating System', verb:'Reinstall', cur:'Reinstalls', one:'Reinstall', req:28, w:1.8, gname:'Default Wallpaper', grad:['#fc5c7d', '#6a82fb'],
+    quip:'Do you agree to the terms and conditions? You do. You always do.', unlock:'the LLM, and Auto-Reboot' },
+  { n:'Factory Reset (Find a Paperclip)', verb:'Factory Reset', cur:'Paperclips', one:'Paperclip', req:36, w:2.0, gname:'Smoke Detected', grad:['#f12711', '#f5af19'],
+    quip:'There is a tiny hole on the back. Hold it for ten seconds. Then ten more.', unlock:'a bigger board (12×8), and Auto-Unplug' },
+  { n:'Replace the Hardware', verb:'Replace', cur:'Warranties', one:'Warranty', req:45, w:2.2, gname:'Fresh Silicon', grad:['#7f00ff', '#e100ff'],
+    quip:'The new one is the same as the old one but it has a light on it.', unlock:'Printers, and Auto-Reinstall' },
+  { n:'Restart the Company', verb:'Restart', cur:'Rebrands', one:'Rebrand', req:55, w:2.4, gname:'Brand Refresh', grad:['#00b4db', '#b993d6', '#ff6f61'],
+    quip:'New name, new logo, same printer. Everyone gets a lanyard.', unlock:'a bigger board (14×9), Interns, and Auto-Factory Reset' },
+  { n:'Reboot the Internet', verb:'Reboot', cur:'Pings', one:'Ping', req:66, w:2.6, gname:'Static Noise', grad:['#e8e8f0', '#9d9dff', '#ff7ae6'],
+    quip:'There is a big switch. It is in a basement. Nobody has ever pressed it. Press it.', unlock:'the Help Desk Bot, and Auto-Replace' },
+  { n:'Restart the Universe', verb:'Restart', cur:'Big Bangs', one:'Big Bang', req:78, w:3.0, gname:'Big Bang', grad:['#ff3b3b', '#ffa53b', '#fff23b', '#3bff7a', '#3bd8ff', '#5b5bff', '#c03bff'],
+    quip:'Have you tried turning it off and on again? Yes. All of it. Everything. Hold on.', unlock:'the end (and Auto-Restart the Company)' }
+];
+const NL = 10;
+// Your internet plan (log10 bytes per second) by deepest reset. Income past it is throttled hard.
+const PLAN = [4.6, 7.5, 11.95, 17.5, 24.35, 32.25, 41.2, 51.1, 62.0, 74.05, 1e9];
+const PLAN_OVER = 0.3;
+
+// Each layer's shop. A: doubles this layer's gain. B: something specific. Costs in that layer's currency.
+const SHOP = [null,
+  { b:{ n:'Clear Cache', d:'Servers send packets 12% faster', max:8, cost:3, grow:3 } },
+  { b:{ n:'Install Updates', d:'Packets travel 25% faster', max:4, cost:3, grow:4 } },
+  { b:{ n:'Safe Mode', d:'Tickets turn up 25% more often and pay 50% more', max:4, cost:3, grow:4 } },
+  { b:{ n:'Better Antenna', d:'Uplinks pay ×3', max:10, cost:2, grow:3 } },
+  { b:{ n:'Minimal Install', d:'New parts cost ÷100', max:5, cost:2, grow:4 } },
+  { b:{ n:'Paperclip Collection', d:'Refreshes ×10', max:10, cost:2, grow:3 } },
+  { b:{ n:'Toner Subscription', d:'Printers jam half as often', max:4, cost:2, grow:4 } },
+  { b:{ n:'Synergy', d:'Every layer\'s Bytes bonus is 10% stronger', max:5, cost:3, grow:5 } },
+  { b:{ n:'Ping Everyone', d:'Bytes ×1,000', max:20, cost:2, grow:3 } },
+  { b:{ n:'Bigger Universe', d:'Bytes ×10¹⁰', max:50, cost:1, grow:2 } }
+];
+const SHOP_A = { n:'Double Click', d:'×2 {cur} from every {one}', cost:2, grow:4 };
+
+// ---------------------------------------------------------------------
+// PARTS
+// ---------------------------------------------------------------------
+// cost/grow: price of the next one you place. up/ugrow: price of the next level (all parts of a type share a level).
+const PARTS = {
+  cable:  { n:'Cable', g:'', cost:0, grow:1, d:'Carries packets the way it points. Free. Drag to lay a line.' },
+  server: { n:'Server', g:'S', cost:10, grow:4, up:5, ugrow:1.4, d:'Sends a packet out the front every so often.' },
+  uplink: { n:'Uplink', g:'U', cost:40, grow:5, up:15, ugrow:1.5, d:'Sends packets to the Internet, which pays in Bytes. Takes them from any side.' },
+  comp:   { n:'Compressor', g:'Z', cost:25, grow:2, up:10, ugrow:1.45, d:'Adds value to each packet. Makes the files smaller, which somehow makes them worth more.' },
+  oc:     { n:'Overclocker', g:'×', cost:400, grow:2.5, up:200, ugrow:1.7, d:'Multiplies each packet. Runs hot. Do not touch.', layer:1 },
+  vpn:    { n:'VPN', g:'V', cost:2e6, grow:10, up:1e6, ugrow:2.2, d:'Packets that pass through it are hidden from your ISP: they go through a tunnel with its own allowance instead of your plan. Each VPN adds to the tunnel (more with levels, up to your whole plan again, in total). Run one near its share for long and the ISP notices.', layer:2 },
+  router: { n:'Router', g:'Y', cost:2e4, grow:3, up:1e4, ugrow:2, d:'Copies each packet into two, sent out left and right. Each copy is worth a bit less.', layer:2 },
+  chain:  { n:'Blockchain', g:'#', cost:1e8, grow:3, up:3e7, ugrow:2.1, d:'Multiplies each packet, and the more Blockchains it has already passed, the more. Nobody can explain why.', layer:3 },
+  llm:    { n:'LLM', g:'AI', cost:1e12, grow:4, up:1e11, ugrow:2.6, d:'Raises a packet\'s value to a power. Makes it bigger. Not better. Bigger. Works once per packet.', layer:5 },
+  printer:{ n:'Printer', g:'P', cost:1e18, grow:4, up:1e17, ugrow:3, d:'Multiplies each packet by a lot, then jams. Click it to clear the jam. PC LOAD LETTER.', layer:7 }
+};
+const ORDER = ['cable', 'server', 'uplink', 'comp', 'oc', 'router', 'vpn', 'chain', 'llm', 'printer'];
+function partStat(type, l) {
+  switch (type) {
+    case 'server': return { period:Math.max(0.25, 1.5 * Math.pow(0.93, l)), v:1 + l };
+    case 'uplink': return { mul:1 + 0.25 * l };
+    case 'comp': return { add:2 + l };
+    case 'oc': return { mul:1.5 + 0.05 * l };
+    case 'router': return { keep:Math.min(0.9, 0.6 + 0.02 * l) };
+    case 'chain': return { k:0.25 + 0.01 * l };
+    case 'llm': return { pow:Math.min(1.3, 1.1 + 0.005 * l) };
+    case 'printer': return { mul:10 + 2 * l };
+    case 'vpn': return { share:Math.min(VPN_MAX, 0.25 + 0.02 * l) };
+  }
+  return {};
+}
+function statText(type, l) {
+  const s = partStat(type, l);
+  switch (type) {
+    case 'server': return `1 packet every ${s.period.toFixed(2)}s, worth ${s.v}`;
+    case 'uplink': return `pays ×${s.mul.toFixed(2)}`;
+    case 'comp': return `+${s.add} to each packet`;
+    case 'oc': return `×${s.mul.toFixed(2)} each packet`;
+    case 'router': return `two copies, each worth ${Math.round(s.keep * 100)}%`;
+    case 'chain': return `×(1 + ${s.k.toFixed(2)} × chains passed)`;
+    case 'llm': return `value ^ ${s.pow.toFixed(3)}`;
+    case 'printer': return `×${s.mul} each packet`;
+    case 'vpn': return `adds ${Math.round(s.share * 100)}% of your plan to the tunnel`;
+  }
+  return '';
+}
+const GRIDS = [[8, 6], [10, 7], [12, 8], [14, 9]];
+function gridIndex(reached) { return reached >= 8 ? 3 : reached >= 6 ? 2 : reached >= 4 ? 1 : 0; }
+
+// ---------------------------------------------------------------------
+// HELP DESK
+// ---------------------------------------------------------------------
+const TICKETS = [
+  ['Marjorie, Accounts', 'The internet is broken. All of it.'],
+  ['Dev, 4th floor', 'My mouse is moving on its own. It is also making noises.'],
+  ['The CEO', 'Can you make the Wi-Fi go faster? I am on a plane.'],
+  ['Gary', 'I clicked the thing you told me not to click. Twice.'],
+  ['Reception', 'The printer says PC LOAD LETTER. What does it want from me.'],
+  ['Unknown', 'My keyboard is typing in all capitals AND I CANNOT STOP IT'],
+  ['Legal', 'Is the cloud a real cloud? Asking for a contract.'],
+  ['Brenda', 'I accidentally deleted the internet. Is there a backup?'],
+  ['Intern #3', 'What is my password? I wrote it on a sticky note. The sticky note is my password.'],
+  ['Marketing', 'Can you make the logo bigger? No, the other logo.'],
+  ['Gary', 'There is smoke coming out of it but I think it\'s fine?'],
+  ['HR', 'Someone set everyone\'s wallpaper to a picture of a goose.'],
+  ['Facilities', 'The server room is making a sound like a kettle.'],
+  ['Kevin', 'My screen is black. (It is off.)'],
+  ['Finance', 'Excel says there are too many rows. There are 4 rows.'],
+  ['Sales', 'I need to print this email so I can scan it and email it.'],
+  ['The CEO', 'Why is the computer asking me to update? I updated in 2014.'],
+  ['Dev, 4th floor', 'It works on my machine. Can we ship my machine?'],
+  ['Pat', 'I pressed every key at once and now it is in Turkish.'],
+  ['Gary', 'Update: the smoke has stopped. The computer has also stopped.'],
+  ['Security', 'Someone emailed the password list to the password list.'],
+  ['Marjorie, Accounts', 'Update: the internet is back. I did not do anything. Please don\'t touch it.'],
+  ['Unknown', 'Is it possible to download more RAM? A website says yes.'],
+  ['Board of Directors', 'Please explain blockchain in one sentence. Not that sentence.']
+];
+// where a VPN says you are when it reconnects
+const VPN_LOCS = ['Iceland', 'a smart fridge in Ohio', 'Liechtenstein', 'the Moon (latency: poor)', 'Gary\'s laptop', 'Research Station 4, Antarctica', 'a Wi-Fi kettle', 'Vatican City', 'a submarine', 'Tuvalu', 'a lighthouse in Norway', 'the printer', 'an airport lounge', 'a cruise ship', 'Switzerland, allegedly'];
+const VPN_HEAT_T = 60;   // seconds at full use before the ISP notices (longer for upgraded VPNs)
+const VPN_MAX = 1;       // all your VPNs together can tunnel at most as much as your plan (so 2x bandwidth, at best)
+const FIXES = ['Turned it off and on again.', 'Turned it off and on again. Firmly.', 'Unplugged it, counted to thirty, plugged it in.', 'Asked if it was plugged in. It was not.', 'Turned it off and on again. Twice, for luck.', 'Closed 400 browser tabs.', 'Blew on it.'];
+// =====================================================================
+// POWER CYCLE — simulation (no DOM)
+// =====================================================================
+const SAVE_KEY = 'power_cycle_v1';
+const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+const L2 = Math.log10(2), L3 = Math.log10(3);
+const START_BYTES = Math.log10(20);
+const MAXP = 320;
+const AUTO_GAP = 4;                        // a machine takes a few seconds to come back up: automated resets wait this long
+let S = null;
+let PK = [];                               // packets in flight (not saved)
+const POPS = [];                           // little "+5 KB" pops for the renderer
+const INCB = new Float64Array(10).fill(LZ); let incSec = 0, INC = LZ;   // rolling 10s income
+
+function blank() {
+  return { v:1, t:0, bytes:START_BYTES, C:Array(NL + 1).fill(LZ), E:Array(NL + 1).fill(LZ), H:Array(NL + 1).fill(LZ),
+    shopA:Array(NL + 1).fill(0), shopB:Array(NL + 1).fill(0), resets:Array(NL + 1).fill(0), firsts:Array(NL + 1).fill(0), lastR:Array(NL + 1).fill(0), reached:0,
+    owned:{}, tiles:{}, nextId:1, auto:{ up:true, r:Array(NL + 1).fill(true) }, ticket:null, ticketIn:45, boostT:0,
+    stats:{ packets:0, tickets:0, earned:LZ, fizzled:0, jams:0 }, won:false, saved:Date.now(), pending:[], inc:LZ };
+}
+function newGame() {
+  S = blank();
+  place('server', 1, 2, 0, true); place('cable', 2, 2, 0, true); place('cable', 3, 2, 0, true); place('cable', 4, 2, 0, true); place('uplink', 5, 2, 0, true);
+  resetRuntime(); clearIncome();
+  return S;
+}
+function resetRuntime() { PK = []; POPS.length = 0; }   // income history (INCB, RAW) is kept on purpose: no free unthrottled second after a reset
+function clearIncome() { INCB.fill(LZ); incSec = Math.floor(S ? S.t : 0) % 10; INC = LZ; RAW = LZ; rawAcc = LZ; }
+
+// ---------------------------------------------------------------------
+// BOARD
+// ---------------------------------------------------------------------
+const key = (x, y) => x + ',' + y;
+const GW = () => GRIDS[gridIndex(S.reached)][0], GH = () => GRIDS[gridIndex(S.reached)][1];
+const tileAt = (x, y) => S.tiles[key(x, y)];
+const tileById = id => { if (!id) return null; for (const t of Object.values(S.tiles)) if (t.id === id) return t; return null; };
+const tlv = t => (t && t.lvl) || 0;   // every placed part has its own level
+const own = t => S.owned[t] || 0;
+const unlockedPart = t => !PARTS[t].layer || S.reached >= PARTS[t].layer;
+function partCostL(t) { const P = PARTS[t]; if (!P.cost) return LZ; return Math.log10(P.cost) + own(t) * Math.log10(P.grow) - 2 * S.shopB[5]; }
+function upCostL(t) { const P = PARTS[t.type]; return Math.log10(P.up) + tlv(t) * Math.log10(P.ugrow); }   // t: a placed tile
+const afford = L => L <= LZ + 1 || S.bytes >= L - 1e-9;
+function canPlace(t, x, y) {
+  if (!PARTS[t]) return 'Unknown part.';
+  if (!unlockedPart(t)) return 'Not unlocked yet.';
+  if (x < 0 || y < 0 || x >= GW() || y >= GH()) return 'Off the board.';
+  const here = tileAt(x, y); if (here && !(here.type === 'cable' && t !== 'cable')) return 'Something is already there.';
+  if (!afford(partCostL(t))) return `Costs ${fmtB(partCostL(t))}.`;
+  return '';
+}
+function place(t, x, y, dir, free) {
+  if (!free) { const why = canPlace(t, x, y); if (why) return why; const c = partCostL(t); if (c > LZ + 1) S.bytes = lSub(S.bytes, c); }
+  const old = tileAt(x, y);   // a part dropped on a cable replaces it and faces the way the cable did
+  if (old) { dir = old.dir; delete S.tiles[key(x, y)]; S.owned[old.type] = Math.max(0, own(old.type) - 1); }
+  S.tiles[key(x, y)] = { id:S.nextId++, type:t, x, y, dir:dir || 0, lvl:0, timer:0, printed:0, jam:0 };
+  if (t === 'vpn') Object.assign(S.tiles[key(x, y)], { heat:0, block:0, loc:Math.floor(Math.random() * VPN_LOCS.length), vRate:LZ, vAcc:LZ });
+  S.owned[t] = own(t) + 1;
+  return '';
+}
+// no refunds (the software resets, the receipts don't), but the next one costs what this one did
+function removeAt(x, y) { const t = tileAt(x, y); if (!t) return false; delete S.tiles[key(x, y)]; S.owned[t.type] = Math.max(0, own(t.type) - 1); PK = PK.filter(p => !(p.x === x && p.y === y)); return true; }
+function rotateAt(x, y, by = 1) { const t = tileAt(x, y); if (!t) return false; t.dir = (t.dir + by + 4) % 4; return true; }
+function upgrade(t, times = 1) {
+  if (!t || !PARTS[t.type].up) return 'Nothing to upgrade.';
+  let n = 0;
+  while (n < times) { const c = upCostL(t); if (!afford(c)) break; S.bytes = lSub(S.bytes, c); t.lvl = tlv(t) + 1; n++; }
+  return n ? '' : `Costs ${fmtB(upCostL(t))}.`;
+}
+const upgradable = type => Object.values(S.tiles).filter(t => PARTS[t.type].up && (!type || t.type === type));
+// the cheapest single level among these parts
+function cheapest(list) { let best = null, bc = Infinity; for (const t of list) { const c = upCostL(t); if (c < bc) { bc = c; best = t; } } return best; }
+// buys the cheapest level anywhere (or of one type), over and over, until the money runs out
+// keep: the share of your Bytes it leaves alone (auto-upgrade keeps three quarters, so the counter still climbs)
+function upgradeAll(limit = 400, type, keep = 0) {
+  const list = upgradable(type); let n = 0;
+  while (n < limit && list.length) {
+    const t = cheapest(list), c = upCostL(t);
+    if (!afford(c) || (keep && c > S.bytes + Math.log10(1 - keep))) break;
+    S.bytes = lSub(S.bytes, c); t.lvl = tlv(t) + 1; n++;
+  }
+  return n;
+}
+
+// ---------------------------------------------------------------------
+// MULTIPLIERS
+// ---------------------------------------------------------------------
+function layerBonusL(k) { return LAYERS[k].w * (1 + 0.1 * S.shopB[8]) * lAdd(0, S.E[k]); }   // log10((1+E)^w)
+function globalL() {
+  let g = 0; for (let k = 1; k <= NL; k++) g += layerBonusL(k);
+  return g + S.shopB[9] * 3 + S.shopB[10] * 10;
+}
+// The ISP: past your plan's speed, extra income is throttled hard. Each new reset level upgrades the plan.
+const planL = () => (typeof TCAP !== 'undefined' ? TCAP : PLAN)[S.reached];
+const throttleOut = (x, c = planL()) => x <= c ? x : c + PLAN_OVER * Math.log10(1 + (x - c));
+// The VPN tunnel: a second pipe the ISP can't see. Every working VPN adds a share of your plan to it.
+const vpnShare = t => partStat('vpn', tlv(t)).share;
+let VPNT = {};                          // id -> VPN tile, rebuilt every tick
+let TUN_A = 0, tunAcc = LZ, TUN_RATE = LZ;   // tunnel size (x plan), tunnelled income this second / last second
+const tunnelL = () => TUN_A > 0 ? planL() + Math.log10(TUN_A) : LZ;
+let RAW = LZ, rawAcc = LZ;             // raw (unthrottled) income per second, last full second
+const throttleAdj = () => { const r = Math.max(RAW, rawAcc); return r <= LZ + 1 ? 0 : throttleOut(r) - r; };
+const packetSpeed = () => 2.5 * (1 + 0.25 * S.shopB[2]);
+const serverPeriod = t => partStat('server', tlv(t)).period / (1 + 0.12 * S.shopB[1]);
+const uplinkL = t => Math.log10(partStat('uplink', tlv(t)).mul) + S.shopB[4] * L3;
+const jamAfter = () => 30 * Math.pow(2, S.shopB[7]);
+
+// ---------------------------------------------------------------------
+// RESETS
+// ---------------------------------------------------------------------
+function gainL(k) {
+  const L = LAYERS[k]; if (S.C[k] < L.req) return LZ;
+  let g = 0.5 * (S.C[k] - L.req) + S.shopA[k] * L2;
+  if (k === 1) g += S.shopB[6];
+  return lFloor(g);
+}
+const canReset = k => k >= 1 && k <= NL && k <= S.reached + 1 && gainL(k) >= 0;
+function doReset(k) {
+  const g = gainL(k); if (g < 0 || k > S.reached + 1) return false;
+  S.E[k] = lAdd(S.E[k], g); S.H[k] = lAdd(S.H[k], g); S.resets[k]++;
+  for (let j = 1; j <= k; j++) S.lastR[j] = S.t;
+  for (let j = 1; j < k; j++) { S.E[j] = LZ; S.H[j] = LZ; }
+  for (let j = 1; j <= k; j++) S.C[j] = LZ;
+  S.bytes = START_BYTES;   // the hardware (board and part levels) survives every reset; only the software resets
+  for (const t of Object.values(S.tiles)) { t.jam = 0; if (t.type === 'vpn' && t.block > 0) { t.block = 0; t.heat = 0; } }   // turning it off and on again fixes the printer and reconnects the VPN
+  // packets already in the cables keep going: a reset is software, the wires don't care
+  if (k > S.reached) { S.reached = k; S.firsts[k] = S.t; S.pending.push({ type:'era', k }); }
+  if (k === NL && !S.won) { S.won = true; S.pending.push({ type:'win' }); }
+  S.pending.push({ type:'reset', k, g });
+  return true;
+}
+const shopACostL = k => Math.log10(SHOP_A.cost) + S.shopA[k] * Math.log10(SHOP_A.grow);
+const shopBCostL = k => Math.log10(SHOP[k].b.cost) + S.shopB[k] * Math.log10(SHOP[k].b.grow);
+function buyShop(k, which) {
+  if (k > S.reached) return 'Locked.';
+  if (which === 'a') { const c = shopACostL(k); if (S.H[k] < c - 1e-9) return 'Not enough.'; S.H[k] = lSub(S.H[k], c); S.shopA[k]++; return ''; }
+  const B = SHOP[k].b; if (S.shopB[k] >= B.max) return 'Maxed out.';
+  const c = shopBCostL(k); if (S.H[k] < c - 1e-9) return 'Not enough.'; S.H[k] = lSub(S.H[k], c); S.shopB[k]++; return '';
+}
+const autoUnlocked = k => S.reached >= Math.min(NL, k + 2);   // Restart the Universe also automates Restart the Company
+
+// ---------------------------------------------------------------------
+// PACKETS
+// ---------------------------------------------------------------------
+function earn(L, x, y, vpn) {
+  if (L <= LZ + 1) return;
+  S.bytes = lAdd(S.bytes, L);
+  for (let k = 1; k <= NL; k++) S.C[k] = lAdd(S.C[k], L);
+  S.stats.earned = lAdd(S.stats.earned, L); S.stats.packets++;
+  INCB[incSec] = lAdd(INCB[incSec], L);
+  if (x !== undefined && POPS.length < 30 && !POPS.some(q => q.x === x && q.y === y && q.life > 0.45)) POPS.push({ x, y, L, life:1, vpn:!!vpn });
+}
+function emit(t) {
+  if (PK.length >= MAXP) return;
+  const s = partStat('server', tlv(t));
+  PK.push({ x:t.x, y:t.y, d:t.dir, p:0, v:Math.log10(s.v), seen:[], bc:0, llm:false, hops:0, vpn:0 });
+}
+function fizzle(p) { S.stats.fizzled++; p.dead = true; }
+// a packet has just arrived on tile (x, y)
+function arrive(p, out) {
+  const W = GW(), H = GH();
+  if (p.x < 0 || p.y < 0 || p.x >= W || p.y >= H) return fizzle(p);
+  const t = tileAt(p.x, p.y); if (!t) return fizzle(p);
+  if (++p.hops > 160) return fizzle(p);
+  const fresh = !p.seen.includes(t.id);
+  switch (t.type) {
+    case 'server': return fizzle(p);
+    case 'cable': p.d = t.dir; break;
+    case 'uplink': {
+      p.dead = true; const raw = p.v + uplinkL(t) + globalL(), boost = S.boostT > 0 ? L2 : 0;
+      const v = p.vpn && VPNT[p.vpn];
+      if (v && !v.block && TUN_A > 0) {   // tunnelled: judged against the tunnel's allowance, invisible to the ISP
+        v.vAcc = lAdd(v.vAcc || LZ, raw); tunAcc = lAdd(tunAcc, raw);
+        const r = Math.max(TUN_RATE, tunAcc), c = tunnelL();
+        earn(raw + (r <= c ? 0 : throttleOut(r, c) - r) + boost, p.x, p.y, true); return;
+      }
+      rawAcc = lAdd(rawAcc, raw); earn(raw + throttleAdj() + boost, p.x, p.y); return;
+    }
+    case 'vpn': if (!t.block) p.vpn = t.id; p.d = t.dir; break;
+    case 'comp': if (fresh) { p.v = lAdd(p.v, Math.log10(partStat('comp', tlv(t)).add)); p.seen.push(t.id); } p.d = t.dir; break;
+    case 'oc': if (fresh) { p.v += Math.log10(partStat('oc', tlv(t)).mul); p.seen.push(t.id); } p.d = t.dir; break;
+    case 'chain': if (fresh) { p.v += Math.log10(1 + partStat('chain', tlv(t)).k * (p.bc + 1)); p.bc++; p.seen.push(t.id); } p.d = t.dir; break;
+    case 'llm': if (!p.llm && p.v > 0) { p.v *= partStat('llm', tlv(t)).pow; p.llm = true; } p.d = t.dir; break;
+    case 'printer':
+      if (t.jam > 0) return fizzle(p);
+      if (fresh) { p.v += Math.log10(partStat('printer', tlv(t)).mul); p.seen.push(t.id); if (++t.printed >= jamAfter()) { t.jam = 1; t.printed = 0; S.stats.jams++; S.pending.push({ type:'jam', x:t.x, y:t.y }); } }
+      p.d = t.dir; break;
+    case 'router': {
+      const left = (t.dir + 3) % 4, right = (t.dir + 1) % 4;
+      if (fresh) {
+        p.seen.push(t.id); p.v += Math.log10(partStat('router', tlv(t)).keep);
+        if (PK.length + out.length < MAXP) out.push({ x:p.x, y:p.y, d:right, p:0, v:p.v, seen:p.seen.slice(), bc:p.bc, llm:p.llm, hops:p.hops, vpn:p.vpn });
+      }
+      p.d = left; break;
+    }
+  }
+  p.p = 0;
+}
+function stepPackets(dt) {
+  const sp = packetSpeed() * dt, out = [];
+  for (const p of PK) {
+    if (p.dead) continue;
+    p.p += sp;
+    while (p.p >= 1 && !p.dead) { const over = p.p - 1; p.x += DIRS[p.d][0]; p.y += DIRS[p.d][1]; arrive(p, out); if (!p.dead) p.p = over; }
+  }
+  if (out.length) for (const o of out) PK.push(o);
+  mergePackets();
+  if (PK.some(p => p.dead)) PK = PK.filter(p => !p.dead);
+}
+// Two packets on the same square, going the same way, closer than MERGE apart become one packet worth both.
+// It keeps everything either has already been through, so nothing can boost it twice.
+const MERGE = 0.32;
+function mergePackets() {
+  if (PK.length < 2) return;
+  const lanes = new Map();
+  for (const p of PK) { if (p.dead) continue; const k = (p.y * 64 + p.x) * 4 + p.d; const a = lanes.get(k); if (a) a.push(p); else lanes.set(k, [p]); }
+  for (const a of lanes.values()) {
+    if (a.length < 2) continue;
+    a.sort((u, w) => u.p - w.p);
+    let head = a[0];
+    for (let i = 1; i < a.length; i++) {
+      const q = a[i];
+      if (q.p - head.p < MERGE) {
+        head.v = lAdd(head.v, q.v); head.p = q.p;
+        for (const id of q.seen) if (!head.seen.includes(id)) head.seen.push(id);
+        head.bc = Math.max(head.bc, q.bc); head.llm = head.llm || q.llm; head.hops = Math.max(head.hops, q.hops); if (head.vpn !== q.vpn) head.vpn = 0;   // only tunnelled if both were, through the same VPN
+        q.dead = true; S.stats.merged = (S.stats.merged || 0) + 1;
+      } else head = q;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------
+// TIME
+// ---------------------------------------------------------------------
+let autoT = 0;
+function tick(dt) {
+  if (!S) return;
+  S.t += dt;
+  // servers
+  VPNT = {}; let share = 0;
+  for (const t of Object.values(S.tiles)) {
+    if (t.type === 'vpn') { VPNT[t.id] = t; vpnStep(t, dt); if (!(t.block > 0)) share += vpnShare(t); continue; }
+    if (t.type === 'server') { const per = serverPeriod(t); t.timer += dt; if (t.timer >= per) { t.timer -= per; if (t.timer > per) t.timer = 0; emit(t); } }
+    else if (t.type === 'printer' && t.jam > 0) { t.jam += dt; if (S.reached >= 8 && t.jam > 4) t.jam = 0; }
+  }
+  TUN_A = Math.min(VPN_MAX, share);
+  stepPackets(dt);
+  // income per second
+  const sec = Math.floor(S.t) % 10;
+  if (sec !== incSec) { incSec = sec; INCB[sec] = LZ; let s = LZ; for (const v of INCB) s = lAdd(s, v); INC = s - 1; S.inc = INC; RAW = rawAcc; rawAcc = LZ; for (const v of Object.values(VPNT)) { v.vRate = v.vAcc || LZ; v.vAcc = LZ; } TUN_RATE = tunAcc; tunAcc = LZ; }
+  // tickets
+  if (S.boostT > 0) S.boostT = Math.max(0, S.boostT - dt);
+  if (S.ticket) { S.ticket.t -= dt; if (S.reached >= 9 && S.ticket.t < 17) resolveTicket(true); else if (S.ticket && S.ticket.t <= 0) { S.ticket = null; S.ticketIn = nextTicket(); } }
+  else { S.ticketIn -= dt; if (S.ticketIn <= 0) { const [who, what] = TICKETS[Math.floor(Math.random() * TICKETS.length)]; S.ticket = { who, what, t:20, n:1000 + Math.floor(Math.random() * 9000) }; S.pending.push({ type:'ticket' }); } }
+  // automation
+  autoT += dt;
+  if (autoT >= 0.25) {
+    autoT = 0;
+    if (S.reached >= 2 && S.auto.up) upgradeAll(400, null, 0.75);
+    for (let k = NL - 1; k >= 1; k--) {
+      if (!autoUnlocked(k) || !S.auto.r[k] || S.t - S.lastR[k] < AUTO_GAP) continue;
+      const g = gainL(k);
+      if (g >= 0 && g >= Math.max(0, S.E[k])) { doReset(k); break; }
+    }
+  }
+}
+function nextTicket() { return (50 + Math.random() * 40) / (1 + 0.25 * S.shopB[3]); }
+// a ticket pays out 20 seconds of income (more with Safe Mode)
+function ticketRewardL() { const base = Math.max(S.inc, Math.log10(5)); return base + Math.log10(20 * (1 + 0.5 * S.shopB[3])); }
+function resolveTicket(bot) {
+  if (!S.ticket) return null;
+  const L = ticketRewardL() - (bot ? L2 : 0);
+  earn(L); S.boostT = 20; S.stats.tickets++;
+  const fix = FIXES[Math.floor(Math.random() * FIXES.length)], { who, what } = S.ticket;
+  S.ticket = null; S.ticketIn = nextTicket();
+  S.pending.push({ type:'fixed', L, fix, who, what, bot:!!bot });
+  return L;
+}
+// suspicion builds while a VPN runs near its allowance and fades when it's quiet; at 100% it gets caught
+function vpnStep(t, dt) {
+  if (t.block > 0) { t.block += dt; if (S.reached >= 8 && t.block > 5) switchServer(t, true); return; }
+  // how hard this VPN is working: its own traffic against its own share of the tunnel
+  const r = t.vRate || LZ, use = r <= LZ + 1 ? 0 : Math.min(1, Math.pow(10, r - (planL() + Math.log10(vpnShare(t)))));
+  t.heat = clamp((t.heat || 0) + dt * (use - 0.15) / (VPN_HEAT_T * (1 + 0.05 * tlv(t))), 0, 1);   // better encryption hides longer
+  if (t.heat >= 1) { t.block = 1e-3; t.heat = 1; S.stats.caught = (S.stats.caught || 0) + 1; S.pending.push({ type:'caught', x:t.x, y:t.y }); }
+}
+function switchServer(t, intern) {
+  if (!t || t.type !== 'vpn') return false;
+  const was = t.loc; let i; do { i = Math.floor(Math.random() * VPN_LOCS.length); } while (VPN_LOCS.length > 1 && i === was);
+  t.loc = i; t.block = 0; t.heat = 0; t.vRate = LZ; t.vAcc = LZ;
+  S.pending.push({ type:'switched', loc:VPN_LOCS[i], intern:!!intern });
+  return true;
+}
+function unjam(x, y) { const t = tileAt(x, y); if (t && t.type === 'printer' && t.jam > 0) { t.jam = 0; return true; } return false; }
+// time away: half the recent income rate, up to 12 hours
+function offline(sec) { sec = Math.min(sec, 12 * 3600); if (sec < 30 || S.inc <= LZ + 1) return LZ; const L = S.inc + Math.log10(sec * 0.5); earn(L); return L; }
+
+// ---------------------------------------------------------------------
+// SAVE
+// ---------------------------------------------------------------------
+function save() { if (!S) return; S.saved = Date.now(); const keep = S.pending; S.pending = []; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} S.pending = keep; }
+function loadRaw(raw) {
+  try {
+    const d = JSON.parse(raw);
+    if (!d || d.v !== 1 || !d.tiles || !Array.isArray(d.C)) return false;
+    const b = blank();
+    for (const k in b) if (d[k] === undefined) d[k] = b[k];
+    for (const k of ['C', 'E', 'H', 'shopA', 'shopB', 'resets', 'firsts', 'lastR']) { if (!Array.isArray(d[k]) || d[k].length !== NL + 1) d[k] = b[k]; d[k] = d[k].map(v => typeof v === 'number' && isFinite(v) ? v : (k === 'C' || k === 'E' || k === 'H' ? LZ : 0)); }
+    if (!isFinite(d.bytes)) d.bytes = START_BYTES;
+    d.auto = Object.assign({ up:true, r:Array(NL + 1).fill(true) }, d.auto || {});
+    // older saves kept one level per part type: hand it to every part of that type
+    if (d.lvl && typeof d.lvl === 'object') { for (const t of Object.values(d.tiles)) if (!t.lvl) t.lvl = d.lvl[t.type] || 0; }
+    delete d.lvl;
+    for (const t of Object.values(d.tiles)) t.lvl = Math.max(0, Math.floor(+t.lvl || 0));
+    for (const t of Object.values(d.tiles)) if (t.type === 'vpn') { t.heat = clamp(+t.heat || 0, 0, 1); t.block = +t.block > 0 ? 1e-3 : 0; t.loc = (t.loc >= 0 && t.loc < VPN_LOCS.length) ? t.loc | 0 : 0; t.vRate = LZ; t.vAcc = LZ; }
+    d.pending = [];
+    S = d; resetRuntime(); clearIncome(); return true;
+  } catch (e) { return false; }
+}
+function hasSave() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return !!(d && d.v === 1 && d.tiles); } catch (e) { return false; } }
+function wipeSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+// =====================================================================
+// POWER CYCLE — flat board drawing. Rectangles, letters, small squares.
+// =====================================================================
+const R = { cv:null, g:null, dpr:1, W:0, H:0, ts:40, ox:0, oy:0, t:0 };
+const hex2rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+const rgb = (c, a = 1) => a >= 1 ? `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})` : `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+// colour at t (0..1) along a gradient of any number of stops
+function gradAt(stops, t) {
+  t = clamp(t, 0, 1); const n = stops.length - 1, f = t * n, i = Math.min(n - 1, Math.floor(f));
+  return mix(hex2rgb(stops[i]), hex2rgb(stops[i + 1]), f - i);
+}
+const BG = [12, 14, 19];
+const PART_T = { server:0, comp:0.18, oc:0.36, vpn:0.44, router:0.5, chain:0.62, llm:0.76, printer:0.88, uplink:1 };
+let PAL = null;   // palette cache for the current era
+function palette() {
+  const k = S ? S.reached : 0;
+  if (PAL && PAL.k === k) return PAL;
+  const st = LAYERS[k].grad, a = gradAt(st, 0);
+  PAL = { k, st, bg:rgb(mix(BG, a, 0.07)), tile:rgb(mix(BG, a, 0.13)), line:rgb(mix(BG, a, 0.22)), cable:rgb(mix(BG, a, 0.42)), part:{}, pk:[] };
+  for (const t in PART_T) PAL.part[t] = rgb(gradAt(st, PART_T[t]));
+  for (let i = 0; i <= 16; i++) PAL.pk.push(rgb(gradAt(st, i / 16)));
+  return PAL;
+}
+
+function boardResize() {
+  const box = R.cv.parentElement.getBoundingClientRect();
+  R.W = Math.max(200, Math.floor(box.width)); R.H = Math.max(160, Math.floor(box.height));
+  R.dpr = Math.min(2, devicePixelRatio || 1);
+  const bw = Math.round(R.W * R.dpr), bh = Math.round(R.H * R.dpr);
+  if (R.cv.width !== bw || R.cv.height !== bh) { R.cv.width = bw; R.cv.height = bh; }
+  R.cv.style.width = R.W + 'px'; R.cv.style.height = R.H + 'px';
+  boardLayout();
+}
+function boardLayout() {
+  if (!S) return;
+  const w = GW(), h = GH();
+  const hintH = R.W < 520 ? 46 : 30;   // room under the board for the hint line (two lines on a phone)
+  R.ts = Math.floor(clamp(Math.min((R.W - 16) / w, (R.H - 12 - hintH) / h), 16, 84));
+  R.ox = Math.floor((R.W - R.ts * w) / 2); R.oy = Math.floor((R.H - hintH - R.ts * h) / 2) + 4;
+}
+function tileFromXY(px, py) { const x = Math.floor((px - R.ox) / R.ts), y = Math.floor((py - R.oy) / R.ts); return x >= 0 && y >= 0 && x < GW() && y < GH() ? { x, y } : null; }
+function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function arrowHead(g, cx, cy, d, s) {
+  const [dx, dy] = DIRS[d], px = -dy, py = dx;
+  g.beginPath(); g.moveTo(cx + dx * s, cy + dy * s); g.lineTo(cx - dx * s * 0.2 + px * s * 0.75, cy - dy * s * 0.2 + py * s * 0.75); g.lineTo(cx - dx * s * 0.2 - px * s * 0.75, cy - dy * s * 0.2 - py * s * 0.75); g.closePath(); g.fill();
+}
+function drawPartAt(g, type, dir, x0, y0, s, alpha, jam, lvl, mode = 'all', tile = null) {   // mode: 'body', 'label' (letter, level, jam) or 'all'
+  const P = palette();
+  g.globalAlpha = alpha;
+  if (type === 'cable') {
+    const cx = x0 + s / 2, cy = y0 + s / 2, [dx, dy] = DIRS[dir], w = Math.max(3, s * 0.2);
+    g.fillStyle = P.cable;
+    if (dx) g.fillRect(x0, cy - w / 2, s, w); else g.fillRect(cx - w / 2, y0, w, s);
+    g.fillStyle = P.line; arrowHead(g, cx + dx * s * 0.08, cy + dy * s * 0.08, dir, w * 0.9);
+    g.globalAlpha = 1; return;
+  }
+  const i = Math.max(2, Math.round(s * 0.1)), col = P.part[type];
+  if (mode !== 'label') {
+  g.fillStyle = col; rrect(g, x0 + i, y0 + i, s - 2 * i, s - 2 * i, Math.max(3, s * 0.14)); g.fill();
+  // output arrow (the uplink takes from every side, so it has none)
+  if (type !== 'uplink') {
+    const [dx, dy] = DIRS[dir], cx = x0 + s / 2 + dx * (s / 2 - i * 0.5), cy = y0 + s / 2 + dy * (s / 2 - i * 0.5);
+    g.fillStyle = col; arrowHead(g, cx, cy, dir, Math.max(3, s * 0.14));
+    if (type === 'router') { g.fillStyle = col; arrowHead(g, x0 + s / 2 + DIRS[(dir + 1) % 4][0] * (s / 2 - i * 0.5), y0 + s / 2 + DIRS[(dir + 1) % 4][1] * (s / 2 - i * 0.5), (dir + 1) % 4, Math.max(3, s * 0.14)); arrowHead(g, x0 + s / 2 + DIRS[(dir + 3) % 4][0] * (s / 2 - i * 0.5), y0 + s / 2 + DIRS[(dir + 3) % 4][1] * (s / 2 - i * 0.5), (dir + 3) % 4, Math.max(3, s * 0.14)); }
+  }
+  }
+  if (mode === 'body') { g.globalAlpha = 1; return; }
+  g.fillStyle = 'rgba(10,12,16,0.85)'; g.font = `700 ${Math.round(s * (PARTS[type].g.length > 1 ? 0.3 : 0.4))}px "IBM Plex Mono", ui-monospace, monospace`;
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(PARTS[type].g, x0 + s / 2, y0 + s / 2 + 1);
+  // its level, small, in the corner
+  if (lvl > 0 && s >= 26) { g.font = `600 ${Math.max(8, Math.round(s * 0.19))}px "IBM Plex Mono", ui-monospace, monospace`; g.textAlign = 'right'; g.textBaseline = 'alphabetic'; g.fillStyle = 'rgba(10,12,16,0.7)'; g.fillText(lvl > 999 ? fmtL(Math.log10(lvl)) : String(lvl), x0 + s - i - 3, y0 + s - i - 3); g.textAlign = 'center'; g.textBaseline = 'middle'; }
+  if (jam) {
+    const blink = Math.floor(R.t * 3) % 2;
+    g.fillStyle = blink ? 'rgba(255,70,70,0.9)' : 'rgba(255,70,70,0.55)'; rrect(g, x0 + i, y0 + s * 0.62, s - 2 * i, s * 0.3, 3); g.fill();
+    g.fillStyle = '#fff'; g.font = `700 ${Math.round(s * 0.2)}px "IBM Plex Mono", ui-monospace, monospace`; g.fillText('JAM', x0 + s / 2, y0 + s * 0.78);
+  }
+  // a VPN shows how suspicious the ISP is getting, and whether it has been caught
+  if (type === 'vpn' && tile) {
+    if (tile.block > 0) {
+      const blink = Math.floor(R.t * 3) % 2;
+      g.fillStyle = blink ? 'rgba(255,70,70,0.9)' : 'rgba(255,70,70,0.55)'; rrect(g, x0 + i, y0 + s * 0.62, s - 2 * i, s * 0.3, 3); g.fill();
+      g.fillStyle = '#fff'; g.font = `700 ${Math.round(s * 0.17)}px "IBM Plex Mono", ui-monospace, monospace`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CAUGHT', x0 + s / 2, y0 + s * 0.78);
+    } else if (tile.heat > 0.02) {
+      const w = (s - 2 * i - 6) * tile.heat, hh = Math.max(2, Math.round(s * 0.06));
+      g.fillStyle = 'rgba(10,12,16,0.55)'; g.fillRect(x0 + i + 3, y0 + i + 3, s - 2 * i - 6, hh);
+      g.fillStyle = tile.heat > 0.75 ? '#ff4b4b' : tile.heat > 0.4 ? '#ffb020' : '#e8e8f0'; g.fillRect(x0 + i + 3, y0 + i + 3, w, hh);
+    }
+  }
+  g.globalAlpha = 1;
+}
+function drawBoard(ui) {
+  const g = R.g; if (!g || !S) return;
+  const P = palette(), s = R.ts, w = GW(), h = GH();
+  g.setTransform(R.dpr, 0, 0, R.dpr, 0, 0);
+  g.fillStyle = P.bg; g.fillRect(0, 0, R.W, R.H);
+  // tiles: one path
+  g.fillStyle = P.tile; g.beginPath();
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) g.rect(R.ox + x * s + 1, R.oy + y * s + 1, s - 2, s - 2);
+  g.fill();
+  // cables, then parts, then the packets on top
+  const tiles = Object.values(S.tiles);
+  for (const t of tiles) if (t.type === 'cable' && t.x < w && t.y < h) drawPartAt(g, 'cable', t.dir, R.ox + t.x * s, R.oy + t.y * s, s, 1);
+  for (const t of tiles) if (t.type !== 'cable' && t.x < w && t.y < h) drawPartAt(g, t.type, t.dir, R.ox + t.x * s, R.oy + t.y * s, s, 1, t.jam > 0, t.lvl, 'body');
+  // packets ride on top of everything, with a dark rim so they read against any part colour
+  let maxV = 1; for (const p of PK) if (p.v > maxV) maxV = p.v;
+  const ps = Math.max(4, Math.round(s * 0.17)), rim = Math.max(1, Math.round(s * 0.035));
+  g.fillStyle = 'rgba(8,10,14,0.85)'; g.beginPath();
+  for (const p of PK) { const fx = p.x + DIRS[p.d][0] * p.p, fy = p.y + DIRS[p.d][1] * p.p; g.rect(R.ox + (fx + 0.5) * s - ps / 2 - rim, R.oy + (fy + 0.5) * s - ps / 2 - rim, ps + 2 * rim, ps + 2 * rim); }
+  g.fill();
+  for (const p of PK) {
+    const fx = p.x + DIRS[p.d][0] * p.p, fy = p.y + DIRS[p.d][1] * p.p;
+    g.fillStyle = P.pk[Math.round(clamp(p.v / maxV, 0, 1) * 16)];
+    g.fillRect(R.ox + (fx + 0.5) * s - ps / 2, R.oy + (fy + 0.5) * s - ps / 2, ps, ps);
+  }
+  // letters, levels and jams go on top so a busy line stays readable
+  for (const t of tiles) if (t.type !== 'cable' && t.x < w && t.y < h) drawPartAt(g, t.type, t.dir, R.ox + t.x * s, R.oy + t.y * s, s, 1, t.jam > 0, t.lvl, 'label', t);
+  // uplink pops (a few, quiet)
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = `600 ${Math.max(10, Math.round(s * 0.24))}px "IBM Plex Mono", ui-monospace, monospace`;
+  for (const q of POPS) { g.globalAlpha = clamp(q.life, 0, 1); g.fillStyle = q.vpn ? '#ffffff' : P.part.uplink; g.fillText('+' + fmtB(q.L), R.ox + (q.x + 0.5) * s, R.oy + q.y * s - (1 - q.life) * s * 0.6); }
+  g.globalAlpha = 1;
+  // overlays
+  if (ui) {
+    if (ui.sel) { const t = tileById(ui.sel); if (t) { g.strokeStyle = '#fff'; g.lineWidth = 2; rrect(g, R.ox + t.x * s + 1, R.oy + t.y * s + 1, s - 2, s - 2, 6); g.stroke(); } }
+    if (ui.hover) {
+      const { x, y } = ui.hover, x0 = R.ox + x * s, y0 = R.oy + y * s;
+      if (ui.tool && !tileAt(x, y)) drawPartAt(g, ui.tool, ui.dir, x0, y0, s, 0.45);
+      g.strokeStyle = ui.bad ? '#ff5d5d' : 'rgba(255,255,255,0.7)'; g.lineWidth = 1.5; rrect(g, x0 + 1, y0 + 1, s - 2, s - 2, 6); g.stroke();
+    }
+  }
+}
+function fxStep(dt) {
+  R.t += dt;
+  for (const q of POPS) q.life -= dt * 1.2;
+  for (let i = POPS.length - 1; i >= 0; i--) if (POPS[i].life <= 0) POPS.splice(i, 1);
+}
+// a small square swatch for the palette buttons
+const ICONS = {};
+function partIcon(type) {
+  const k = (S ? S.reached : 0) + type; if (ICONS[k]) return ICONS[k];
+  const c = document.createElement('canvas'); c.width = 72; c.height = 72; const g = c.getContext('2d'); g.scale(2, 2);
+  drawPartAt(g, type, 0, 0, 0, 36, 1);
+  return (ICONS[k] = c.toDataURL());
+}
+// =====================================================================
+// POWER CYCLE — interface
+// =====================================================================
+const $ = id => document.getElementById(id);
+const selTile = () => tileById(U.sel);   // the part picked on the board (tiles are keyed by position, the selection by id)
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const ARROWS = ['→', '↓', '←', '↑'];
+const COARSE = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+const U = { tab:'build', tool:null, dir:0, sel:null, hover:null, drag:null, modal:null, sound:true, last:0, saveT:0, domT:0, sig:{}, open:{}, manual:0, lastBuy:null, seenJam:false, log:[], started:false };
+
+// ---------------------------------------------------------------------
+// SOUND (a few quiet blips; packets selling are silent on purpose)
+// ---------------------------------------------------------------------
+let AC = null;
+function audio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); }
+function tone(f, t0, dur, type = 'square', vol = 0.035, f2) {
+  if (!AC || !U.sound) return; const t = AC.currentTime + t0, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function sfx(k) {
+  switch (k) {
+    case 'click': tone(880, 0, 0.04, 'triangle', 0.03); break;
+    case 'place': tone(440, 0, 0.06, 'square', 0.025); tone(660, 0.05, 0.06, 'square', 0.025); break;
+    case 'up': tone(520, 0, 0.05, 'triangle', 0.03, 780); break;
+    case 'err': tone(160, 0, 0.12, 'square', 0.03); break;
+    case 'ticket': tone(1320, 0, 0.06, 'sine', 0.04); tone(1320, 0.12, 0.06, 'sine', 0.04); break;
+    case 'fixed': [523, 659, 784].forEach((f, i) => tone(f, i * 0.06, 0.09, 'triangle', 0.035)); break;
+    case 'reset': tone(880, 0, 0.25, 'sawtooth', 0.03, 110); tone(110, 0.3, 0.25, 'sawtooth', 0.03, 880); break;
+    case 'era': [262, 330, 392, 523, 659, 784].forEach((f, i) => tone(f, i * 0.07, 0.2, 'triangle', 0.04)); break;
+    case 'jam': tone(200, 0, 0.08, 'square', 0.03); tone(150, 0.1, 0.12, 'square', 0.03); break;
+  }
+}
+
+// ---------------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------------
+function toast(text, k = '') { const t = document.createElement('div'); t.className = 'toast ' + k; t.textContent = text; const box = $('toasts'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), 3400); }
+const cssGrad = st => `linear-gradient(90deg, ${st.join(', ')})`;
+function applyTheme() {
+  const st = LAYERS[S.reached].grad, r = document.documentElement.style;
+  r.setProperty('--g', cssGrad(st)); r.setProperty('--c1', st[0]); r.setProperty('--c2', st[st.length - 1]);
+  $('era').textContent = S.reached ? `Level ${S.reached} · ${LAYERS[S.reached].gname}` : 'Level 0 · Beige Box';
+  PAL = null; boardLayout();
+}
+function sigSet(id, v) { if (U.sig[id] === v) return false; U.sig[id] = v; return true; }
+const setText = (id, v) => { const el = $(id); if (el && el.textContent !== v) el.textContent = v; };
+const fmtDur = s => s < 60 ? `${Math.round(s)}s` : s < 3600 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.floor(s / 3600)}h ${Math.round((s % 3600) / 60)}m`;
+
+// ---------------------------------------------------------------------
+// MODALS
+// ---------------------------------------------------------------------
+function openModal(html, o = {}) {
+  const w = $('ovWrap'); w.innerHTML = `<div class="ov"><div class="modal ${o.cls || ''}" role="dialog" aria-modal="true" aria-label="${esc(o.label || 'Dialog')}">${html}</div></div>`;
+  U.modal = { kind:o.kind || 'x', closable:o.closable !== false };
+  const f = w.querySelector('[data-focus]') || w.querySelector('button'); if (f) try { f.focus({ preventScroll:true }); } catch (e) {}
+}
+function closeModal() { $('ovWrap').innerHTML = ''; U.modal = null; }
+function titleModal() {
+  const stripes = LAYERS.slice(1).map(L => `<i style="background:${cssGrad(L.grad)}"></i>`).join('');
+  openModal(`<div class="title"><div class="big">POWER<b>CYCLE</b></div>
+    <p>You are the entire IT department. There is one fix. It always works.</p>
+    <p class="mute">Ten resets, each bigger than the last.</p>
+    <div class="stripes" aria-hidden="true">${stripes}</div>
+    <div class="foot"><button type="button" class="btn" data-act="begin" data-focus>Clock in</button></div></div>`, { kind:'title', closable:false, label:'Power Cycle' });
+}
+function helpModal() {
+  openModal(`<h1>How it works</h1>
+    <ul>
+      <li><b>Servers</b> send packets along <b>Cables</b>. Anything that reaches an <b>Uplink</b> is sold to the Internet for Bytes.</li>
+      <li>Pick a part in the Build tab, then click a square. Dropping a part on a cable replaces it, facing the same way. Drag with the Cable tool to lay a line. <b>R</b> or right-click rotates.</li>
+      <li>Parts between the Server and the Uplink make packets worth more: Compressors add, Overclockers multiply, and later parts get stranger. Each part only works on a packet once.</li>
+      <li>Every part has its own level. <b>Click a part on the board</b> to upgrade it. <b>Upgrade all</b> (or U) buys the cheapest levels anywhere on the board.</li>
+      <li><b>VPNs</b> (from reset level 2) hide traffic from your ISP. Packets that pass through one are sold through a tunnel with its own allowance, up to your plan again, so at best twice the bandwidth. Run a VPN near its share for too long and it gets caught: click it to switch servers.</li>
+      <li><b>Resets</b>: once you've earned enough, turn something off and on again. You lose your Bytes (and everything from smaller resets), and get a currency that multiplies Bytes from then on. Your board and part levels are hardware; resets never touch them.</li>
+      <li>There are ten resets. Each new one changes the colour scheme, upgrades your <b>ISP plan</b> (income past the plan is throttled), and unlocks something. Deeper resets automate the smaller ones.</li>
+      <li><b>Help desk tickets</b> pop up. Fix them for a burst of Bytes and double income for 20 seconds.</li>
+      <li>The game saves every few seconds and keeps earning (at half speed) while you're away.</li>
+    </ul>
+    <div class="foot"><button type="button" class="btn" data-act="close" data-focus>Back to work</button></div>`, { kind:'help', label:'How to play' });
+}
+function menuModal() {
+  openModal(`<h1>Menu</h1>
+    <div class="foot" style="justify-content:flex-start">
+      <button type="button" class="btn" data-act="close" data-focus>Back to work</button>
+      <button type="button" class="btn alt" data-act="help">How to play</button>
+      <button type="button" class="btn alt" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>
+      <button type="button" class="btn alt" data-act="wipeAsk">Wipe save</button>
+    </div><p class="mute" style="margin-top:12px">Saves automatically in this browser.</p>`, { kind:'menu', label:'Menu' });
+}
+function wipeAsk() {
+  openModal(`<h1>Wipe everything?</h1><p>Every reset, every upgrade, the whole server room. There is no off-and-on-again for this one.</p>
+    <div class="foot"><button type="button" class="btn alt" data-act="close" data-focus>Keep it</button><button type="button" class="btn" data-act="wipe">Wipe save</button></div>`, { kind:'wipe', label:'Wipe save' });
+}
+function resetAsk(k) {
+  const L = LAYERS[k], g = gainL(k), first = k > S.reached;
+  const lost = k === 1 ? 'your Bytes' : `your Bytes and all your ${LAYERS.slice(1, k).map(x => x.cur).join(', ').replace(/, ([^,]*)$/, ' and $1')}`;
+  openModal(`<h1>${esc(L.n)}?</h1><p><i>${esc(L.quip)}</i></p>
+    <p>You get <b class="mono">${fmtL(g)} ${esc(g < 0.01 ? L.one : L.cur)}</b>. You lose ${lost}. The board and part levels stay.</p>
+    ${first ? `<p>First time: unlocks ${esc(L.unlock)}, a new colour scheme, and a faster ISP plan.</p>` : ''}
+    <div class="foot"><button type="button" class="btn alt" data-act="close">Not yet</button><button type="button" class="btn" data-act="doReset" data-arg="${k}" data-focus>${esc(L.verb)}</button></div>`, { kind:'reset', label:L.n });
+}
+function eraOverlay(k) {
+  const L = LAYERS[k];
+  const w = $('ovWrap'); w.innerHTML = `<div class="era-ov" style="background:${cssGrad(L.grad)}" role="dialog" aria-modal="true" aria-label="${esc(L.n)}"><div class="card">
+    <div class="k">Reset level ${k} of ${NL}</div><h1>${esc(L.n)}</h1>
+    <p>New colour scheme: <b>${esc(L.gname)}</b></p><p>Unlocked: ${esc(L.unlock)}</p>
+    <p>ISP plan upgraded to <b class="mono">${fmtB(PLAN[k])}/s</b>${k >= NL ? ' (unlimited)' : ''}</p>
+    <button type="button" class="btn" data-act="${k === NL ? 'winModal' : 'close'}" data-focus>${k === NL ? 'And then?' : 'Back to work'}</button></div></div>`;
+  U.modal = { kind:'era', closable:k !== NL };
+  const f = w.querySelector('[data-focus]'); if (f) try { f.focus({ preventScroll:true }); } catch (e) {}
+}
+function winModal() {
+  const t = S.firsts[NL];
+  openModal(`<h1>Ticket closed.</h1><p>You turned the universe off and on again. It came back. It's working now. Nobody knows what was wrong with it.</p>
+    <p class="mute">Time to restart the universe: <b class="mono">${fmtDur(t)}</b> of play. Resets performed: <b class="mono">${fmtN(S.resets.reduce((a, b) => a + b, 0))}</b>. Tickets fixed: <b class="mono">${fmtN(S.stats.tickets)}</b>.</p>
+    <p>The ISP has given up throttling you. Big Bangs buy absurd upgrades. Keep going for as long as you like.</p>
+    <div class="foot"><button type="button" class="btn" data-act="close" data-focus>Keep going</button></div>`, { kind:'win', label:'You win' });
+}
+function awayModal(sec, L) {
+  openModal(`<h1>While you were away</h1><p>You were gone for <b class="mono">${fmtDur(sec)}</b>. The servers kept going at half speed and earned <b class="mono">${fmtB(L)}</b>.</p>
+    <div class="foot"><button type="button" class="btn" data-act="close" data-focus>Back to work</button></div>`, { kind:'away', label:'Welcome back' });
+}
+
+// ---------------------------------------------------------------------
+// ACTIONS
+// ---------------------------------------------------------------------
+const ACTS = {
+  close() { closeModal(); },
+  begin() { closeModal(); U.started = true; try { localStorage.setItem('power_cycle_seen', '1'); } catch (e) {} helpModal(); },
+  help() { helpModal(); },
+  sound() { U.sound = !U.sound; try { localStorage.setItem('power_cycle_sound', U.sound ? '1' : '0'); } catch (e) {} menuModal(); },
+  wipeAsk() { wipeAsk(); },
+  wipe() { wipeSave(); newGame(); U.sel = null; U.tool = null; U.sig = {}; U.log = []; U.started = false; ICONS_CLEAR(); applyTheme(); closeModal(); titleModal(); },
+  winModal() { winModal(); },
+  tab(t) { U.tab = t; document.querySelectorAll('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); }); for (const n of ['build', 'resets', 'desk']) $('tab-' + n).hidden = n !== t; U.sig = {}; refresh(true); },
+  tool(t) { if (!unlockedPart(t)) { toast(`Unlocked by ${unlockerOf(t)}.`, 'bad'); sfx('err'); return; } U.tool = U.tool === t ? null : t; U.sel = null; sfx('click'); refresh(true); },
+  inspect() { U.tool = null; sfx('click'); refresh(true); },
+  rot() { U.dir = (U.dir + 1) % 4; sfx('click'); refresh(true); },
+  uptype(t) { const info = typeInfo(t); if (!info) return; const e = upgrade(info.low); if (e) { toast(e, 'bad'); sfx('err'); } else sfx('up'); refresh(); },
+  upSel(n) { const t = U.sel && selTile(); if (!t) return; const e = upgrade(t, +n || 1); if (e) { toast(e, 'bad'); sfx('err'); } else sfx('up'); refresh(); },
+  desel() { U.sel = null; refresh(true); },
+  upall() { const n = upgradeAll(); if (n) sfx('up'); else { toast('Nothing affordable yet.', 'bad'); sfx('err'); } refresh(); },
+  autoup(_, el) { S.auto.up = el.checked; },
+  autor(k, el) { S.auto.r[+k] = el.checked; },
+  reset(k) { k = +k; if (!canReset(k)) { sfx('err'); return; } resetAsk(k); },
+  doReset(k) { k = +k; closeModal(); U.manual = k; if (doReset(k)) sfx('reset'); refresh(true); },
+  shop(a) { const [k, w] = a.split(':'); const e = buyShop(+k, w); if (e) { toast(e, 'bad'); sfx('err'); } else { sfx('up'); U.sig = {}; } refresh(true); },
+  rotSel() { const t = U.sel && selTile(); if (t) { rotateAt(t.x, t.y); sfx('click'); refresh(true); } },
+  delSel() { const t = U.sel && selTile(); if (t) { removeTile(t); U.sel = null; refresh(true); } },
+  unjamSel() { const t = U.sel && selTile(); if (t && unjam(t.x, t.y)) { sfx('fixed'); refresh(true); } },
+  switchSel() { const t = U.sel && selTile(); if (t && t.block > 0 && switchServer(t)) { sfx('fixed'); refresh(true); } },
+  fix() { const L = resolveTicket(); if (L !== null) sfx('fixed'); refresh(); }
+};
+function unlockerOf(t) { const k = PARTS[t].layer; return k ? `${LAYERS[k].n} (reset level ${k})` : 'nothing'; }
+function onAct(e) {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  audio(); const f = ACTS[el.dataset.act]; if (f) f(el.dataset.arg, el);
+}
+function onChange(e) { const el = e.target.closest('[data-act]'); if (!el) return; const f = ACTS[el.dataset.act]; if (f) f(el.dataset.arg, el); }
+// removing is free and refunds nothing, unless you change your mind within 15 seconds of buying
+function removeTile(t) {
+  const lb = U.lastBuy, total = S.resets.reduce((a, b) => a + b, 0);
+  if (lb && lb.id === t.id && S.t - lb.t < 15 && lb.resets === total && lb.L > LZ + 1) { S.bytes = lAdd(S.bytes, lb.L); toast(`Returned it. ${fmtB(lb.L)} back.`); }
+  U.lastBuy = null; removeAt(t.x, t.y); sfx('click');
+}
+
+// ---------------------------------------------------------------------
+// ENGINE EVENTS
+// ---------------------------------------------------------------------
+function handlePending() {
+  if (!S.pending.length) return;
+  const list = S.pending.splice(0);
+  for (const p of list) {
+    switch (p.type) {
+      case 'era': applyTheme(); ICONS_CLEAR(); sfx('era'); eraOverlay(p.k); U.sig = {}; break;
+      case 'reset': if (U.manual === p.k && !(U.modal && U.modal.kind === 'era')) toast(`${LAYERS[p.k].verb}: +${fmtL(p.g)} ${p.g < 0.01 ? LAYERS[p.k].one : LAYERS[p.k].cur}.`); if (U.manual === p.k) U.manual = 0; U.sig = {}; break;
+      case 'ticket': sfx('ticket'); break;
+      case 'fixed': U.log.unshift({ who:p.who, text:p.what, fix:p.fix, L:p.L, bot:p.bot, t:S.t }); if (U.log.length > 30) U.log.length = 30; if (!p.bot) toast(`Fixed: ${p.fix} +${fmtB(p.L)}, and double income for 20s.`); break;
+      case 'caught': sfx('jam'); if (!U.seenCaught) { U.seenCaught = true; toast('Your ISP spotted a VPN. Its traffic is throttled like everything else until you click it and switch servers.'); } break;
+      case 'switched': if (!p.intern) toast(`Reconnected. You are now browsing from ${p.loc}.`); break;
+      case 'jam': if (!U.seenJam) { U.seenJam = true; sfx('jam'); toast('A printer jammed. Click it to clear the jam.'); } break;
+      case 'win': break;
+    }
+  }
+}
+function ICONS_CLEAR() { for (const k in ICONS) delete ICONS[k]; }
+
+// ---------------------------------------------------------------------
+// BUILD TAB
+// ---------------------------------------------------------------------
+function typeInfo(t) { const list = upgradable(t); if (!list.length) return null; let lo = Infinity, hi = 0; for (const x of list) { lo = Math.min(lo, tlv(x)); hi = Math.max(hi, tlv(x)); } return { n:list.length, lo, hi, low:cheapest(list) }; }
+function buildTab(force) {
+  const el = $('tab-build');
+  const sig = [S.reached, U.tool, U.dir, U.sel, S.auto.up].join('|');
+  if (force || sigSet('build', sig)) {
+    const rows = ORDER.map(t => {
+      const P = PARTS[t], lock = !unlockedPart(t);
+      if (lock && P.layer > S.reached + 1) return '';
+      return `<div class="prt ${U.tool === t ? 'on' : ''} ${lock ? 'locked' : ''}" id="row-${t}">
+        <button type="button" class="pickb" data-act="tool" data-arg="${t}" aria-pressed="${U.tool === t}" title="${esc(P.d)}"><img src="${partIcon(t)}" alt=""><span style="min-width:0"><span class="nm">${esc(P.n)}</span><span class="st" id="st-${t}"></span><span class="cost" id="pc-${t}"></span></span></button>
+        ${P.up && !lock ? `<button type="button" class="up" data-act="uptype" data-arg="${t}" id="pu-${t}" title="Upgrades your lowest-level ${esc(P.n)} by one level"></button>` : '<span></span>'}
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div id="inspBox"></div>
+      <div class="toolrow">
+        <button type="button" class="btn ${U.tool ? 'alt' : ''} sm" data-act="inspect" aria-pressed="${!U.tool}">Inspect</button>
+        <button type="button" class="btn alt sm dirbtn" data-act="rot" title="Rotate (R)">Facing <i style="transform:rotate(${U.dir * 90}deg)">→</i></button>
+        <span class="mute" style="font-size:12px">${U.tool ? `Placing: ${esc(PARTS[U.tool].n)}` : 'Click a part on the board to upgrade it'}</span>
+      </div>
+      <div class="parts">${rows}</div>
+      <div class="upall"><button type="button" class="btn sm" data-act="upall" id="bUpAll" title="Buys the cheapest level anywhere on the board, again and again (U)">Upgrade all</button>
+        ${S.reached >= 2 ? `<label class="tog"><input type="checkbox" data-act="autoup" ${S.auto.up ? 'checked' : ''}> Auto-upgrade</label>` : '<span class="mute" style="font-size:12px">Auto-upgrade unlocks at reset level 2</span>'}</div>`;
+  }
+  // live numbers
+  for (const t of ORDER) {
+    if (!$('row-' + t)) continue;
+    const P = PARTS[t], lock = !unlockedPart(t);
+    if (lock) { setText('st-' + t, `Unlocked by ${LAYERS[P.layer].n}`); setText('pc-' + t, ''); continue; }
+    const info = P.up ? typeInfo(t) : null;
+    setText('st-' + t, !P.up ? 'free' : info ? `${info.n} placed · level ${info.lo === info.hi ? info.lo : info.lo + '–' + info.hi}` : `new: ${statText(t, 0)}`);
+    const c = partCostL(t), pc = $('pc-' + t);
+    setText('pc-' + t, c <= LZ + 1 ? 'Place: free' : `Place: ${fmtB(c)}`); pc.classList.toggle('no', !afford(c));
+    const ub = $('pu-' + t);
+    if (ub) {
+      const uc = info ? upCostL(info.low) : LZ, txt = info ? `Lowest Lv ${tlv(info.low)} → ${tlv(info.low) + 1}\n${fmtB(uc)}` : 'Upgrade\nplace one first';
+      if (ub.dataset.t !== txt) { ub.dataset.t = txt; const [a, b] = txt.split('\n'); ub.innerHTML = `${a}<small>${b}</small>`; }
+      ub.disabled = !info || !afford(uc);
+    }
+  }
+  inspector();
+}
+function inspector() {
+  const box = $('inspBox'); if (!box) return;
+  const t = U.sel && selTile();
+  if (!t) { if (box.innerHTML) box.innerHTML = ''; return; }
+  const P = PARTS[t.type], sig = `${t.id}|${t.dir}|${t.jam > 0}|${tlv(t)}|${t.block > 0}|${t.loc}`;
+  if (sigSet('insp', sig) || !box.innerHTML) {
+    const l = tlv(t);
+    box.innerHTML = `<div class="insp"><div class="hd"><img src="${partIcon(t.type)}" alt=""><div><b>${esc(P.n)}</b>${P.up ? ` <span class="lvtag">Level ${l}</span>` : ''}${t.type !== 'uplink' ? ` <span class="mute">facing ${ARROWS[t.dir]}</span>` : ''}</div></div>
+      ${t.type === 'vpn' ? `<div class="nownext"><span>Exit</span><b>${esc(VPN_LOCS[t.loc] || VPN_LOCS[0])}</b><span>Suspicion</span><b id="iheat"></b><span>Tunnel</span><b id="itun"></b></div>` : ''}
+      ${P.up ? `<div class="nownext"><span>Now</span><b>${esc(statText(t.type, l))}</b><span>Next</span><b>${esc(statText(t.type, l + 1))}</b></div>
+      <div class="acts" style="margin-bottom:8px"><button type="button" class="btn sm" data-act="upSel" data-arg="1" id="iu1"></button><button type="button" class="btn alt sm" data-act="upSel" data-arg="10" id="iu10">×10</button><button type="button" class="btn alt sm" data-act="upSel" data-arg="1000" id="iuMax">Max</button></div>` : `<p>${esc(P.d)}</p>`}
+      <div class="acts">${t.type !== 'uplink' ? '<button type="button" class="btn alt sm" data-act="rotSel">Rotate ↻</button>' : ''}
+        ${t.jam > 0 ? '<button type="button" class="btn sm" data-act="unjamSel">Clear the jam</button>' : ''}
+        ${t.type === 'vpn' && t.block > 0 ? '<button type="button" class="btn sm" data-act="switchSel">Switch servers</button>' : ''}
+        <button type="button" class="btn alt sm" data-act="delSel">Remove</button>
+        <button type="button" class="btn alt sm" data-act="desel">Close</button></div>
+      <p style="font-size:12px">${P.up ? esc(P.d) + ' ' : ''}Removing is free but refunds nothing, and the part's levels go with it (unless you bought it in the last 15 seconds).</p></div>`;
+  }
+  if (t.type === 'vpn') {
+    setText('iheat', t.block > 0 ? 'caught! switch servers' : `${Math.round((t.heat || 0) * 100)}%`);
+    setText('itun', S.reached >= NL ? 'no need: the ISP gave up' : `${Math.round(TUN_A * 100)}% of your plan (${fmtB(tunnelL())}/s), all VPNs together`);
+  }
+  if (P.up) {
+    const c = upCostL(t), ok = afford(c), b1 = $('iu1');
+    if (b1) { setText('iu1', `Upgrade · ${fmtB(c)}`); b1.disabled = !ok; $('iu10').disabled = !ok; $('iuMax').disabled = !ok; }
+  }
+}
+
+// ---------------------------------------------------------------------
+// RESETS TAB
+// ---------------------------------------------------------------------
+function resetsTab(force) {
+  const el = $('tab-resets');
+  const sig = [S.reached, S.shopA.join(), S.shopB.join(), S.auto.r.join(), ].join('|');
+  if (force || sigSet('resets', sig)) {
+    let h = `<p class="mute" style="margin:0 0 10px;font-size:13px">Each reset needs Bytes earned since you last did it (or anything deeper). Currency you earn this cycle multiplies all Bytes.</p>`;
+    for (let k = 1; k <= NL; k++) {
+      const L = LAYERS[k], reached = k <= S.reached, next = k === S.reached + 1;
+      if (!reached && !next) { h += `<div class="rung locked"><div class="sw"></div><div class="in"><div class="rh"><span class="rn">???</span><span class="lv">LEVEL ${k}</span></div></div></div>`; continue; }
+      const sh = SHOP[k].b;
+      h += `<div class="rung ${next ? 'next' : ''}" id="rung-${k}"><div class="sw" style="background:${reached ? cssGrad(L.grad) : 'var(--line)'}"></div><div class="in">
+        <div class="rh"><span class="rn">${esc(L.n)}</span><span class="lv">LEVEL ${k}</span></div>
+        ${next ? `<div class="q">${esc(L.quip)}</div>` : ''}
+        <div class="req"><span id="rq-${k}"></span><span id="rp-${k}"></span></div>
+        <i class="bar"><b id="rb-${k}"></b></i>
+        <div class="row"><button type="button" class="btn sm" data-act="reset" data-arg="${k}" id="rbtn-${k}">${esc(L.verb)}</button><span class="have" id="rg-${k}"></span></div>
+        ${reached ? `<div class="have" style="margin-top:6px" id="rh-${k}"></div>
+          ${autoUnlocked(k) ? `<label class="tog" style="margin-top:6px"><input type="checkbox" data-act="autor" data-arg="${k}" ${S.auto.r[k] ? 'checked' : ''}> Auto-${esc(L.verb.toLowerCase())} whenever it would at least double your ${esc(L.cur)}</label>` : k <= NL - 2 ? `<div class="mute" style="font-size:12px;margin-top:6px">Automated once you reach level ${k + 2}.</div>` : ''}
+          <div class="shop">
+            <button type="button" data-act="shop" data-arg="${k}:a" id="sa-${k}"><b>${esc(SHOP_A.n)} · ${S.shopA[k]}</b><span>${esc(SHOP_A.d.replace('{cur}', L.cur).replace('{one}', L.one))}</span><em id="sac-${k}"></em></button>
+            <button type="button" data-act="shop" data-arg="${k}:b" id="sb-${k}"><b>${esc(sh.n)} · ${S.shopB[k]}/${sh.max}</b><span>${esc(sh.d)}</span><em id="sbc-${k}"></em></button>
+          </div>` : `<div class="unl">First time unlocks: <b>${esc(L.unlock)}</b></div>`}
+      </div></div>`;
+    }
+    el.innerHTML = h;
+  }
+  for (let k = 1; k <= Math.min(NL, S.reached + 1); k++) {
+    const L = LAYERS[k]; if (!$('rq-' + k)) continue;
+    const prog = clamp((S.C[k] - 0) / L.req, 0, 1), have = S.C[k] >= L.req;
+    setText('rq-' + k, `${fmtB(S.C[k])} / ${fmtB(L.req)}`);
+    const g = gainL(k);
+    setText('rp-' + k, have ? 'ready' : '');
+    $('rb-' + k).style.width = (have ? 100 : prog * 100).toFixed(1) + '%';
+    const b = $('rbtn-' + k); b.disabled = !canReset(k);
+    setText('rg-' + k, g >= 0 ? `+${fmtL(g)} ${g < 0.01 ? L.one : L.cur}` : `needs ${fmtB(L.req)} earned`);
+    if (k <= S.reached) {
+      const bonus = layerBonusL(k);
+      setText('rh-' + k, `Have ${fmtL(S.H[k])} · earned this cycle ${fmtL(S.E[k])} → Bytes ×${fmtL(bonus)}`);
+      const ca = shopACostL(k), cb = shopBCostL(k), mb = S.shopB[k] >= SHOP[k].b.max;
+      setText('sac-' + k, `${fmtL(ca)} ${L.cur}`); $('sa-' + k).disabled = S.H[k] < ca - 1e-9;
+      setText('sbc-' + k, mb ? 'maxed' : `${fmtL(cb)} ${L.cur}`); $('sb-' + k).disabled = mb || S.H[k] < cb - 1e-9;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------
+// HELP DESK TAB
+// ---------------------------------------------------------------------
+function deskTab(force) {
+  const el = $('tab-desk');
+  const sig = [U.log.length, U.log[0] && U.log[0].t, S.stats.tickets, Math.floor(S.t / 5)].join('|');
+  if (!force && !sigSet('desk', sig)) return;
+  const st = S.stats;
+  el.innerHTML = `<h3>Resolved tickets</h3>${U.log.length ? `<ul class="log">${U.log.map(l => `<li><small>${esc(l.who)}${l.bot ? ' · fixed by the bot' : ''} · +${fmtB(l.L)}</small>“${esc(l.text)}”<br><span class="mute">${esc(l.fix)}</span></li>`).join('')}</ul>` : '<p class="mute">Tickets turn up on the board every minute or so. Fix them for a burst of Bytes.</p>'}
+    <h3>Stats</h3><div class="stats">
+      <div><b>${fmtB(st.earned)}</b>earned, all time</div><div><b>${fmtN(st.packets)}</b>packets delivered</div>
+      <div><b>${fmtN(S.resets.reduce((a, b) => a + b, 0))}</b>resets</div><div><b>${fmtN(st.tickets)}</b>tickets fixed</div>
+      <div><b>${fmtN(st.jams)}</b>printer jams</div><div><b>${fmtDur(S.t)}</b>on the clock</div></div>
+    ${S.reached >= 9 ? '<p class="mute" style="font-size:12px">The Help Desk Bot fixes tickets for you now, at half the reward.</p>' : ''}`;
+}
+
+// ---------------------------------------------------------------------
+// HUD, TICKET, HINT
+// ---------------------------------------------------------------------
+function hud() {
+  setText('bytes', fmtB(S.bytes));
+  setText('rate', `${fmtB(S.inc)}/s${S.boostT > 0 ? ' · ×2 for ' + Math.ceil(S.boostT) + 's' : ''}`);
+  const cap = planL(), thr = RAW > cap + 0.01;
+  setText('planTxt', S.reached >= NL ? 'unlimited' : `${fmtB(cap)}/s`);
+  const vt = $('vpnTxt'), showV = TUN_A > 0 && S.reached < NL, vh = showV ? `+ VPN tunnel <b>${fmtB(tunnelL())}/s</b> the ISP can't see` : '';
+  if (vt.hidden === showV) vt.hidden = !showV; if (showV && U.sig.vpn !== vh) { U.sig.vpn = vh; vt.innerHTML = vh; }
+  $('planBar').style.width = (S.reached >= NL ? 100 : clamp(Math.pow(10, Math.min(0, Math.max(S.inc, -9) - cap)) * 100, 0, 100)).toFixed(1) + '%';
+  $('plan').classList.toggle('thr', thr && S.reached < NL);
+  const dot = $('resetDot'); dot.hidden = !(canReset(S.reached + 1) && S.reached < NL);
+  // ticket card
+  const tk = $('ticket');
+  if (S.ticket) {
+    if (tk.hidden || tk.dataset.n !== String(S.ticket.n)) { tk.dataset.n = S.ticket.n; tk.innerHTML = `<div class="th"><span>Ticket #${S.ticket.n}</span><span>${esc(S.ticket.who)}</span></div><p>“${esc(S.ticket.what)}”</p><button type="button" class="btn" data-act="fix">Turn it off and on again</button><div class="tbar"><b id="tkb"></b></div>`; tk.hidden = false; }
+    const b = $('tkb'); if (b) b.style.width = clamp(S.ticket.t / 20 * 100, 0, 100) + '%';
+  } else if (!tk.hidden) tk.hidden = true;
+  // hint
+  let h = '';
+  const jams = Object.values(S.tiles).filter(t => t.jam > 0).length;
+  const caught = Object.values(S.tiles).filter(t => t.type === 'vpn' && t.block > 0).length;
+  if (jams) h = `<b>${jams} printer${jams > 1 ? 's' : ''} jammed.</b> Click ${jams > 1 ? 'them' : 'it'} to clear${S.reached >= 8 ? ', or let the interns get to it' : ''}.`;
+  else if (caught) h = `<b>${caught} VPN${caught > 1 ? 's' : ''} caught by the ISP.</b> Click ${caught > 1 ? 'them' : 'it'} to switch servers${S.reached >= 8 ? ', or let the interns do it' : ''}.`;
+  else if (U.tool) h = COARSE ? `Placing <b>${esc(PARTS[U.tool].n)}</b> facing ${ARROWS[U.dir]} · tap a square` : `Placing <b>${esc(PARTS[U.tool].n)}</b> facing ${ARROWS[U.dir]} · R to rotate · Esc to stop`;
+  else if (!S.reached && !upgradable('server').some(t => t.lvl)) h = 'Click the <b>Server</b> on the board and upgrade it. It\'ll send packets faster, and worth more.';
+  else if (!S.reached && !own('comp')) h = 'Pick a <b>Compressor</b> and click a cable between the Server and the Uplink. It adds value to every packet.';
+  else if (!S.reached && S.C[1] < LAYERS[1].req) h = `Earn <b>${fmtB(LAYERS[1].req)}</b> to unlock your first fix: <b>Refresh the Page</b>. More Servers need more Uplinks, or more lines.`;
+  else if (canReset(S.reached + 1) && S.reached < NL) h = `<b>${esc(LAYERS[S.reached + 1].n)}</b> is ready in the Resets tab.`;
+  else if (thr && S.reached < NL) h = unlockedPart('vpn') ? 'Your ISP is throttling you. Hide some traffic behind a <b>VPN</b>, or do a deeper reset to upgrade the plan.' : 'Your ISP is throttling you. A deeper reset upgrades the plan.';
+  if (U.sig.hint !== h) { U.sig.hint = h; $('hint').innerHTML = h; }
+}
+function refresh(force) {
+  if (!S) return;
+  hud();
+  if (U.tab === 'build') buildTab(force); else if (U.tab === 'resets') resetsTab(force); else deskTab(force);
+}
+
+// ---------------------------------------------------------------------
+// BOARD INPUT
+// ---------------------------------------------------------------------
+function evPos(e) { const r = R.cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+function setHover(t) { U.hover = t; }
+function tryPlaceAt(x, y, dir) {
+  const t = U.tool; if (!t) return false;
+  const here = tileAt(x, y);
+  if (here && here.type === t) return false;
+  const c = partCostL(t), err = place(t, x, y, dir);
+  if (err) { if (!U.drag || !U.drag.quiet) { toast(err, 'bad'); sfx('err'); } return false; }
+  const nt = tileAt(x, y); U.lastBuy = { id:nt.id, L:c, t:S.t, resets:S.resets.reduce((a, b) => a + b, 0) };
+  if (t !== 'cable') sfx('place');
+  return true;
+}
+function onDown(e) {
+  audio();
+  if (!S || U.modal) return;
+  const [px, py] = evPos(e), t = tileFromXY(px, py);
+  if (e.button === 2) { if (t && tileAt(t.x, t.y)) { rotateAt(t.x, t.y); sfx('click'); } else ACTS.rot(); e.preventDefault(); return; }
+  if (!t) { U.sel = null; refresh(true); return; }
+  try { R.cv.setPointerCapture(e.pointerId); } catch (er) {}
+  if (U.tool === 'cable') { U.drag = { last:t, quiet:false }; if (!tileAt(t.x, t.y)) tryPlaceAt(t.x, t.y, U.dir); U.drag.quiet = true; return; }
+  if (U.tool) {
+    const here = tileAt(t.x, t.y);
+    if (here && here.type === 'printer' && here.jam > 0) { unjam(t.x, t.y); sfx('fixed'); return; }
+    if (here && here.type === 'vpn' && here.block > 0) { switchServer(here); sfx('fixed'); return; }
+    if (here && here.type !== 'cable') { U.sel = here.id; sfx('click'); if (U.tab !== 'build') ACTS.tab('build'); refresh(true); return; }
+    tryPlaceAt(t.x, t.y, U.dir); refresh(); return;
+  }
+  const here = tileAt(t.x, t.y);
+  if (here && here.type === 'printer' && here.jam > 0) { unjam(t.x, t.y); sfx('fixed'); }
+  if (here && here.type === 'vpn' && here.block > 0) { switchServer(here); sfx('fixed'); }
+  U.sel = here ? here.id : null; if (here) { sfx('click'); if (U.tab !== 'build') ACTS.tab('build'); } refresh(true);
+}
+function onMove(e) {
+  if (!S) return;
+  const [px, py] = evPos(e), t = tileFromXY(px, py);
+  setHover(e.pointerType === 'mouse' || U.drag ? t : null);
+  if (U.drag && t && (t.x !== U.drag.last.x || t.y !== U.drag.last.y)) {
+    // walk one square at a time from the last square to this one, pointing each cable at the next
+    let { x, y } = U.drag.last;
+    while (x !== t.x || y !== t.y) {
+      const dx = Math.sign(t.x - x), dy = dx ? 0 : Math.sign(t.y - y), d = dx > 0 ? 0 : dx < 0 ? 2 : dy > 0 ? 1 : 3;
+      const cur = tileAt(x, y); if (cur && cur.type === 'cable') cur.dir = d;
+      x += dx; y += dy;
+      if (!tileAt(x, y)) tryPlaceAt(x, y, d);
+      U.dir = d;
+    }
+    U.drag.last = t;
+  }
+}
+function onUp() { if (U.drag) { U.drag = null; refresh(true); } }
+
+// ---------------------------------------------------------------------
+// LOOP
+// ---------------------------------------------------------------------
+function loop(ts) {
+  const dt = Math.min(0.25, Math.max(0, (ts - U.last) / 1000 || 0)); U.last = ts;
+  if (S) {
+    // the game keeps running under the menus (it's an idle game), except the title screen
+    if (U.started) { let left = dt; while (left > 1e-6) { const st = Math.min(0.05, left); tick(st); left -= st; } handlePending(); }
+    fxStep(dt);
+    const hv = U.hover, bad = !!(U.tool && hv && canPlace(U.tool, hv.x, hv.y));
+    drawBoard({ sel:U.sel, hover:hv, tool:U.tool, dir:U.dir, bad });
+    U.domT -= dt; if (U.domT <= 0) { U.domT = 0.2; refresh(); }
+    U.saveT += dt; if (U.saveT > 5 && U.started) { U.saveT = 0; save(); }
+  }
+  requestAnimationFrame(loop);
+}
+function start(data) {
+  R.cv = $('cv'); R.g = R.cv.getContext('2d');
+  try { U.sound = localStorage.getItem('power_cycle_sound') !== '0'; } catch (e) {}
+  let loaded = false;
+  if (data && data.s) loaded = loadRaw(data.s);
+  if (!loaded && hasSave()) { let raw = null; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {} loaded = !!raw && loadRaw(raw); }
+  if (!loaded) newGame();
+  applyTheme(); boardResize();
+  addEventListener('resize', boardResize);
+  if (window.ResizeObserver) new ResizeObserver(() => boardResize()).observe($('stage'));
+  R.cv.addEventListener('pointerdown', onDown);
+  R.cv.addEventListener('pointermove', onMove);
+  addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
+  R.cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !U.drag) setHover(null); });
+  R.cv.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('click', onAct);
+  document.addEventListener('change', onChange);
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { audio(); ACTS.tab(b.dataset.tab); }));
+  $('bHelp').onclick = () => { audio(); helpModal(); };
+  $('bMenu').onclick = () => { audio(); if (!U.modal) menuModal(); else if (U.modal.closable) closeModal(); };
+  addEventListener('keydown', e => {
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && e.key !== 'Escape') return;
+    if (e.key === 'Escape') { if (U.modal) { if (U.modal.closable) closeModal(); return; } if (U.tool) { U.tool = null; refresh(true); return; } U.sel = null; refresh(true); return; }
+    if (U.modal) return;
+    if (e.key === 'r' || e.key === 'R') { const t = U.sel && selTile(); if (t && !U.tool) ACTS.rotSel(); else ACTS.rot(); }
+    else if (e.key === 'u' || e.key === 'U') ACTS.upall();
+    else if (/^[0-9]$/.test(e.key)) { const t = ORDER[e.key === '0' ? 9 : +e.key - 1]; if (t) ACTS.tool(t); }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && U.sel) ACTS.delSel();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && U.started) save(); });
+  addEventListener('pagehide', () => { if (U.started) save(); });
+  let seen = false; try { seen = !!localStorage.getItem('power_cycle_seen'); } catch (e) {}
+  if (data && data.s && loaded) { U.started = true; }
+  else if (loaded) {
+    U.started = true;
+    const away = (Date.now() - (S.saved || Date.now())) / 1000;
+    const L = offline(away);
+    if (L > LZ + 1) awayModal(away, L);
+  } else if (!seen) titleModal();
+  else { U.started = true; }
+  refresh(true);
+  requestAnimationFrame(loop);
+}
+try { window.claude?.hot?.snapshot?.(() => ({ s:S ? JSON.stringify(Object.assign({}, S, { pending:[] })) : null })); } catch (e) {}
+(window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {}));
+</script>
+
+</body></html>

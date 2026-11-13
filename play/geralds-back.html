@@ -1,0 +1,1689 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Gerald's Back</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Gerald's Back. One committed nautical look: deep navy sea, foam text, coral and sand accents.
+   Desktop: palette | shell | gazette. Phone: everything stacks and the page scrolls. */
+:root {
+  --bg:#0f2b3d; --panel:#163b52; --panel2:#1d4a64; --line:#2a5a77; --ink:#eaf7f4; --mute:#9cc2cc;
+  --coral:#ff7a59; --kelp:#4caf7a; --sand:#f3d98b; --warn:#ffb020; --bad:#ff5d5d; --good:#6fe0a0; --sea:#5ec8ff;
+  --paper:#f6efdc; --pink:#33281a;
+  --display:'Bungee', 'Arial Black', Impact, sans-serif;
+  --body:'Rubik', 'Trebuchet MS', system-ui, sans-serif;
+  color-scheme:dark;
+}
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html, body { height:100%; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 var(--body); padding:10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); overflow:hidden; }
+button { font:inherit; color:inherit; cursor:pointer; }
+button:disabled { cursor:not-allowed; opacity:0.45; }
+:focus-visible { outline:3px solid var(--sand); outline-offset:2px; }
+h2 { font:13px/1 var(--display); letter-spacing:0.5px; margin:0 0 8px; color:var(--sand); font-weight:400; }
+.card { background:rgba(22,59,82,0.92); border:1px solid var(--line); border-radius:12px; }
+.ghost { border:1px solid var(--line); background:var(--panel); border-radius:9px; padding:6px 11px; font-weight:500; }
+.ghost:hover { border-color:var(--sea); }
+.btn { border:0; border-radius:10px; padding:9px 14px; font-weight:600; background:var(--coral); color:#2a0f06; box-shadow:0 3px 0 #b34a30; }
+.btn:hover:not(:disabled) { filter:brightness(1.08); }
+.btn:active:not(:disabled) { transform:translateY(2px); box-shadow:0 1px 0 #b34a30; }
+.btn.alt { background:var(--panel2); color:var(--ink); box-shadow:0 3px 0 #0a2333; }
+.btn.sm { padding:6px 10px; font-size:13px; }
+.btn.kelp { background:var(--kelp); color:#06240f; box-shadow:0 3px 0 #2c7a4e; }
+
+#app { height:100%; max-width:1600px; margin:0 auto; display:grid; grid-template-columns:212px minmax(0, 1fr) 300px; grid-template-rows:auto minmax(0, 1fr); gap:10px; grid-template-areas:'bar bar bar' 'build stage side'; }
+
+/* ---- top bar ---- */
+.bar { grid-area:bar; display:flex; align-items:center; gap:8px 16px; flex-wrap:wrap; }
+.brand { font:22px/0.9 var(--display); color:var(--sand); letter-spacing:0.5px; text-shadow:0 3px 0 #7a5a1c; }
+.brand span { display:block; color:var(--coral); text-shadow:0 3px 0 #8c3320; font-size:17px; margin-top:2px; }
+.res { display:flex; flex-wrap:wrap; gap:6px; }
+.r { display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:4px 9px 4px 6px; min-width:0; }
+.r svg { width:20px; height:20px; flex:none; }
+.r b { font:15px/1 var(--display); font-weight:400; }
+.r small { color:var(--mute); font-size:12px; }
+.r.low { border-color:var(--warn); }
+.r.low b { color:var(--warn); }
+.r.neg { border-color:var(--bad); }
+.r.neg b { color:var(--bad); }
+.clock { display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap; }
+.day { font:14px/1 var(--display); color:var(--mute); }
+.speed { display:flex; background:var(--panel); border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+.speed button { border:0; background:none; padding:7px 9px; display:grid; place-items:center; }
+.speed button svg { height:13px; width:auto; fill:var(--mute); }
+.speed button.on { background:var(--panel2); }
+.speed button.on svg { fill:var(--sand); }
+.speed button:hover svg { fill:var(--ink); }
+
+/* ---- build palette ---- */
+.build { grid-area:build; min-height:0; overflow:auto; padding-right:2px; }
+.pal { display:grid; gap:5px; }
+.pb { display:grid; grid-template-columns:38px 1fr; grid-template-rows:auto auto; gap:1px 8px; align-items:center; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:5px 8px 5px 5px; position:relative; }
+.pb img { width:38px; height:38px; grid-row:1 / 3; grid-column:1; align-self:center; }
+.pb .nm, .pb .st { grid-column:2; }
+.pb .nm { font-weight:600; font-size:13px; line-height:1.15; }
+.pb .st { font-size:12px; color:var(--mute); display:flex; gap:8px; white-space:nowrap; }
+.pb .st .c { color:var(--sand); }
+.pb .st .w { color:var(--sea); }
+.pb:hover:not(:disabled) { border-color:var(--sea); }
+.pb.on { border-color:var(--sand); background:var(--panel2); box-shadow:inset 0 0 0 1px var(--sand); }
+.pb.poor .c { color:var(--bad); }
+.pb.locked { opacity:0.5; }
+.pb.locked .st { color:var(--mute); }
+.pb .key { position:absolute; right:6px; top:5px; font-size:10px; color:var(--mute); }
+
+/* ---- stage ---- */
+.stage { grid-area:stage; position:relative; border-radius:16px; overflow:hidden; background:#1a6e93; box-shadow:0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,0.35); min-height:300px; touch-action:none; }
+#cv { display:block; width:100%; height:100%; cursor:pointer; }
+#cv.placing { cursor:crosshair; }
+.ov-tl { position:absolute; left:10px; top:10px; pointer-events:none; }
+.ov-tr { position:absolute; right:10px; top:10px; pointer-events:none; }
+.ov-b { position:absolute; left:10px; right:10px; bottom:10px; display:flex; justify-content:center; pointer-events:none; }
+.level { display:flex; align-items:center; gap:8px; padding:6px 10px 6px 6px; }
+#lv { width:100px; height:70px; display:block; }
+.lvtxt { display:flex; flex-direction:column; gap:2px; min-width:66px; }
+.lvtxt b { font:20px/1 var(--display); font-weight:400; }
+.lvtxt span { font-size:12px; color:var(--mute); }
+.level.warn .lvtxt b { color:var(--warn); }
+.level.bad .lvtxt b { color:var(--bad); }
+.gerald { padding:8px 10px; width:178px; }
+.gname { font:14px/1 var(--display); color:var(--kelp); margin-bottom:6px; }
+.meter { display:grid; grid-template-columns:58px 1fr; align-items:center; gap:6px; margin:3px 0; font-size:12px; color:var(--mute); }
+.meter i { display:block; height:8px; border-radius:4px; background:#0b2232; overflow:hidden; }
+.meter b { display:block; height:100%; border-radius:4px; background:var(--kelp); transition:width .3s; }
+.meter b.mid { background:var(--warn); }
+.meter b.low { background:var(--bad); }
+.gnote { font-size:12px; color:var(--mute); margin-top:5px; line-height:1.3; }
+.gnote.bad { color:var(--bad); font-weight:600; }
+.voyage { pointer-events:auto; display:flex; align-items:center; gap:10px; padding:7px 10px; max-width:100%; flex-wrap:wrap; justify-content:center; }
+.vstops { display:flex; gap:4px; align-items:center; }
+.vstops i { width:9px; height:9px; border-radius:50%; background:#0b2232; border:1px solid var(--line); display:block; }
+.vstops i.done { background:var(--kelp); border-color:var(--kelp); }
+.vstops i.now { background:var(--sand); border-color:var(--sand); }
+.vstops i.end { width:12px; height:12px; border-color:var(--sand); }
+.vtxt { font-size:13px; }
+.vtxt b { color:var(--sand); }
+.vbar { width:120px; height:7px; background:#0b2232; border-radius:4px; overflow:hidden; }
+.vbar b { display:block; height:100%; background:var(--sea); }
+.zoom { position:absolute; right:10px; bottom:62px; display:flex; flex-direction:column; gap:4px; }
+.zoom button { width:36px; height:32px; border-radius:8px; border:1px solid var(--line); background:rgba(22,59,82,0.92); font:16px/1 var(--display); padding:0; }
+.zoom button:last-child { font:11px/1 var(--body); font-weight:600; }
+.zoom button:hover { border-color:var(--sea); }
+.tip { position:absolute; left:50%; bottom:62px; transform:translateX(-50%); background:rgba(10,30,45,0.92); border:1px solid var(--line); border-radius:10px; padding:6px 10px; font-size:13px; pointer-events:none; max-width:min(380px, 60%); text-align:center; }
+.tip.bad { border-color:var(--bad); color:#ffd4d4; }
+.cap { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); background:rgba(90,10,10,0.88); border:2px solid var(--bad); border-radius:12px; padding:10px 16px; font:16px/1.2 var(--display); text-align:center; pointer-events:none; animation:pulse 0.7s infinite alternate; }
+@keyframes pulse { to { transform:translate(-50%, -50%) scale(1.06); } }
+
+/* ---- side ---- */
+.side { grid-area:side; display:grid; grid-template-rows:auto minmax(0, 1fr); gap:10px; min-height:0; }
+.insp { padding:10px 12px; }
+.insp .hd { display:flex; gap:10px; align-items:center; margin-bottom:6px; }
+.insp .hd img { width:52px; height:52px; }
+.insp .hd b { font:15px/1.1 var(--display); font-weight:400; display:block; }
+.insp .hd small { color:var(--mute); }
+.insp p { margin:4px 0 8px; color:var(--mute); font-size:13px; }
+.insp .facts { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:13px; margin:6px 0 8px; }
+.insp .facts dt { color:var(--mute); }
+.insp .facts dd { margin:0; font-weight:500; }
+.insp .acts { display:flex; flex-wrap:wrap; gap:6px; }
+.insp .bal { display:flex; align-items:center; gap:6px; margin:6px 0; }
+.insp .bal input { flex:1; accent-color:var(--sea); }
+.good { color:var(--good) !important; } .bad { color:var(--bad) !important; } .warn { color:var(--warn) !important; }
+.gz { padding:10px 0 0; display:flex; flex-direction:column; min-height:0; background:var(--paper); color:#2a2318; border-color:#d8ccad; }
+.gzh { font:16px/1 var(--display); color:#2a2318; text-align:center; padding:0 10px 8px; border-bottom:3px double #2a2318; margin:0 10px; }
+.feed { list-style:none; margin:0; padding:6px 12px 10px; overflow:auto; min-height:0; flex:1; }
+.feed li { padding:6px 0; border-bottom:1px dashed #cbbd99; font-size:13px; line-height:1.35; }
+.feed li small { display:block; font-size:10px; letter-spacing:0.5px; color:#857656; text-transform:uppercase; font-weight:600; }
+.feed li.bad { color:#9b2414; }
+.feed li.good { color:#1d6a3d; }
+.feed li.event { font-weight:600; }
+.feed li.warn { color:#8a5300; }
+
+/* ---- modals ---- */
+#ovWrap .ov { position:fixed; inset:0; background:rgba(5,18,28,0.72); display:grid; place-items:center; padding:16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); z-index:20; overflow:auto; }
+.modal { width:min(640px, 100%); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px 20px; box-shadow:0 30px 60px rgba(0,0,0,0.5); max-height:calc(100vh - 32px); overflow:auto; }
+.modal h1 { font:26px/1.05 var(--display); font-weight:400; margin:0 0 6px; color:var(--sand); }
+.modal h3 { font:14px/1 var(--display); font-weight:400; margin:14px 0 8px; color:var(--sand); }
+.modal p { margin:6px 0; }
+.modal .mute { color:var(--mute); }
+.modal .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.modal .foot { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:16px; }
+.modal ul.help { padding-left:18px; margin:6px 0; }
+.modal ul.help li { margin:4px 0; }
+.title { text-align:center; }
+.title .logo { font:48px/0.9 var(--display); color:var(--sand); text-shadow:0 5px 0 #7a5a1c; margin:4px 0 2px; }
+.title .logo span { display:block; color:var(--coral); text-shadow:0 5px 0 #8c3320; font-size:38px; margin-top:4px; }
+.title .tag { color:var(--mute); margin:12px 0 4px; font-size:15px; }
+.title .foot { justify-content:center; }
+.title canvas { width:min(380px, 100%); height:auto; display:block; margin:6px auto 0; }
+.paper { background:var(--paper); color:#2a2318; border-color:#d8ccad; }
+.paper .mast { font:13px/1 var(--display); text-align:center; border-bottom:3px double #2a2318; padding-bottom:7px; letter-spacing:1px; }
+.paper .mast small { display:block; font:11px/1.4 var(--body); letter-spacing:0; color:#857656; margin-top:4px; }
+.paper h1 { color:#2a2318; font-size:24px; margin-top:12px; }
+.paper .btn.alt { background:#e6dcc0; color:#2a2318; box-shadow:0 3px 0 #b8a67c; }
+.opts { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; margin-top:10px; }
+.opt { background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:6px; text-align:left; }
+.opt:hover { border-color:var(--sand); }
+.opt svg { width:34px; height:34px; }
+.opt b { font:15px/1.1 var(--display); font-weight:400; color:var(--sand); }
+.opt .ty { font-size:12px; color:var(--mute); text-transform:uppercase; letter-spacing:0.5px; }
+.opt p { font-size:13px; margin:0; flex:1; }
+.opt .len { font-size:12px; color:var(--sea); }
+.route { display:flex; gap:6px; align-items:center; margin:8px 0 2px; flex-wrap:wrap; }
+.route i { width:12px; height:12px; border-radius:50%; background:#0b2232; border:1px solid var(--line); display:block; }
+.route i.done { background:var(--kelp); border-color:var(--kelp); }
+.route i.now { background:var(--sand); border-color:var(--sand); box-shadow:0 0 0 3px rgba(243,217,139,0.25); }
+.trade { display:grid; grid-template-columns:1fr auto auto; gap:6px 10px; align-items:center; }
+.trade .nm { display:flex; align-items:center; gap:6px; }
+.trade .nm svg { width:20px; height:20px; }
+.trade .pr { color:var(--sand); font-size:12px; display:block; }
+.plans { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px; }
+.plan { background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px; display:grid; grid-template-columns:52px 1fr; gap:4px 10px; }
+.plan img { width:52px; height:52px; grid-row:span 2; }
+.plan b { font-weight:600; }
+.plan p { font-size:12px; margin:0; color:var(--mute); grid-column:1 / -1; }
+.plan .btn { grid-column:1 / -1; }
+.arrive { background:var(--panel2); border-radius:10px; padding:8px 10px; margin:8px 0; border-left:4px solid var(--kelp); }
+.stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin:12px 0; }
+.stats div { background:var(--panel2); border-radius:10px; padding:8px 10px; }
+.stats b { display:block; font:20px/1 var(--display); font-weight:400; color:var(--sand); }
+.stats small { color:var(--mute); }
+.rank { font:34px/1 var(--display); color:var(--coral); text-align:center; margin:10px 0 2px; }
+.score { text-align:center; color:var(--mute); }
+
+#toasts { position:fixed; left:50%; bottom:76px; transform:translateX(-50%); display:flex; flex-direction:column; gap:6px; align-items:center; z-index:30; pointer-events:none; width:min(460px, calc(100% - 32px)); }
+.toast { background:#0b2232; border:1px solid var(--line); border-radius:10px; padding:8px 14px; box-shadow:0 10px 24px rgba(0,0,0,0.4); animation:tin .2s ease-out; text-align:center; }
+.toast.bad { border-color:var(--bad); }
+.toast.good { border-color:var(--kelp); }
+.toast.warn { border-color:var(--warn); }
+@keyframes tin { from { transform:translateY(8px); opacity:0; } }
+
+/* ---- phone / narrow ---- */
+@media (max-width: 960px) {
+  body { overflow:auto; height:auto; }
+  html { height:auto; }
+  #app { height:auto; grid-template-columns:minmax(0, 1fr); grid-template-rows:none; grid-template-areas:'bar' 'stage' 'build' 'side'; }
+  .stage { height:clamp(400px, 118vw, 620px); min-height:0; }
+  .bar { display:grid; grid-template-columns:auto 1fr; align-items:center; }
+  .res { grid-column:1 / -1; grid-row:2; }
+  .clock { justify-self:end; }
+  #bHelp { display:none; }
+  .build { overflow:visible; }
+  .pal { grid-auto-flow:column; grid-auto-columns:172px; align-items:start; overflow-x:auto; padding-bottom:6px; scroll-snap-type:x proximity; }
+  .pb { scroll-snap-align:start; }
+  .side { grid-template-rows:none; }
+  .feed { max-height:300px; }
+  .clock { margin-left:0; }
+  .brand { font-size:18px; } .brand span { font-size:14px; }
+}
+@media (max-width: 560px) {
+  .r { padding:3px 7px 3px 5px; }
+  .r b { font-size:13px; }
+  .r svg { width:17px; height:17px; }
+  .r small { display:none; }
+  .gerald { width:140px; padding:6px 8px; }
+  .meter { grid-template-columns:48px 1fr; font-size:11px; }
+  .gnote { display:none; }
+  #lv { width:72px; height:50px; }
+  .lvtxt { min-width:0; max-width:96px; }
+  .lvtxt span { font-size:11px; line-height:1.2; }
+  .tip { font-size:12px; padding:5px 8px; }
+  .lvtxt b { font-size:16px; }
+  .level { padding:4px 8px 4px 4px; }
+  .vbar { width:70px; }
+  .vstops { display:none; }
+  .day { display:none; }
+  .tip { max-width:calc(100% - 120px); bottom:58px; }
+  .ghost { padding:5px 8px; }
+  .title .logo { font-size:38px; } .title .logo span { font-size:30px; }
+}
+</style>
+<div id="app">
+  <header class="bar">
+    <div class="brand" aria-label="Gerald's Back">GERALD'S<span>BACK</span></div>
+    <div class="res" id="res" aria-label="City resources"></div>
+    <div class="clock">
+      <span class="day" id="hDay">Day 1</span>
+      <div class="speed" role="group" aria-label="Speed">
+        <button type="button" data-sp="0" title="Pause (Space)" aria-label="Pause"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg></button>
+        <button type="button" data-sp="1" title="Normal speed (1)" aria-label="Normal speed"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg></button>
+        <button type="button" data-sp="2" title="Fast (2)" aria-label="Fast"><svg viewBox="0 0 24 16"><path d="M2 2l9 6-9 6zM12 2l9 6-9 6z"/></svg></button>
+        <button type="button" data-sp="3" title="Very fast (3)" aria-label="Very fast"><svg viewBox="0 0 32 16"><path d="M1 2l9 6-9 6zM11 2l9 6-9 6zM21 2l9 6-9 6z"/></svg></button>
+      </div>
+      <button type="button" class="ghost" id="bHelp">How to play</button>
+      <button type="button" class="ghost" id="bMenu">Menu</button>
+    </div>
+  </header>
+  <aside class="build" aria-label="Build">
+    <h2>Build</h2>
+    <div class="pal" id="pal"></div>
+  </aside>
+  <main class="stage" id="stage">
+    <canvas id="cv" aria-label="Gerald's shell, with the city on it. Pick a building, then click a square."></canvas>
+    <div class="ov-tl">
+      <div class="level card" id="level" title="The bubble floats to the high side. The water rises on the low side.">
+        <canvas id="lv" width="200" height="140" aria-hidden="true"></canvas>
+        <div class="lvtxt"><b id="lvDeg">0°</b><span id="lvNote">Level</span></div>
+      </div>
+    </div>
+    <div class="ov-tr">
+      <div class="gerald card" id="gCard">
+        <div class="gname">Gerald</div>
+        <div class="meter"><label>Fullness</label><i><b id="gFull"></b></i></div>
+        <div class="meter"><label>Mood</label><i><b id="gMood"></b></i></div>
+        <div class="gnote" id="gNote"></div>
+      </div>
+    </div>
+    <div class="ov-b">
+      <div class="voyage card" id="voy"></div>
+    </div>
+    <div class="zoom" id="zoom" role="group" aria-label="Zoom"><button type="button" data-act="zin" aria-label="Zoom in">+</button><button type="button" data-act="zout" aria-label="Zoom out">−</button><button type="button" data-act="zfit" aria-label="Fit the whole turtle">Fit</button></div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="cap" id="capWarn" hidden></div>
+  </main>
+  <aside class="side" aria-label="Details">
+    <section class="insp card" id="insp"></section>
+    <section class="gz card">
+      <h2 class="gzh">The Shell Gazette</h2>
+      <ol class="feed" id="feed" aria-live="polite"></ol>
+    </section>
+  </aside>
+</div>
+<div id="ovWrap"></div>
+<div id="toasts" aria-live="polite"></div>
+<script>
+"use strict";
+// =====================================================================
+// GERALD'S BACK — content
+// =====================================================================
+const N = 15, CX = 7, CY = 7, RX = 7.5, RY = 6.8;
+const DAY = 30;                 // seconds per day at 1×
+const BASE_MASS = 40;           // Gerald himself, as far as the maths is concerned
+const TILT_K = 3.0;             // how hard weight leans the shell
+const WATER0 = 0.08, WATER_TILT = 0.7;
+const CAPSIZE = 0.8;             // tilt (16°) beyond which Gerald starts to roll
+
+// w: weight. jobs/out: workers and output per day at full staff. house: residents.
+// rim: must sit on the edge. wet: works only underwater. r: radius of its effect.
+const BLD = {
+  hall:     { n:'Town Hall', w:6, size:2, cost:0, hp:200, house:4, d:'Where the council meets to discuss Gerald, who is not invited. The mayor lives upstairs, with three relatives.', fixed:true },
+  hut:      { n:'Hut', w:1, size:1, cost:20, house:4, d:'Four people, one room, a view of the horizon that keeps moving.' },
+  townhouse:{ n:'Townhouse', w:2, size:1, cost:70, house:10, goods:true, d:'Ten residents. Needs Goods, or they get restless and only six stay.', lock:true },
+  tower:    { n:'Shell Tower', w:9, size:2, cost:260, house:44, goods:true, d:'Forty-four residents in one very heavy building. Place it with care.', lock:true },
+  fishery:  { n:'Fishery', w:1, size:1, cost:40, rim:true, jobs:4, out:{ fish:7 }, d:'Fishes off the edge of the shell. Feeds about 28 people.' },
+  kelp:     { n:'Kelp Farm', w:0.5, size:1, cost:25, rim:true, wet:true, jobs:2, out:{ kelp:9 }, d:'Grows kelp, but only while it\'s underwater. Lean the shell toward it.' },
+  workshop: { n:'Workshop', w:3, size:1, cost:60, jobs:6, out:{ goods:5 }, noisy:true, d:'Makes Goods for Townhouses and to sell at ports. Loud: neighbours hate it.' },
+  park:     { n:'Park', w:0.5, size:1, cost:30, r:2, hap:8, d:'A small lawn. +8 happiness for homes within 2 squares.' },
+  scratcher:{ n:'Back Scratcher', w:1, size:1, cost:45, r:3, d:'A very long brush. Handles any itch within 3 squares, so Gerald doesn\'t have to.' },
+  ballast:  { n:'Ballast Tank', w:0, size:1, cost:50, ballast:10, d:'Fill it to add up to 10 weight, drain it to add none. The city\'s spirit level.' },
+  seawall:  { n:'Seawall', w:2, size:1, cost:35, rim:true, d:'Keeps the water off the squares next to it (and itself).', lock:true },
+  bandshell:{ n:'Bandshell', w:3, size:2, cost:180, r:3, hap:12, mood:10, jobs:3, d:'Concerts. +12 happiness nearby, and Gerald enjoys the vibrations.', lock:true },
+  lighthouse:{ n:'Lighthouse', w:2, size:1, cost:120, rim:true, jobs:2, d:'Brings tourists at Tourist Isles and keeps pirates honest.', lock:true },
+  hotel:    { n:'Hotel', w:3, size:1, cost:150, jobs:4, d:'Tourists pay 120 Clams per Hotel each time you dock at a Tourist Isle (180 with a Lighthouse).', lock:true },
+  statue:   { n:'Statue of Gerald', w:4, size:1, cost:90, r:2, hap:12, d:'Heavy, bronze, and beloved. +12 happiness nearby. Gerald has not seen it.', lock:true },
+  rubble:   { n:'Rubble', w:1, size:1, cost:0, d:'What\'s left. Clear it for 10 Clams.', fixed:true }
+};
+const PALETTE = ['hut', 'townhouse', 'tower', 'fishery', 'kelp', 'workshop', 'park', 'scratcher', 'ballast', 'seawall', 'bandshell', 'lighthouse', 'hotel', 'statue'];
+const LOCKED_START = ['townhouse', 'tower', 'seawall', 'bandshell', 'lighthouse', 'hotel', 'statue'];
+
+const ISLANDS = {
+  market:  { n:'Market Atoll', d:'Everyone here wants Goods and fish, and pays well.', icon:'scales', sell:{ fish:3, kelp:1, goods:9 }, buy:{ kelp:3 } },
+  forest:  { n:'Kelp Forest', d:'Gerald eats until he is completely full. Free kelp for the city too.', icon:'kelp', sell:{ fish:2, kelp:1, goods:6 }, buy:{ kelp:1 } },
+  tourist: { n:'Tourist Isle', d:'Hotels earn, and lots of people would love to move somewhere "authentic".', icon:'camera', sell:{ fish:2, kelp:1, goods:7 }, buy:{ kelp:3 } },
+  bazaar:  { n:'Blueprint Bazaar', d:'Architects with plans for things you can build on a turtle.', icon:'scroll', sell:{ fish:2, kelp:1, goods:6 }, buy:{ kelp:3 } },
+  wreck:   { n:'Shipwreck Shoal', d:'Salvage. Somebody\'s loss is your Clams.', icon:'anchor', sell:{ fish:2, kelp:1, goods:6 }, buy:{ kelp:3 } },
+  storm:   { n:'Storm Front', d:'A shortcut: two days instead of three, but the sea gets rough.', icon:'cloud', sell:{ fish:2, kelp:1, goods:6 }, buy:{ kelp:3 }, storm:true },
+  reef:    { n:'Turtle Retirement Reef', d:'Where old turtles go to rest. The end of the voyage.', icon:'star', final:true }
+};
+const PLACE_NAMES = { market:['Haggle Atoll', 'Barter Key', 'Pricecheck Isle', 'Little Ledger'], forest:['The Salad Bar', 'Greenweed Shallows', 'The Kelp Buffet', 'Lettuce Sea'], tourist:['Selfie Rock', 'Gift Shop Island', 'Isla Souvenir', 'Brochure Bay'],
+  bazaar:['Draftsman\'s Cay', 'Drafting Table Rock', 'Permit Point', 'Zoning Reef'], wreck:['Oops Shoal', 'Former Boat Bank', 'Davy\'s Locker Bank', 'Insurance Claim Cay'], storm:['Thunder Alley', 'The Rough Bit', 'Squall Alley', 'Bad Weather Pass'] };
+
+// one event per leg, maybe. Each choice returns a line for the Gazette.
+const EVENTS = [
+  { id:'gulls', t:'The seagulls have unionized', d:'Their spokesbird wants 15 fish, or else.', a:['Pay the fish', s => { if (s.fish < 15) return null; s.fish -= 15; return 'Seagull union ratifies fish deal. Spokesbird "cautiously optimistic."'; }], b:['Refuse', s => { addMod(s, 'hap', -8, 2); return 'Seagulls stage protest from above. Residents advised to carry umbrellas.'; }] },
+  { id:'whale', t:'A whale is flirting with Gerald', d:'She is very large and very interested. Gerald seems flattered.', a:['Let them talk', s => { s.gerald.mood = Math.min(100, s.gerald.mood + 20); s.leg.len += 1; return 'Gerald spends a day "just talking" with a humpback. Voyage delayed.'; }], b:['Sound the horn', s => { s.gerald.mood = Math.max(0, s.gerald.mood - 10); return 'Council sounds horn; whale leaves; Gerald sulks.'; }] },
+  { id:'bottle', t:'A message in a bottle', d:'It\'s bobbing right next to the shell.', a:['Open it', s => { const r = Math.random(); if (r < 0.45) { s.clams += 40; return 'Message in bottle contains 40 Clams and the words "for the turtle people."'; } if (r < 0.75) { unlockRandom(s); return 'Bottle contains blueprints. Architects thrilled, then confused, then thrilled.'; } s.clams -= 20; return 'Bottle contains a parking ticket. Somehow it is valid. −20 Clams.'; }], b:['Recycle it', s => { s.clams += 5; return 'City recycles bottle. Feels smug about it. +5 Clams.'; }] },
+  { id:'pirates', t:'Tiny pirates', d:'Six pirates on a raft demand tribute. They are very small but very loud.', a:['Pay 30 Clams', s => { if (s.clams < 30) return null; s.clams -= 30; return 'Pirates paid. Pirates wave. Pirates paddle off, slowly.'; }], b:['Refuse', s => { if (count(s, 'lighthouse')) return 'Lighthouse beam blinds the pirates. They apologise.'; const g = Math.min(s.goods, 20); s.goods -= g; return `Pirates make off with ${Math.round(g)} Goods and a garden gnome.`; }] },
+  { id:'sneeze', t:'Gerald is about to sneeze', d:'His nostrils are flaring. There is no stopping this.', a:['Say "bless you"', s => { s.gerald.mood = Math.min(100, s.gerald.mood + 5); shake(s, 3, 25); return 'Gerald sneezes. Three buildings damaged. City says "bless you" in unison.'; }], b:['Brace for it', s => { shake(s, 2, 25); return 'Gerald sneezes. Two buildings damaged. Nobody says anything. Awkward.'; }] },
+  { id:'barnacles', t:'Barnacle bloom', d:'Barnacles are colonising the front edge of the shell, by Gerald\'s head. They are heavier than they look.', a:['Scrape them (25 Clams)', s => { if (s.clams < 25) return null; s.clams -= 25; return 'Barnacles scraped. Barnacles relocated. Barnacles furious.'; }], b:['Leave them', s => { s.barn = { x:CX + 6.5, y:CY, w:8, days:3 }; return 'Barnacles settle on the front rim, by Gerald\'s head. The shell leans that way for a few days.'; }] },
+  { id:'rename', t:'A petition to rename Gerald', d:'412 signatures want him called "Geraldine." He has opinions about this.', a:['Approve it', s => { s.gerald.mood = Math.max(0, s.gerald.mood - 15); addMod(s, 'hap', 5, 2); return 'Council approves "Geraldine." Gerald visibly upset. Petitioners delighted.'; }], b:['Reject it', s => { addMod(s, 'hap', -4, 2); return 'Council rejects rename. Petitioners start new petition about the council.'; }] },
+  { id:'influencer', t:'An influencer has arrived', d:'They want to film "the world\'s first turtle city vlog."', a:['Let them film', s => { s.clams += 40; addMod(s, 'hap', -5, 2); return 'Influencer posts video. 2 million views. Residents now get recognised at the fishery.'; }], b:['Politely decline', s => 'Influencer leaves. Posts a video about being turned away. 3 million views.'] },
+  { id:'jelly', t:'A jellyfish swarm', d:'Gerald loves jellyfish. Jellyfish do not love Gerald.', a:['Let him eat', s => { s.gerald.hunger = Math.max(0, s.gerald.hunger - 35); s.gerald.mood = Math.max(0, s.gerald.mood - 10); return 'Gerald eats 200 jellyfish. Gets stung on the nose. Worth it, apparently.'; }], b:['Steer around them', s => { s.leg.len += 0.5; return 'Gerald steered around jellyfish. Detour adds half a day. Gerald looks back longingly.'; }] },
+  { id:'fog', t:'Thick fog ahead', d:'Visibility: about one turtle-length.', a:['Wait it out', s => { s.leg.len += 0.5; return 'City waits out the fog. Board games are played. Half a day lost.'; }], b:['Push on', s => { if (Math.random() < 0.5) { shake(s, 2, 30); return 'Gerald bumps a rock in the fog. Two buildings damaged.'; } return 'Gerald pushes through the fog without incident. Council takes credit.'; }] },
+  { id:'mermaid', t:'A mermaid real estate agent', d:'She is offering "exclusive oceanfront property" for 50 Clams.', a:['Buy it', s => { if (s.clams < 50) return null; s.clams -= 50; addMod(s, 'hap', 3, 1); return 'City buys oceanfront property. It is the edge of the shell. We already owned it.'; }], b:['Decline', s => 'Mermaid leaves a business card. It is wet.'] },
+  { id:'crab', t:'A crab is squatting in the Town Hall', d:'He has been there for days. People like him.', a:['Evict the crab', s => { addMod(s, 'hap', -6, 2); return 'Crab evicted. Public mourning. Crab seen later at the fishery, unbothered.'; }], b:['Give him a council seat', s => { addMod(s, 'hap', 8, 3); s.taxMod = (s.taxMod || 1) * 0.95; return 'Crab appointed to council. Votes against everything. Approval rating 91%.'; }] },
+  { id:'polish', t:'Shell polish salesman', d:'He says Gerald\'s shell is "looking a bit dull." 40 Clams.', a:['Buy the polish', s => { if (s.clams < 40) return null; s.clams -= 40; s.gerald.mood = Math.min(100, s.gerald.mood + 25); return 'Shell polished. Gerald is radiant. Two residents slip on the shine.'; }], b:['No thanks', s => 'Salesman leaves, muttering about "dull shells and duller people."'] },
+  { id:'nap', t:'Gerald wants a nap', d:'He has slowed right down and his eyes are half shut.', a:['Let him sleep', s => { s.leg.len += 1; s.gerald.mood = Math.min(100, s.gerald.mood + 20); return 'Gerald naps for a whole day. City tiptoes. Voyage delayed one day.'; }], b:['Ring the bell', s => { s.gerald.mood = Math.max(0, s.gerald.mood - 15); return 'Bell rung. Gerald wakes, grumpy, keeps swimming.'; }] },
+  { id:'family', t:'A family on a pedal boat', d:'They are lost. They have been pedalling for some time.', a:['Take them in', s => { s.immig += 4; return 'Lost pedal-boat family moves in. Pedal boat added to the city\'s fleet (of one).'; }], b:['Point them to shore', s => 'Family pointed toward shore. Shore is 400 miles away. Good luck to them.'] },
+  { id:'volcano', t:'A smoking volcano island', d:'The water nearby is warm and full of minerals. And ash.', a:['Swim past it', s => { s.kelp += 20; addMod(s, 'hap', -6, 1); return 'Warm water makes the kelp grow. Ash makes the laundry grey. +20 Kelp.'; }], b:['Detour around', s => { s.leg.len += 0.7; return 'Gerald detours around the volcano. Most of a day lost.'; }] }
+];
+
+const NEWS = {
+  daily:['Local turtle still unaware of city, sources say.', 'Resident complains horizon "keeps moving."', 'Council debates whether Gerald is a "he" or a "ship." Gerald unavailable.', 'Fishery reports record catch; fish report record losses.', 'Children\'s drawing of Gerald pinned to Town Hall. Accurate, experts say.', 'Survey: 64% of residents have never seen the bottom of the ocean. 36% have, briefly.', 'Weather today: sea. Tomorrow: more sea.', 'Opinion: is it time we told Gerald? (No.)', 'Lost: one hat, east rim. Probably in the sea now.', 'Book club finishes "Moby-Dick." Members nervous for some reason.', 'Real estate prices rise on the high ground. Rim residents "fine, honestly."', 'Gerald blinked twice today. Council in emergency session to interpret it.'],
+  tilt:['Residents on the low side report "everything rolls to one end."', 'Marbles banned citywide pending tilt review.', 'Spirit level sales up 400%.', 'Council reminds residents that the city is supposed to be flat.'],
+  flood:['Rim homes flooded. Residents describe it as "damp, then very damp."', 'Water reaches the second step. Then the third.', 'Flooded residents request sponge allowance.'],
+  hungry:['Gerald eyeing the seafloor. Experts say this is "not ideal."', 'Gerald\'s stomach rumble registers on the city seismograph.', 'Council urges kelp production. Gerald urges it louder.'],
+  dive:['Gerald dives for a snack. City briefly becomes a reef.', 'Turtle goes under. Citizens go under. Everyone comes back up, mostly.'],
+  itch:['Itch reported on the shell near {where}. Back Scratcher advisory issued.'],
+  scratched:['Gerald scratches an itch with a flipper. Several buildings "redistributed."'],
+  polite:['Back Scratcher handles itch near {where}. Gerald makes a happy noise.'],
+  port:{ market:'Gerald arrives at {name}. Haggling begins immediately.', forest:'Gerald arrives at {name} and starts eating before anyone can stop him.', tourist:'{name} welcomes the turtle city. Gift shops sell turtle merch. Gerald confused.', bazaar:'Architects of {name} unroll blueprints across the town square.', wreck:'City arrives at {name}. Salvage crews put on their good gloves.', storm:'Gerald comes through {name}. Everyone is wet. Everyone is fine.' },
+  firsts:{ tower:'City builds tower on a turtle. Turtle not consulted.', statue:'Statue of Gerald unveiled. Gerald faces the other way.', bandshell:'First concert on the shell. Gerald hums along, causing minor quake.', lighthouse:'Lighthouse lit. Ships everywhere confused by a lighthouse that moves.', hotel:'Hotel opens. Reviews: "The view is great. The building moves."', ballast:'Ballast tank installed. Council finally has a way to settle arguments about the tilt.', seawall:'Seawall built. Rim residents throw a small, dry party.', townhouse:'First townhouse built. Residents of huts "happy for them."' }
+};
+// =====================================================================
+// GERALD'S BACK — simulation (no DOM)
+// =====================================================================
+const SAVE_KEY = 'geralds_back_v1';
+let S = null;
+const GRID = { inside:[], rim:[], h:[], nx:[], ny:[], water:new Float32Array(N * N), wet:new Uint8Array(N * N) };
+const idx = (x, y) => y * N + x;
+const inB = (x, y) => x >= 0 && y >= 0 && x < N && y < N;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rnd = () => Math.random();
+const pick = a => a[Math.floor(rnd() * a.length)];
+const fmt = v => (v < 0 ? '−' : '') + Math.floor(Math.abs(v)).toLocaleString('en-US');
+
+// shell geometry, computed once
+(function shell() {
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const nx = (x - CX) / RX, ny = (y - CY) / RY, d2 = nx * nx + ny * ny, i = idx(x, y);
+    GRID.inside[i] = d2 <= 1; GRID.h[i] = Math.max(0, 1 - d2); GRID.nx[i] = nx; GRID.ny[i] = ny;
+  }
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const i = idx(x, y); if (!GRID.inside[i]) { GRID.rim[i] = false; continue; }
+    GRID.rim[i] = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !inB(x + dx, y + dy) || !GRID.inside[idx(x + dx, y + dy)]);
+  }
+})();
+
+// ---------------------------------------------------------------------
+// NEW GAME
+// ---------------------------------------------------------------------
+function newGame() {
+  S = { v:1, day:0, t:0, clams:160, fish:30, kelp:45, goods:0, pop:12, immig:0, tiles:new Array(N * N).fill(0), blds:{}, nextId:1,
+    tilt:{ x:0, y:0 }, tiltT:{ x:0, y:0 }, cap:0, surge:{ amp:0, t:0, dur:0, peakHit:false }, gust:0,
+    gerald:{ hunger:15, mood:70, dive:0 }, itch:null, itchIn:1.6, mods:[], taxMod:1, barn:null,
+    leg:null, stop:0, options:[], port:null, event:null, phase:'chart', used:{},
+    unlocked:Object.fromEntries(PALETTE.map(k => [k, !LOCKED_START.includes(k)])), firsts:{}, log:[], pending:[],
+    stats:{ built:0, dives:0, scratches:0, floods:0, maxPop:8, ruined:0, events:0, earned:0 }, hap:60, over:null, rate:{} };
+  place('hall', 6, 6, true);
+  place('hut', 5, 8, true); place('hut', 9, 6, true);
+  place('fishery', 1, 4, true);
+  place('kelp', 13, 3, true);
+  S.options = rollOptions(0);
+  log('Welcome aboard. The Shell Gazette is proud to serve the only city on a turtle. Gerald has not been told.', 'event');
+  return S;
+}
+function log(text, k = 'news') { S.log.unshift({ d:S.day, text, k }); if (S.log.length > 60) S.log.length = 60; }
+
+// ---------------------------------------------------------------------
+// BUILDINGS
+// ---------------------------------------------------------------------
+const bAt = (x, y) => inB(x, y) ? S.blds[S.tiles[idx(x, y)]] : null;
+function footprint(type, x, y) { const n = BLD[type].size || 1, out = []; for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) out.push([x + i, y + j]); return out; }
+function canPlace(type, x, y) {
+  const d = BLD[type]; if (!d) return 'Unknown building.';
+  for (const [tx, ty] of footprint(type, x, y)) {
+    if (!inB(tx, ty) || !GRID.inside[idx(tx, ty)]) return 'That\'s off the shell.';
+    if (S.tiles[idx(tx, ty)]) return 'Something is already there.';
+  }
+  if (d.rim && !GRID.rim[idx(x, y)]) return 'This goes on the edge of the shell.';
+  return '';
+}
+function place(type, x, y, free) {
+  const d = BLD[type];
+  if (!free) {
+    if (!S.unlocked[type]) return 'You need the blueprint for that.';
+    const why = canPlace(type, x, y); if (why) return why;
+    if (S.clams < d.cost) return `Costs ${d.cost} Clams.`;
+    S.clams -= d.cost; S.stats.built++;
+  }
+  const b = { id:S.nextId++, type, x, y, size:d.size || 1, hp:d.hp || 100, wet:0, fill:0, target:0, staff:0 };
+  S.blds[b.id] = b;
+  for (const [tx, ty] of footprint(type, x, y)) S.tiles[idx(tx, ty)] = b.id;
+  if (!free && !S.firsts[type] && NEWS.firsts[type]) { S.firsts[type] = 1; log(NEWS.firsts[type], 'event'); }
+  return '';
+}
+function removeB(id) { const b = S.blds[id]; if (!b) return; for (const [tx, ty] of footprint(b.type, b.x, b.y)) S.tiles[idx(tx, ty)] = 0; delete S.blds[id]; }
+function demolish(id) {
+  const b = S.blds[id]; if (!b) return 'Nothing there.';
+  if (b.type === 'hall') return 'The council would never allow it.';
+  if (b.type === 'rubble') { if (S.clams < 10) return 'Clearing rubble costs 10 Clams.'; S.clams -= 10; removeB(id); return ''; }
+  const refund = Math.floor(BLD[b.type].cost * 0.4 * b.hp / (BLD[b.type].hp || 100));
+  S.clams += refund; removeB(id); return '';
+}
+function repairCost(b) { const max = BLD[b.type].hp || 100; return Math.ceil(BLD[b.type].cost * 0.5 * (1 - b.hp / max)); }
+function repair(id) { const b = S.blds[id]; if (!b || b.type === 'rubble') return 'Nothing to fix.'; const c = repairCost(b); if (!c) return 'It\'s fine.'; if (S.clams < c) return `Costs ${c} Clams.`; S.clams -= c; b.hp = BLD[b.type].hp || 100; return ''; }
+function setBallast(id, target) { const b = S.blds[id]; if (b && b.type === 'ballast') b.target = clamp(target, 0, BLD.ballast.ballast); }
+// residents weigh something too: one weight per ten people, spread over the homes
+function weightOf(b) {
+  if (b.type === 'ballast') return b.fill;
+  const d = BLD[b.type]; let w = d.w;
+  if (d.house && b.hp > 0 && S.pop > 0) { const H = S.rate.housing || housing(); if (H) w += (S.pop / H) * d.house / 10; }
+  return w;
+}
+function centre(b) { const n = b.size; return [b.x + (n - 1) / 2, b.y + (n - 1) / 2]; }
+const count = (s, type) => Object.values(s.blds).filter(b => b.type === type && b.hp > 0).length;
+
+// ---------------------------------------------------------------------
+// TILT + WATER
+// ---------------------------------------------------------------------
+function massCentre(extra) {
+  let m = BASE_MASS, sx = 0, sy = 0;
+  const add = (w, x, y) => { m += w; sx += w * (x - CX); sy += w * (y - CY); };
+  for (const b of Object.values(S.blds)) { const [x, y] = centre(b); add(weightOf(b), x, y); }
+  if (S.barn) add(S.barn.w, S.barn.x, S.barn.y);
+  if (extra) add(extra.w, extra.x, extra.y);
+  return { x:sx / m, y:sy / m, m };
+}
+function tiltFor(com) { return { x:com.x * TILT_K / RX, y:com.y * TILT_K / RY }; }
+// tilt if a building were added (for the placement preview)
+function previewTilt(type, x, y) { const n = BLD[type].size || 1; return tiltFor(massCentre({ w:type === 'ballast' ? 0 : BLD[type].w, x:x + (n - 1) / 2, y:y + (n - 1) / 2 })); }
+function surgeLevel() { const s = S.surge; if (!s.dur) return 0; const p = s.t / s.dur; const env = p < 0.25 ? p / 0.25 : p > 0.75 ? (1 - p) / 0.25 : 1; return s.amp * env; }
+function waterAt(i, T = S.tilt) {
+  let w = WATER0 + WATER_TILT * (T.x * GRID.nx[i] + T.y * GRID.ny[i]) + surgeLevel();
+  if (S.leg && S.leg.to.type === 'storm' && S.phase === 'sail') w += 0.07 * Math.sin(S.t * 1.7 + GRID.nx[i] * 3);
+  return w;
+}
+function wallBonus(x, y) {
+  for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const b = bAt(x + i, y + j); if (b && b.type === 'seawall' && b.hp > 0) return 0.25; }
+  return 0;
+}
+function computeWater() {
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const i = idx(x, y); if (!GRID.inside[i]) continue;
+    const w = waterAt(i); GRID.water[i] = w;
+    GRID.wet[i] = GRID.h[i] + wallBonus(x, y) < w ? 1 : 0;
+  }
+}
+const isWet = b => footprint(b.type, b.x, b.y).some(([x, y]) => GRID.wet[idx(x, y)]);
+const tiltDeg = T => Math.hypot(T.x, T.y) * 20;   // for display: 1.0 tilt ≈ 20°
+
+// ---------------------------------------------------------------------
+// ECONOMY
+// ---------------------------------------------------------------------
+function housing() {
+  let h = 0; const goodsOk = S.rate.goodsOk !== false;
+  for (const b of Object.values(S.blds)) { const d = BLD[b.type]; if (!d.house || b.hp <= 0) continue; h += d.goods && !goodsOk ? Math.round(d.house * 0.6) : d.house; }
+  return h;
+}
+function modSum(k) { return S.mods.filter(m => m.k === k).reduce((a, m) => a + m.v, 0); }
+function addMod(s, k, v, days) { s.mods.push({ k, v, days }); }
+function inRange(b, type, r) {
+  const [x, y] = centre(b); let n = 0;
+  for (const o of Object.values(S.blds)) { if (o.type !== type || o.hp <= 0) continue; const [ox, oy] = centre(o); if (Math.max(Math.abs(ox - x), Math.abs(oy - y)) <= r + (o.size - 1) / 2 + (b.size - 1) / 2) n++; }
+  return n;
+}
+function homeHappiness(b) {
+  const d = BLD[b.type]; let h = 55;
+  const amen = Math.min(30, inRange(b, 'park', 2) * 8 + inRange(b, 'statue', 2) * 12 + inRange(b, 'bandshell', 3) * 12);
+  h += amen;
+  if (inRange(b, 'workshop', 1)) h -= 12;
+  if (b.wet > 0) h -= 35;
+  if (S.rate.starving) h -= 20;
+  if (d.goods && S.rate.goodsOk === false) h -= 12;
+  h -= Math.hypot(S.tilt.x, S.tilt.y) * 25;
+  if (S.gerald.hunger > 70) h -= 8;
+  h += modSum('hap');
+  return clamp(h, 0, 100);
+}
+function cityHappiness() {
+  let tot = 0, cap = 0;
+  for (const b of Object.values(S.blds)) { const d = BLD[b.type]; if (!d.house || b.hp <= 0) continue; b.happy = homeHappiness(b); tot += b.happy * d.house; cap += d.house; }
+  return cap ? tot / cap : 50;
+}
+function production(frac) {
+  const workers = Math.floor(S.pop * 0.6);
+  let jobs = 0; const active = [];
+  for (const b of Object.values(S.blds)) {
+    const d = BLD[b.type]; if (!d.jobs || b.hp <= 0) continue;
+    const wet = b.wet > 0;
+    const works = d.wet ? wet : (!wet || ['fishery', 'lighthouse'].includes(b.type));
+    b.working = works; if (!works) { b.staff = 0; continue; }
+    jobs += d.jobs; active.push(b);
+  }
+  const staff = jobs ? Math.min(1, workers / jobs) : 0;
+  const made = { fish:0, kelp:0, goods:0 };
+  for (const b of active) { b.staff = staff; const o = BLD[b.type].out; if (o) for (const k in o) made[k] += o[k] * staff * frac; }
+  S.fish += made.fish; S.kelp += made.kelp; S.goods += made.goods;
+  S.rate.jobs = jobs; S.rate.workers = workers; S.rate.staff = staff;
+  return made;
+}
+
+// ---------------------------------------------------------------------
+// TIME
+// ---------------------------------------------------------------------
+function tick(dt) {
+  if (!S || S.over || S.phase !== 'sail') return;
+  const frac = dt / DAY;
+  S.t += dt;
+  // tilt follows the weight, with a little sway
+  const T = tiltFor(massCentre());
+  if (S.leg && S.leg.to.type === 'storm') { S.gust += dt; T.y += 0.22 * Math.sin(S.gust * 0.9) * Math.sin(S.gust * 0.37); }
+  S.tiltT = T;
+  const k = 1 - Math.exp(-dt / 3);
+  S.tilt.x += (T.x - S.tilt.x) * k; S.tilt.y += (T.y - S.tilt.y) * k;
+  // surge (dives)
+  if (S.surge.dur) { S.surge.t += dt; if (S.surge.t >= S.surge.dur) S.surge = { amp:0, t:0, dur:0 }; }
+  computeWater();
+  // buildings get wet, ballast fills, things rot
+  for (const b of Object.values(S.blds)) {
+    const wet = isWet(b);
+    if (wet && !b.wet) b.wetSince = S.day + S.t / DAY;
+    b.wet = wet ? (b.wet || 0) + dt : 0;
+    if (b.type === 'ballast') { const r = 20 * frac; b.fill += clamp(b.target - b.fill, -r, r); }
+    const tough = ['kelp', 'fishery', 'seawall', 'lighthouse', 'rubble', 'ballast'].includes(b.type);
+    if (wet && !tough && b.hp > 0) { b.hp -= 25 * frac; if (b.hp <= 0) ruin(b, 'rotted'); }
+    else if (!wet && b.hp > 0 && b.hp < (BLD[b.type].hp || 100)) b.hp = Math.min(BLD[b.type].hp || 100, b.hp + 4 * frac);
+  }
+  // the city works and eats
+  production(frac);
+  const geraldNeed = geraldAppetite() * frac;
+  S.kelp *= Math.exp(-0.04 * frac);   // kelp wilts
+  if (S.kelp >= geraldNeed) { S.kelp -= geraldNeed; S.gerald.hunger = Math.max(0, S.gerald.hunger - 12 * frac); }
+  else { const short = 1 - S.kelp / geraldNeed; S.kelp = 0; S.gerald.hunger = Math.min(100, S.gerald.hunger + 30 * frac * short); }
+  let eat = S.pop * 0.25 * frac;
+  const fromFish = Math.min(S.fish, eat); S.fish -= fromFish; eat -= fromFish;
+  const fromKelp = Math.min(S.kelp, eat); S.kelp -= fromKelp; eat -= fromKelp;
+  S.rate.starving = eat > 1e-6;
+  let goodsPop = 0; for (const b of Object.values(S.blds)) if (BLD[b.type].goods && b.hp > 0) goodsPop += BLD[b.type].house;
+  const gNeed = goodsPop * 0.08 * frac;
+  if (gNeed > 0) { if (S.goods >= gNeed) { S.goods -= gNeed; S.rate.goodsOk = true; } else { S.goods = 0; S.rate.goodsOk = false; } } else S.rate.goodsOk = true;
+  S.hap = cityHappiness();
+  S.rate.housing = housing();
+  const tax = S.pop * 1.0 * (0.5 + S.hap / 100) * S.taxMod * frac;
+  let upkeep = 0; for (const b of Object.values(S.blds)) upkeep += (BLD[b.type].cost || 0) * 0.012 * frac;
+  S.clams += tax - upkeep; S.stats.earned += tax;
+  // Gerald
+  const G = S.gerald;
+  const moodT = clamp(75 - G.hunger * 0.5 + Math.min(20, count(S, 'bandshell') * 10) + modSum('mood'), 0, 100);
+  G.mood += clamp(moodT - G.mood, -20 * frac, 20 * frac);
+  if (G.hunger >= 100 && !G.dive) { G.dive = 6; log(pick(NEWS.hungry), 'bad'); S.pending.push({ type:'warn', text:'Gerald is staring at the seafloor. He is about to dive for food!' }); }
+  if (G.dive) { G.dive -= dt; if (G.dive <= 0) { G.dive = 0; dive(); } }
+  // itches
+  if (S.itch) {
+    S.itch.t -= frac;
+    if (S.itch.t <= 0) scratch();
+  } else { S.itchIn -= frac; if (S.itchIn <= 0) newItch(); }
+  if (S.surge.dur && !S.surge.peakHit && S.surge.t > S.surge.dur * 0.4) { S.surge.peakHit = true; for (const b of Object.values(S.blds)) if (isWet(b) && !['kelp', 'fishery', 'seawall', 'rubble', 'ballast'].includes(b.type)) hurt(b, 35); }
+  // capsizing
+  const mag = Math.hypot(S.tilt.x, S.tilt.y);
+  if (mag > CAPSIZE) { S.cap += dt; if (S.cap >= 15) return gameOver('capsize'); } else S.cap = Math.max(0, S.cap - dt * 0.5);
+  // the voyage
+  const L = S.leg;
+  L.prog += frac * (0.75 + G.mood / 200);
+  if (L.ev && !L.ev.done && L.prog >= L.ev.at * L.len) { L.ev.done = true; startEvent(); return; }
+  if (L.prog >= L.len) return arrive();
+  if (S.t >= DAY) newDay();
+}
+function newDay() {
+  S.t -= DAY; S.day++;
+  for (const m of S.mods) m.days--; S.mods = S.mods.filter(m => m.days > 0);
+  if (S.barn) { S.barn.days--; if (S.barn.days <= 0) { S.barn = null; log('Barnacles drop off the shell. They will not be missed.'); } }
+  settlePop();
+  if (S.day > 1 && S.pop <= 0) return gameOver('empty');
+  const mag = Math.hypot(S.tilt.x, S.tilt.y);
+  const wetHomes = Object.values(S.blds).filter(b => BLD[b.type].house && b.wet > 0).length;
+  if (wetHomes) { S.stats.floods++; log(pick(NEWS.flood), 'bad'); }
+  else if (mag > 0.45) log(pick(NEWS.tilt), 'bad');
+  else if (S.gerald.hunger > 70) log(pick(NEWS.hungry), 'bad');
+  else log(pick(NEWS.daily));
+}
+function settlePop() {
+  const H = housing();
+  if (S.pop > H) S.pop = H;
+  if (S.immig > 0) { const n = Math.min(S.immig, H - S.pop); S.pop += Math.max(0, n); S.immig = 0; }
+  if (S.hap >= 50 && !S.rate.starving && S.pop < H) S.pop += Math.max(1, Math.ceil((H - S.pop) * 0.2));
+  else if (S.hap < 30 || S.rate.starving) S.pop -= Math.ceil(S.pop * 0.08);
+  S.pop = clamp(S.pop, 0, H);
+  S.stats.maxPop = Math.max(S.stats.maxPop, S.pop);
+}
+// the bigger the city, the harder he swims, the more he eats
+function geraldAppetite() { return 12 + 0.1 * S.pop; }
+function hurt(b, n) { if (b.hp <= 0 || b.type === 'rubble') return; b.hp -= n * (b.type === 'hall' ? 0.5 : 1); if (b.hp <= 0) ruin(b, 'wrecked'); }
+function ruin(b, why) {
+  if (b.type === 'hall') { b.hp = 1; return; }
+  const { x, y, size, type } = b; removeB(b.id);
+  for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) place('rubble', x + i, y + j, true);
+  S.stats.ruined++; log(`A ${BLD[type].n} ${why === 'rotted' ? 'rotted through after too long underwater' : 'was wrecked'}. It is rubble now.`, 'bad');
+  S.pending.push({ type:'ruin', x, y });
+}
+function dive() {
+  S.surge = { amp:0.42, t:0, dur:8, peakHit:false };
+  S.gerald.hunger = 45; S.gerald.mood = Math.max(0, S.gerald.mood - 10);
+  addMod(S, 'hap', -12, 1); S.stats.dives++;
+  log(pick(NEWS.dive), 'bad'); S.pending.push({ type:'dive' });
+}
+function newItch() {
+  const cands = []; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = idx(x, y); if (GRID.inside[i] && GRID.h[i] > 0.25) cands.push([x, y]); }
+  const [x, y] = pick(cands);
+  S.itch = { x, y, t:0.8, r:2 };
+  log(NEWS.itch[0].replace('{where}', where(x, y)), 'warn'); S.pending.push({ type:'itch', x, y });
+}
+function scratcherCovers(x, y) { for (const b of Object.values(S.blds)) if (b.type === 'scratcher' && b.hp > 0 && Math.max(Math.abs(b.x - x), Math.abs(b.y - y)) <= BLD.scratcher.r) return true; return false; }
+function scratch() {
+  const { x, y, r } = S.itch; S.itch = null; S.itchIn = 1.5 + rnd() * 1.5;
+  if (scratcherCovers(x, y)) { S.gerald.mood = Math.min(100, S.gerald.mood + 6); log(NEWS.polite[0].replace('{where}', where(x, y)), 'good'); S.pending.push({ type:'polite', x, y }); return; }
+  S.stats.scratches++;
+  for (const b of Object.values(S.blds)) { const [bx, by] = centre(b); if (Math.max(Math.abs(bx - x), Math.abs(by - y)) <= r + (b.size - 1) / 2) hurt(b, 55); }
+  log(pick(NEWS.scratched), 'bad'); S.pending.push({ type:'scratch', x, y });
+}
+function where(x, y) { const nx = x - CX, ny = y - CY; const a = Math.abs(nx) > Math.abs(ny) ? (nx > 0 ? 'the head end' : 'the tail end') : (ny > 0 ? 'the right flank' : 'the left flank'); return Math.hypot(nx, ny) < 2.5 ? 'the middle of the shell' : a; }
+function shake(s, n, dmg) { const list = Object.values(s.blds).filter(b => b.type !== 'rubble' && b.type !== 'hall'); for (let i = 0; i < n && list.length; i++) hurt(list.splice(Math.floor(rnd() * list.length), 1)[0], dmg); s.pending.push({ type:'shake' }); }
+function unlockRandom(s) { const l = PALETTE.filter(k => !s.unlocked[k]); if (!l.length) { s.clams += 40; return; } const k = pick(l); s.unlocked[k] = true; s.pending.push({ type:'unlock', k }); }
+function gameOver(why) { S.over = why; S.phase = 'over'; S.pending.push({ type:'over', why }); }
+
+// ---------------------------------------------------------------------
+// VOYAGE
+// ---------------------------------------------------------------------
+const LEGS = 10;
+function rollOptions(stop) {
+  if (stop >= LEGS - 1) return [{ type:'reef', name:ISLANDS.reef.n }];
+  const pool = ['market', 'forest', 'tourist', 'bazaar', 'wreck', 'storm'];
+  const n = rnd() < 0.5 ? 2 : 3, out = [];
+  if ([0, 2, 4, 6].includes(stop)) out.push('bazaar');
+  while (out.length < n) { const t = pick(pool); if (!out.includes(t)) out.push(t); }
+  return out.sort(() => rnd() - 0.5).map(type => ({ type, name:pick(PLACE_NAMES[type]) }));
+}
+function setSail(i) {
+  if (S.phase !== 'chart') return;
+  const to = S.options[i]; if (!to) return;
+  const len = to.type === 'storm' ? 2 : 3;
+  S.leg = { to, prog:0, len, ev:rnd() < 0.65 ? { at:0.3 + rnd() * 0.4, done:false } : null };
+  S.phase = 'sail'; S.port = null;
+  log(`Gerald sets off for ${to.name}. ${to.type === 'storm' ? 'The sky looks bruised.' : 'Estimated arrival: whenever Gerald feels like it.'}`, 'event');
+}
+function arrive() {
+  const to = S.leg.to; S.stop++;
+  if (to.type === 'reef') return gameOver('win');
+  S.phase = 'port';
+  const I = ISLANDS[to.type];
+  const port = { type:to.type, name:to.name, sold:{}, done:{} };
+  if (to.type === 'tourist') { const lh = count(S, 'lighthouse') > 0; const h = count(S, 'hotel'); port.hotelPay = h * (lh ? 60 : 40) * 3; S.clams += port.hotelPay; port.immig = 12; port.immigCost = 0; }
+  else { port.immig = 4 + Math.floor(rnd() * 5); port.immigCost = 5; }
+  if (to.type === 'forest') { S.gerald.hunger = 0; S.gerald.mood = Math.min(100, S.gerald.mood + 15); S.kelp += 40; }
+  if (to.type === 'wreck') { port.salvage = 60 + Math.floor(rnd() * 70); S.clams += port.salvage; }
+  if (to.type === 'bazaar') { const l = PALETTE.filter(k => !S.unlocked[k]); port.plans = l.sort(() => rnd() - 0.5).slice(0, 2); port.freePlan = true; }
+  S.port = port; void I;
+  log(NEWS.port[to.type].replace('{name}', to.name), 'event');
+  S.pending.push({ type:'port' });
+}
+function sell(kind, amt) {
+  const P = S.port; if (!P) return 'Not in port.';
+  const price = ISLANDS[P.type].sell[kind]; amt = Math.min(amt, Math.floor(S[kind]));
+  if (amt <= 0) return 'Nothing to sell.';
+  S[kind] -= amt; S.clams += amt * price; return '';
+}
+function buyKelp(amt) { const P = S.port; if (!P) return 'Not in port.'; const c = amt * ISLANDS[P.type].buy.kelp; if (S.clams < c) return `Costs ${c} Clams.`; S.clams -= c; S.kelp += amt; return ''; }
+function takeImmigrants() {
+  const P = S.port; if (!P || P.done.immig) return 'Already done.';
+  const room = housing() - S.pop - S.immig, afford = P.immigCost ? Math.floor(Math.max(0, S.clams) / P.immigCost) : Infinity;
+  if (room <= 0) return 'There\'s nowhere for them to live. Build homes first.';
+  const n = Math.min(P.immig, room, afford);
+  if (n <= 0) return 'Not enough Clams for the paperwork.';
+  const c = n * P.immigCost;
+  S.clams -= c; S.pop += n; P.done.immig = true; P.took = n; return '';
+}
+function buyPlan(k) {
+  const P = S.port; if (!P || !P.plans || !P.plans.includes(k) || S.unlocked[k]) return 'Not for sale.';
+  if (!P.freePlan) { if (S.clams < 80) return 'Costs 80 Clams.'; S.clams -= 80; }
+  P.freePlan = false; S.unlocked[k] = true; return '';
+}
+function leavePort() { if (S.phase !== 'port') return; S.options = rollOptions(S.stop); S.phase = 'chart'; S.port = null; }
+function startEvent() {
+  const left = EVENTS.filter(e => !S.used[e.id]); const e = pick(left.length ? left : EVENTS);
+  S.used[e.id] = 1; S.event = e.id; S.phase = 'event'; S.stats.events++; S.pending.push({ type:'event', id:e.id });
+}
+function chooseEvent(which) {
+  const e = EVENTS.find(x => x.id === S.event); if (!e || S.phase !== 'event') return 'No event.';
+  const res = (which === 'a' ? e.a : e.b)[1](S);
+  if (res === null) return 'You can\'t afford that.';
+  log(res, 'event'); S.event = null; S.phase = 'sail'; return '';
+}
+function rating() {
+  const score = Math.round(S.pop * 10 + S.hap * 5 + S.clams / 5 - S.stats.ruined * 20);
+  const r = score >= 2200 ? ['Legendary', 'A statue of you is built next to the statue of Gerald. It is slightly smaller, out of respect.'] : score >= 1500 ? ['Beloved', 'The reef turtles nod at you, which is a big deal for turtles.'] : score >= 900 ? ['Respected', 'Gerald retires comfortably. The city gets a nice plaque.'] : ['Survived', 'Everyone made it. Mostly. Gerald is just glad to stop swimming.'];
+  return { score, title:r[0], line:r[1] };
+}
+
+// ---------------------------------------------------------------------
+// SAVE
+// ---------------------------------------------------------------------
+function save() { if (!S || S.dummy) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function loadRaw(raw) { try { const d = JSON.parse(raw); if (d && d.v === 1 && d.blds && !d.over) { S = d; S.pending = []; computeWater(); return true; } } catch (e) {} return false; }
+function hasSave() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return !!(d && d.v === 1 && !d.over); } catch (e) { return false; } }
+function wipeSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+// =====================================================================
+// GERALD'S BACK — isometric drawing
+// =====================================================================
+const V = { cv:null, g:null, dpr:1, W:0, H:0, s:1, ox:0, oy:0, zoom:1, px:0, py:0, t:0, shake:0 };
+const FXR = { parts:[], floats:[], walkers:[] };
+const TW0 = 64, HZ0 = 64;
+const DISP = '"Bungee", "Arial Black", Impact, sans-serif', BODY = '"Rubik", "Trebuchet MS", system-ui, sans-serif';
+const tw = () => TW0 * V.s, th = () => TW0 * V.s / 2, hz = () => HZ0 * V.s;
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255; if (f < 0) { r *= 1 + f; g *= 1 + f; b *= 1 + f; } else { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; } return `rgb(${r | 0},${g | 0},${b | 0})`; }
+function h01(i, k = 0) { let h = (i * 2654435761 + k * 40503) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; return (h >>> 0) / 4294967296; }
+
+// world → screen. z in "height units" (shell h scale); tile x,y continuous
+function tiltProj(nx, ny, T) { return WATER_TILT * (T.x * nx + T.y * ny); }
+function zOf(x, y, T) { const nx = (x - CX) / RX, ny = (y - CY) / RY; const h = Math.max(0, 1 - nx * nx - ny * ny); return h - tiltProj(nx, ny, T); }
+function waterZ() { return WATER0 + surgeLevel(); }
+function scr(x, y, z) { return [V.ox + (x - y) * tw() / 2, V.oy + (x + y) * th() / 2 - z * hz()]; }
+function tileTop(x, y) { const i = idx(x, y); return GRID.h[i] - tiltProj(GRID.nx[i], GRID.ny[i], S.tilt); }
+
+// ---------------------------------------------------------------------
+// CAMERA
+// ---------------------------------------------------------------------
+function viewResize() {
+  const box = V.cv.parentElement.getBoundingClientRect();
+  V.W = Math.max(240, Math.floor(box.width)); V.H = Math.max(240, Math.floor(box.height));
+  V.dpr = Math.min(2, devicePixelRatio || 1);
+  const bw = Math.round(V.W * V.dpr), bh = Math.round(V.H * V.dpr);
+  if (V.cv.width !== bw || V.cv.height !== bh) { V.cv.width = bw; V.cv.height = bh; }
+  V.cv.style.width = V.W + 'px'; V.cv.style.height = V.H + 'px';
+  viewFit();
+}
+function viewFit() {
+  // the whole turtle (shell + head + flippers) is about 19 tiles wide on the diagonal
+  const spanX = 13.4 * TW0, spanY = 7.6 * TW0;
+  V.s = Math.min(V.W / spanX, V.H / spanY) * 1.04 * V.zoom;
+  const [cx, cy] = [(CX - CY) * tw() / 2, (CX + CY) * th() / 2 - 0.45 * hz()];
+  V.ox = V.W / 2 - cx + V.px; V.oy = V.H / 2 - cy + V.py + th() * 0.6;
+}
+function screenToTile(px, py) {
+  // test tiles from front to back, using each tile's own height
+  let best = null;
+  for (let s2 = 2 * N - 2; s2 >= 0; s2--) for (let x = Math.min(N - 1, s2); x >= Math.max(0, s2 - N + 1); x--) {
+    const y = s2 - x, i = idx(x, y); if (!GRID.inside[i]) continue;
+    const [sx, sy] = scr(x, y, Math.max(tileTop(x, y), waterZ() - 0.02));
+    const dx = Math.abs(px - sx) / (tw() / 2), dy = Math.abs(py - sy) / (th() / 2);
+    if (dx + dy <= 1) return { x, y };
+    void best;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------
+// SHELL
+// ---------------------------------------------------------------------
+const SCUTES = [[CX, CY], [CX - 3.5, CY], [CX + 3.5, CY], [CX - 1.7, CY - 3.4], [CX + 1.9, CY - 3.4], [CX - 1.7, CY + 3.4], [CX + 1.9, CY + 3.4], [CX - 5.2, CY - 2.6], [CX + 5.4, CY - 2.4], [CX - 5.2, CY + 2.6], [CX + 5.4, CY + 2.4]];
+const SCUTE_COL = ['#8a6d3b', '#7c6234', '#937640', '#856838', '#7a5f33', '#8f7140', '#806536', '#78603a', '#8c7044', '#7d6438', '#88693a'];
+const scuteOf = (() => { const m = []; for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let b = 0, bd = 1e9; SCUTES.forEach(([sx, sy], k) => { const d = (x - sx) ** 2 + ((y - sy) * 1.1) ** 2; if (d < bd) { bd = d; b = k; } }); m[idx(x, y)] = b; } return m; })();
+function diamond(g, x, y, z, inset = 0) {
+  const a = scr(x - 0.5 + inset, y - 0.5 + inset, z), b = scr(x + 0.5 - inset, y - 0.5 + inset, z), c = scr(x + 0.5 - inset, y + 0.5 - inset, z), d = scr(x - 0.5 + inset, y + 0.5 - inset, z);
+  g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.lineTo(d[0], d[1]); g.closePath();
+  return [a, b, c, d];
+}
+function drawTile(g, x, y) {
+  const i = idx(x, y), z = tileTop(x, y), wz = waterZ();
+  const rim = GRID.rim[i], sc = scuteOf[i];
+  let col = rim ? '#5f5a2e' : SCUTE_COL[sc];
+  // sides (front faces) down to the neighbour or the water
+  const lowNb = (dx, dy) => { const nx = x + dx, ny = y + dy; if (!inB(nx, ny) || !GRID.inside[idx(nx, ny)]) return wz - 0.35; return tileTop(nx, ny); };
+  const zr = Math.min(z, Math.max(lowNb(1, 0), wz - 0.35)), zl = Math.min(z, Math.max(lowNb(0, 1), wz - 0.35));
+  if (zr < z - 0.001) { const p1 = scr(x + 0.5, y - 0.5, z), p2 = scr(x + 0.5, y + 0.5, z), p3 = scr(x + 0.5, y + 0.5, zr), p4 = scr(x + 0.5, y - 0.5, zr); g.fillStyle = shade(col.startsWith('#') ? col : '#806536', -0.38); g.beginPath(); g.moveTo(...p1); g.lineTo(...p2); g.lineTo(...p3); g.lineTo(...p4); g.closePath(); g.fill(); }
+  if (zl < z - 0.001) { const p1 = scr(x - 0.5, y + 0.5, z), p2 = scr(x + 0.5, y + 0.5, z), p3 = scr(x + 0.5, y + 0.5, zl), p4 = scr(x - 0.5, y + 0.5, zl); g.fillStyle = shade(col.startsWith('#') ? col : '#806536', -0.22); g.beginPath(); g.moveTo(...p1); g.lineTo(...p2); g.lineTo(...p3); g.lineTo(...p4); g.closePath(); g.fill(); }
+  // top
+  const pts = diamond(g, x, y, z);
+  const shadeBy = 0.08 * (GRID.h[i] - 0.5);
+  g.fillStyle = shade(col, shadeBy); g.fill();
+  // scute seams
+  g.strokeStyle = 'rgba(40,28,10,0.55)'; g.lineWidth = Math.max(1, 1.6 * V.s);
+  let any = false;
+  const seam = (dx, dy, a, b) => { const nx = x + dx, ny = y + dy; if (!inB(nx, ny) || !GRID.inside[idx(nx, ny)] || scuteOf[idx(nx, ny)] !== sc || GRID.rim[idx(nx, ny)] !== rim) { if (!any) { g.beginPath(); any = true; } g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); } };
+  seam(1, 0, pts[1], pts[2]); seam(0, 1, pts[2], pts[3]); seam(-1, 0, pts[3], pts[0]); seam(0, -1, pts[0], pts[1]);
+  if (any) g.stroke();
+  // growth rings, subtle
+  if (!rim && h01(i, 2) < 0.35) { const c = scr(x, y, z); g.strokeStyle = 'rgba(255,240,200,0.08)'; g.beginPath(); g.ellipse(c[0], c[1], tw() * 0.22, th() * 0.22, 0, 0, 6.3); g.stroke(); }
+  if (rim) { g.fillStyle = 'rgba(90,140,70,0.35)'; diamond(g, x, y, z, 0.18); g.fill(); }
+  // water over it
+  if (GRID.wet[i]) {
+    const wzz = Math.max(z, wz);
+    diamond(g, x, y, wzz); g.fillStyle = 'rgba(40,140,190,0.55)'; g.fill();
+    const c = scr(x, y, wzz); g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1; g.beginPath(); g.ellipse(c[0] + Math.sin(V.t * 2 + i) * tw() * 0.1, c[1], tw() * 0.16, th() * 0.12, 0, 0, 6.3); g.stroke();
+  }
+}
+
+// ---------------------------------------------------------------------
+// BUILDINGS
+// ---------------------------------------------------------------------
+// an iso box on footprint (x0..x1, y0..y1) from z0 up by hgt (in height units)
+function box(g, x0, y0, x1, y1, z0, hgt, top, left, right) {
+  const z1 = z0 + hgt;
+  const A = scr(x0, y0, z1), Bp = scr(x1, y0, z1), Cp = scr(x1, y1, z1), D = scr(x0, y1, z1);
+  const Cb = scr(x1, y1, z0), Db = scr(x0, y1, z0), Bb = scr(x1, y0, z0);
+  g.fillStyle = right; g.beginPath(); g.moveTo(...Bp); g.lineTo(...Cp); g.lineTo(...Cb); g.lineTo(...Bb); g.closePath(); g.fill();
+  g.fillStyle = left; g.beginPath(); g.moveTo(...D); g.lineTo(...Cp); g.lineTo(...Cb); g.lineTo(...Db); g.closePath(); g.fill();
+  g.fillStyle = top; g.beginPath(); g.moveTo(...A); g.lineTo(...Bp); g.lineTo(...Cp); g.lineTo(...D); g.closePath(); g.fill();
+  return { A, B:Bp, C:Cp, D, Cb, Db, Bb, z1 };
+}
+function roof(g, x0, y0, x1, y1, z, rh, col, ridgeX) {
+  // pitched roof; ridge along x if ridgeX, else along y
+  const zt = z + rh, mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+  const P = (x, y, zz) => scr(x, y, zz);
+  if (ridgeX) {
+    const r1 = P(x0, my, zt), r2 = P(x1, my, zt);
+    g.fillStyle = shade(col, -0.18); g.beginPath(); g.moveTo(...P(x0, y1, z)); g.lineTo(...P(x1, y1, z)); g.lineTo(...r2); g.lineTo(...r1); g.closePath(); g.fill();
+    g.fillStyle = shade(col, -0.35); g.beginPath(); g.moveTo(...P(x1, y0, z)); g.lineTo(...P(x1, y1, z)); g.lineTo(...r2); g.closePath(); g.fill();
+    g.fillStyle = col; g.beginPath(); g.moveTo(...P(x0, y0, z)); g.lineTo(...P(x1, y0, z)); g.lineTo(...r2); g.lineTo(...r1); g.closePath(); g.fill();
+  } else {
+    const r1 = P(mx, y0, zt), r2 = P(mx, y1, zt);
+    g.fillStyle = shade(col, -0.35); g.beginPath(); g.moveTo(...P(x1, y0, z)); g.lineTo(...P(x1, y1, z)); g.lineTo(...r2); g.lineTo(...r1); g.closePath(); g.fill();
+    g.fillStyle = shade(col, -0.12); g.beginPath(); g.moveTo(...P(x0, y1, z)); g.lineTo(...P(x1, y1, z)); g.lineTo(...r2); g.closePath(); g.fill();
+    g.fillStyle = col; g.beginPath(); g.moveTo(...P(x0, y0, z)); g.lineTo(...P(x0, y1, z)); g.lineTo(...r2); g.lineTo(...r1); g.closePath(); g.fill();
+  }
+}
+function windows(g, f, n, rows, col) {
+  // f: face corners from box(). One path per face: front-left face D→C, front-right face C→B
+  const ww = 4.4 * V.s, wh = 5 * V.s;
+  const face = (P0, P1, Q0, Q1, fill) => {
+    g.beginPath();
+    for (let r = 0; r < rows; r++) for (let k = 0; k < n; k++) {
+      const u = (k + 0.5) / n, v = (r + 0.5) / rows;
+      const tx = P0[0] + (P1[0] - P0[0]) * u, ty = P0[1] + (P1[1] - P0[1]) * u, bx = Q0[0] + (Q1[0] - Q0[0]) * u, by = Q0[1] + (Q1[1] - Q0[1]) * u;
+      g.rect(tx + (bx - tx) * v - ww / 2, ty + (by - ty) * v - wh / 2, ww, wh);
+    }
+    g.fillStyle = fill; g.fill();
+  };
+  face(f.D, f.C, f.Db, f.Cb, col);
+  face(f.C, f.B, f.Cb, f.Bb, col === '#ffe9a3' ? '#e6c97a' : 'rgba(30,45,60,0.8)');
+}
+const PASTEL = ['#f4a6b8', '#a7e0c6', '#ffe08a', '#a9cbf5', '#f6c39b', '#cdb4f2'];
+function night() { if (!S) return 0; const p = S.t / DAY; return p > 0.78 ? Math.min(1, (p - 0.78) / 0.12) : p < 0.08 ? 1 - p / 0.08 : 0; }
+function drawBuilding(g, b, ghost) {
+  const d = BLD[b.type], n = b.size, x0 = b.x - 0.5, y0 = b.y - 0.5, x1 = b.x + n - 0.5, y1 = b.y + n - 0.5;
+  let z = 0; for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) z = Math.max(z, tileTop(b.x + i, b.y + j)); if (ghost) z = Math.max(z, -1);
+  const wz = waterZ(), u = 1 / HZ0, lit = night() > 0.4 && !ghost && b.hp > 0 && !(b.wet > 0);
+  const win = lit ? '#ffe9a3' : 'rgba(40,60,80,0.75)';
+  const ins = 0.12, X0 = x0 + ins, Y0 = y0 + ins, X1 = x1 - ins, Y1 = y1 - ins;
+  const pc = PASTEL[b.id % PASTEL.length];
+  g.save(); if (ghost) g.globalAlpha = 0.6;
+  switch (b.type) {
+    case 'hall': { const f = box(g, X0 + 0.1, Y0 + 0.1, X1 - 0.1, Y1 - 0.1, z, 34 * u, '#f3ead6', '#e2d6bb', '#cbbd9e'); windows(g, f, 4, 2, win); const c = scr(b.x + 0.5, b.y + 0.5, f.z1); g.fillStyle = '#3aa58f'; g.beginPath(); g.ellipse(c[0], c[1], tw() * 0.42, th() * 0.42, 0, Math.PI, 0); g.lineTo(c[0] + tw() * 0.42, c[1]); g.ellipse(c[0], c[1], tw() * 0.42, th() * 0.42, 0, 0, Math.PI); g.fill(); g.fillStyle = '#56c2a9'; g.beginPath(); g.ellipse(c[0], c[1] - 14 * V.s, tw() * 0.3, 18 * V.s, 0, Math.PI, 0); g.fill(); g.strokeStyle = '#334'; g.lineWidth = 1.5 * V.s; g.beginPath(); g.moveTo(c[0], c[1] - 30 * V.s); g.lineTo(c[0], c[1] - 50 * V.s); g.stroke(); g.fillStyle = '#ff7a59'; g.beginPath(); g.moveTo(c[0], c[1] - 50 * V.s); g.lineTo(c[0] + 14 * V.s, c[1] - 45 * V.s + Math.sin(V.t * 4) * 1.5 * V.s); g.lineTo(c[0], c[1] - 40 * V.s); g.fill(); break; }
+    case 'hut': { const f = box(g, X0 + 0.08, Y0 + 0.08, X1 - 0.08, Y1 - 0.08, z, 13 * u, '#c79a62', '#b5864f', '#9a6f3e'); roof(g, X0, Y0, X1, Y1, f.z1, 14 * u, '#e6c25a', b.id % 2 === 0); const dpt = scr(b.x - 0.05, b.y + 0.36, z); g.fillStyle = '#5a3d22'; g.fillRect(dpt[0] - 3 * V.s, dpt[1] - 9 * V.s, 6 * V.s, 9 * V.s); if (lit) { const w2 = scr(b.x + 0.3, b.y + 0.36, z + 7 * u); g.fillStyle = '#ffe9a3'; g.fillRect(w2[0] - 2 * V.s, w2[1] - 3 * V.s, 4 * V.s, 4 * V.s); } break; }
+    case 'townhouse': { const f = box(g, X0 + 0.04, Y0 + 0.04, X1 - 0.04, Y1 - 0.04, z, 30 * u, shade(pc, 0.15), pc, shade(pc, -0.18)); windows(g, f, 2, 2, win); box(g, X0 + 0.04, Y0 + 0.04, X1 - 0.04, Y1 - 0.04, f.z1, 3 * u, '#fdfaf2', '#e7e2d6', '#d2cbbb'); box(g, X1 - 0.3, Y0 + 0.15, X1 - 0.12, Y0 + 0.33, f.z1 + 3 * u, 8 * u, '#b45f4a', '#9e4f3c', '#86412f'); break; }
+    case 'tower': { const f = box(g, X0 + 0.15, Y0 + 0.15, X1 - 0.15, Y1 - 0.15, z, 96 * u, '#eef4f8', '#d4e2ec', '#b9cddb'); windows(g, f, 4, 8, win); box(g, X0 + 0.3, Y0 + 0.3, X1 - 0.3, Y1 - 0.3, f.z1, 8 * u, '#9fb8c8', '#86a1b3', '#6f8b9e'); const c = scr(b.x + 0.5, b.y + 0.5, f.z1 + 8 * u); g.strokeStyle = '#556'; g.lineWidth = 1.5 * V.s; g.beginPath(); g.moveTo(c[0], c[1]); g.lineTo(c[0], c[1] - 22 * V.s); g.stroke(); g.fillStyle = Math.sin(V.t * 3) > 0 ? '#ff5d5d' : '#7a2020'; g.beginPath(); g.arc(c[0], c[1] - 22 * V.s, 2.2 * V.s, 0, 6.3); g.fill(); break; }
+    case 'fishery': {
+      const out = rimDir(b.x, b.y); const dx = out[0], dy = out[1];
+      // dock reaching out over the water
+      const p0 = scr(b.x + dx * 0.3 - dy * 0.12, b.y + dy * 0.3 - dx * 0.12, z), p1 = scr(b.x + dx * 1.1 - dy * 0.12, b.y + dy * 1.1 - dx * 0.12, wz + 0.04), p2 = scr(b.x + dx * 1.1 + dy * 0.12, b.y + dy * 1.1 + dx * 0.12, wz + 0.04), p3 = scr(b.x + dx * 0.3 + dy * 0.12, b.y + dy * 0.3 + dx * 0.12, z);
+      g.fillStyle = '#9a7349'; g.beginPath(); g.moveTo(...p0); g.lineTo(...p1); g.lineTo(...p2); g.lineTo(...p3); g.closePath(); g.fill();
+      const f = box(g, X0 + 0.1, Y0 + 0.1, X1 - 0.25, Y1 - 0.25, z, 14 * u, '#7fb3d5', '#5d97c0', '#4a7fa6'); roof(g, X0 + 0.05, Y0 + 0.05, X1 - 0.2, Y1 - 0.2, f.z1, 9 * u, '#e9eef2', true);
+      const bt = scr(b.x + dx * 1.35, b.y + dy * 1.35, wz); const bob = Math.sin(V.t * 2 + b.id) * 1.5 * V.s; g.fillStyle = '#e65f43'; g.beginPath(); g.ellipse(bt[0], bt[1] + bob, 9 * V.s, 4 * V.s, 0, 0, Math.PI); g.fill(); g.fillStyle = '#fff'; g.fillRect(bt[0] - 1, bt[1] - 10 * V.s + bob, 2, 10 * V.s);
+      break; }
+    case 'kelp': {
+      const base = scr(b.x, b.y, Math.min(z, wz));
+      for (let k = 0; k < 5; k++) { const ox = (k - 2) * 5 * V.s, sw = Math.sin(V.t * 1.6 + k + b.id) * 4 * V.s, hh = (16 + 6 * h01(b.id, k)) * V.s * (b.wet > 0 ? 1 : 0.55); g.strokeStyle = b.wet > 0 ? (k % 2 ? '#3fae5f' : '#2f8f4c') : '#8b7d4a'; g.lineWidth = 3 * V.s; g.lineCap = 'round'; g.beginPath(); g.moveTo(base[0] + ox, base[1]); g.quadraticCurveTo(base[0] + ox + sw, base[1] - hh * 0.6, base[0] + ox + sw * 0.4, base[1] - hh); g.stroke(); }
+      for (const [px2, py2] of [[-0.35, -0.35], [0.35, 0.35]]) { const p = scr(b.x + px2, b.y + py2, Math.min(z, wz)); g.fillStyle = '#6b4f2f'; g.fillRect(p[0] - 1.5 * V.s, p[1] - 12 * V.s, 3 * V.s, 12 * V.s); }
+      break; }
+    case 'workshop': { const f = box(g, X0, Y0, X1, Y1, z, 20 * u, '#c4553f', '#ad4632', '#923826'); for (let k = 0; k < 3; k++) { const a0 = X0 + (X1 - X0) * k / 3, a1 = X0 + (X1 - X0) * (k + 1) / 3; roof(g, a0, Y0, a1, Y1, f.z1, 8 * u, '#8f99a3', false); } windows(g, f, 2, 1, win); const ch = scr(X1 - 0.15, Y0 + 0.15, f.z1 + 14 * u); if (b.working && b.staff > 0) for (let k = 0; k < 3; k++) { const ph = (V.t * 0.6 + k / 3) % 1; g.fillStyle = `rgba(220,220,220,${0.6 * (1 - ph)})`; g.beginPath(); g.arc(ch[0] + ph * 8 * V.s, ch[1] - ph * 20 * V.s, (3 + ph * 6) * V.s, 0, 6.3); g.fill(); } box(g, X1 - 0.25, Y0 + 0.05, X1 - 0.05, Y0 + 0.25, f.z1, 14 * u, '#6b6f76', '#55595f', '#43464b'); break; }
+    case 'park': { diamond(g, b.x, b.y, z + 0.005, 0.06); g.fillStyle = '#5fbf6a'; g.fill(); for (const [tx, ty, s2] of [[-0.18, -0.15, 1], [0.2, 0.18, 0.8]]) { const p = scr(b.x + tx, b.y + ty, z); g.fillStyle = '#6b4f2f'; g.fillRect(p[0] - 1.5 * V.s, p[1] - 10 * V.s * s2, 3 * V.s, 10 * V.s * s2); g.fillStyle = '#2f9e57'; g.beginPath(); g.arc(p[0], p[1] - 14 * V.s * s2, 8 * V.s * s2, 0, 6.3); g.fill(); g.fillStyle = '#48b86b'; g.beginPath(); g.arc(p[0] - 2 * V.s, p[1] - 16 * V.s * s2, 4.5 * V.s * s2, 0, 6.3); g.fill(); } const bn = scr(b.x + 0.22, b.y - 0.2, z); g.fillStyle = '#8b5e34'; g.fillRect(bn[0] - 6 * V.s, bn[1] - 4 * V.s, 12 * V.s, 2.5 * V.s); break; }
+    case 'scratcher': { const p = scr(b.x, b.y, z); const bob = Math.sin(V.t * 5 + b.id) * 2 * V.s; box(g, X0 + 0.25, Y0 + 0.25, X1 - 0.25, Y1 - 0.25, z, 4 * u, '#8d99a6', '#76828f', '#606b77'); g.strokeStyle = '#7b5a3a'; g.lineWidth = 3 * V.s; g.beginPath(); g.moveTo(p[0], p[1] - 4 * V.s); g.lineTo(p[0] + bob, p[1] - 38 * V.s); g.stroke(); g.fillStyle = '#f3d98b'; g.fillRect(p[0] - 9 * V.s + bob, p[1] - 44 * V.s, 18 * V.s, 7 * V.s); g.strokeStyle = '#c9a54e'; g.lineWidth = 1; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(p[0] - 8 * V.s + k * 2.6 * V.s + bob, p[1] - 37 * V.s); g.lineTo(p[0] - 8 * V.s + k * 2.6 * V.s + bob, p[1] - 33 * V.s); g.stroke(); } break; }
+    case 'ballast': { const f = box(g, X0 + 0.12, Y0 + 0.12, X1 - 0.12, Y1 - 0.12, z, 26 * u, '#b8c4cc', '#9aa8b2', '#7e8d98'); const lvl = (b.fill || 0) / BLD.ballast.ballast; const L1 = scr(X0 + 0.12, Y1 - 0.12, z + 2 * u), L2 = scr(X1 - 0.12, Y1 - 0.12, z + 2 * u); const hh = 22 * u * hz() * lvl; g.fillStyle = 'rgba(47,128,190,0.85)'; g.beginPath(); g.moveTo(L1[0], L1[1]); g.lineTo(L2[0], L2[1]); g.lineTo(L2[0], L2[1] - hh); g.lineTo(L1[0], L1[1] - hh); g.closePath(); g.fill(); g.strokeStyle = '#334'; g.lineWidth = 1; g.beginPath(); g.moveTo(L1[0], L1[1] - 22 * u * hz()); g.lineTo(L2[0], L2[1] - 22 * u * hz()); g.stroke(); if (Math.abs((b.target || 0) - (b.fill || 0)) > 0.05) { const c = scr(b.x, b.y, f.z1); g.fillStyle = '#fff'; g.font = `${Math.round(11 * V.s)}px ${DISP}`; g.textAlign = 'center'; g.fillText(b.target > b.fill ? '▲' : '▼', c[0], c[1] - 4 * V.s); } break; }
+    case 'seawall': { box(g, X0 - 0.06, Y0 - 0.06, X1 + 0.06, Y1 + 0.06, Math.min(z, wz - 0.1), (z - Math.min(z, wz - 0.1)) + 12 * u, '#a39f94', '#8f8b80', '#77746b'); break; }
+    case 'bandshell': { diamond(g, b.x + 0.5, b.y + 0.5, z + 0.004, -0.4); g.fillStyle = '#b07a4a'; g.fill(); const c = scr(b.x + 0.1, b.y + 0.1, z); g.fillStyle = '#f7f2e6'; g.beginPath(); g.ellipse(c[0], c[1], tw() * 0.62, 46 * V.s, 0, Math.PI, 0); g.fill(); g.fillStyle = '#e8dcc0'; g.beginPath(); g.ellipse(c[0], c[1], tw() * 0.45, 32 * V.s, 0, Math.PI, 0); g.fill(); g.strokeStyle = '#d4c5a3'; for (let k = 1; k < 5; k++) { g.beginPath(); g.ellipse(c[0], c[1], tw() * 0.62 * k / 5, 46 * V.s * k / 5, 0, Math.PI, 0); g.stroke(); } if (!ghost && Math.sin(V.t * 2) > 0) { g.fillStyle = '#ffd166'; g.font = `${Math.round(14 * V.s)}px ${BODY}`; g.textAlign = 'center'; g.fillText('♪', c[0] + Math.sin(V.t * 3) * 12 * V.s, c[1] - 55 * V.s - (V.t * 10 % 12) * V.s); } break; }
+    case 'lighthouse': { const f = box(g, X0 + 0.22, Y0 + 0.22, X1 - 0.22, Y1 - 0.22, z, 70 * u, '#ffffff', '#f2f2f2', '#d9d9d9'); for (let k = 0; k < 3; k++) { const zz = z + (12 + k * 20) * u * 1; box(g, X0 + 0.215, Y0 + 0.215, X1 - 0.215, Y1 - 0.215, zz, 8 * u, '#e04b3a', '#d0402f', '#b53526'); } box(g, X0 + 0.15, Y0 + 0.15, X1 - 0.15, Y1 - 0.15, f.z1, 10 * u, '#ffe28a', '#f5d36a', '#e0bd4e'); const c = scr(b.x, b.y, f.z1 + 6 * u); if (night() > 0.2 && !ghost) { const a = V.t * 1.5; g.save(); g.globalAlpha = 0.25 * night(); g.fillStyle = '#fff7c2'; g.beginPath(); g.moveTo(c[0], c[1]); g.arc(c[0], c[1], 220 * V.s, a, a + 0.35); g.closePath(); g.fill(); g.restore(); } break; }
+    case 'hotel': { const f = box(g, X0 + 0.05, Y0 + 0.05, X1 - 0.05, Y1 - 0.05, z, 48 * u, '#ff9fb5', '#f28aa3', '#d9718b'); windows(g, f, 2, 4, win); const c = scr(b.x, b.y, f.z1); g.fillStyle = '#16384d'; g.fillRect(c[0] - 14 * V.s, c[1] - 12 * V.s, 28 * V.s, 9 * V.s); g.fillStyle = '#ffd166'; g.font = `${Math.round(7 * V.s)}px ${DISP}`; g.textAlign = 'center'; g.fillText('HOTEL', c[0], c[1] - 5 * V.s); break; }
+    case 'statue': { const f = box(g, X0 + 0.15, Y0 + 0.15, X1 - 0.15, Y1 - 0.15, z, 12 * u, '#d9d2c4', '#c4bcab', '#aba292'); const c = scr(b.x, b.y, f.z1); g.fillStyle = '#5f9c7d'; g.beginPath(); g.ellipse(c[0], c[1] - 9 * V.s, 14 * V.s, 9 * V.s, 0, Math.PI, 0); g.fill(); g.fillStyle = '#4e8a6c'; g.beginPath(); g.ellipse(c[0] + 15 * V.s, c[1] - 8 * V.s, 5 * V.s, 4 * V.s, 0, 0, 6.3); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(c[0] + 17 * V.s, c[1] - 9 * V.s, 1.2 * V.s, 0, 6.3); g.fill(); break; }
+    case 'rubble': { const c = scr(b.x, b.y, z); g.fillStyle = '#8b8378'; for (let k = 0; k < 6; k++) { g.beginPath(); g.ellipse(c[0] + (h01(b.id, k) - 0.5) * 26 * V.s, c[1] + (h01(b.id, k + 9) - 0.5) * 10 * V.s - 3 * V.s, 6 * V.s, 4 * V.s, 0, 0, 6.3); g.fill(); g.fillStyle = k % 2 ? '#a39b8f' : '#756e64'; } break; }
+  }
+  g.restore();
+  if (ghost) return;
+  // condition marks
+  const top = scr(b.x + (n - 1) / 2, b.y + (n - 1) / 2, z + (d.house ? 0.55 : 0.45));
+  const maxHp = d.hp || 100;
+  if (b.hp < maxHp - 1 && b.type !== 'rubble') { const w = 22 * V.s; g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(top[0] - w / 2, top[1] - 6 * V.s, w, 4 * V.s); g.fillStyle = b.hp / maxHp > 0.5 ? '#ffd166' : '#ff5d5d'; g.fillRect(top[0] - w / 2, top[1] - 6 * V.s, w * Math.max(0, b.hp / maxHp), 4 * V.s); }
+  if (b.wet > 0 && !['kelp', 'fishery', 'seawall', 'rubble', 'ballast', 'lighthouse'].includes(b.type)) { g.fillStyle = '#5ec8ff'; for (let k = 0; k < 2; k++) { const ph = (V.t * 1.4 + k * 0.5 + b.id * 0.13) % 1; g.globalAlpha = 1 - ph; g.beginPath(); g.ellipse(top[0] + (k ? 6 : -6) * V.s, top[1] + ph * 14 * V.s, 2 * V.s, 3 * V.s, 0, 0, 6.3); g.fill(); } g.globalAlpha = 1; }
+  if (BLD[b.type].jobs && b.working === false && b.type !== 'kelp' && b.hp > 0) { g.fillStyle = '#ff5d5d'; g.font = `${Math.round(12 * V.s)}px ${DISP}`; g.textAlign = 'center'; g.fillText('!', top[0], top[1] - 8 * V.s); }
+}
+// which way is "outward" from a rim tile
+function rimDir(x, y) { const nx = (x - CX) / RX, ny = (y - CY) / RY; const l = Math.hypot(nx, ny) || 1; let dx = nx / l, dy = ny / l; if (Math.abs(dx) > Math.abs(dy)) { dx = Math.sign(dx); dy = 0; } else { dy = Math.sign(dy); dx = 0; } if (!dx && !dy) dy = 1; return [dx, dy]; }
+
+// ---------------------------------------------------------------------
+// GERALD
+// ---------------------------------------------------------------------
+// flippers are shapes in the water plane, so they sit in perspective with the sea
+const FLIPPERS = [{ th:0.78, len:4.0, wid:1.4, ph:0 }, { th:-0.78, len:4.0, wid:1.4, ph:Math.PI }, { th:2.5, len:2.7, wid:1.1, ph:Math.PI * 0.5 }, { th:-2.5, len:2.7, wid:1.1, ph:Math.PI * 1.5 }];
+const HEAD = { x:CX + RX + 1.7, y:CY };
+function waterShape(g, pts, z) { g.beginPath(); pts.forEach((q, k) => { const p = scr(q[0], q[1], z); if (q.length > 2) { const c = scr(q[2], q[3], z); g.quadraticCurveTo(c[0], c[1], p[0], p[1]); } else k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }); g.closePath(); }
+function drawFlipper(g, f) {
+  const side = Math.sign(Math.sin(f.th)), sp = S && S.phase === 'sail' ? 2.2 : 0.7;
+  const bx = CX + Math.cos(f.th) * RX * 0.95, by = CY + Math.sin(f.th) * RY * 0.95;
+  const a = f.th + side * (0.45 + 0.4 * Math.sin(V.t * sp + f.ph)), dx = Math.cos(a), dy = Math.sin(a), px = -dy, py = dx;
+  const L = f.len, W = f.wid, z = waterZ() - 0.03;
+  const P = (u, v) => [bx + dx * L * u + px * W * v, by + dy * L * u + py * W * v];
+  const tip = P(1, 0), m1 = P(0.45, -0.75), m2 = P(0.45, 0.75);
+  // [x, y] = point, [x, y, cx, cy] = curve to point via control
+  const pts = [P(0, -0.35), [...tip, ...m1], [...P(0, 0.35), ...m2]];
+  g.fillStyle = 'rgba(10,50,70,0.25)'; waterShape(g, pts, z - 0.06); g.fill();
+  g.fillStyle = '#6fa560'; waterShape(g, pts, z); g.fill();
+  g.fillStyle = 'rgba(40,80,40,0.35)'; for (let k = 1; k < 4; k++) { const q = P(k * 0.22, 0), c = scr(q[0], q[1], z); g.beginPath(); g.ellipse(c[0], c[1], tw() * 0.09, th() * 0.09, 0, 0, 6.3); g.fill(); }
+}
+function drawTail(g) {
+  const z = waterZ() - 0.03, sw = Math.sin(V.t * 2) * 0.35, bx = CX - RX * 0.9;
+  const pts = [[bx, CY - 0.45], [bx - 1.5, CY + sw, bx - 0.9, CY - 0.4], [bx, CY + 0.45, bx - 0.9, CY + 0.4]];
+  g.fillStyle = '#6fa560'; waterShape(g, pts, z); g.fill();
+}
+function drawNeck(g) {
+  const wz = waterZ(), bobz = Math.sin(V.t * 1.6) * 0.03;
+  const p = scr(HEAD.x, HEAD.y, wz + 0.42 + bobz);
+  const L = scr(CX + RX - 0.6, CY - 0.9, wz), Rr = scr(CX + RX - 0.6, CY + 0.9, wz);
+  g.fillStyle = '#76ab66'; g.beginPath(); g.moveTo(L[0], L[1]); g.quadraticCurveTo(p[0] - tw() * 0.2, p[1] - th() * 0.6, p[0], p[1] - th() * 0.2); g.lineTo(p[0], p[1] + th() * 0.4); g.quadraticCurveTo(p[0] - tw() * 0.3, p[1] + th() * 0.9, Rr[0], Rr[1]); g.closePath(); g.fill();
+}
+function drawHead(g) {
+  const G = S.gerald, wz = waterZ(), bobz = Math.sin(V.t * 1.6) * 0.03;
+  const p = scr(HEAD.x, HEAD.y, wz + 0.42 + bobz);
+  // head
+  const R = tw() * 0.85;
+  g.fillStyle = '#7fb56f'; g.beginPath(); g.ellipse(p[0], p[1], R, R * 0.78, -0.25, 0, 6.3); g.fill();
+  g.fillStyle = 'rgba(60,110,50,0.35)'; for (let k = 0; k < 6; k++) { g.beginPath(); g.ellipse(p[0] - R * 0.3 + (k % 3) * R * 0.28, p[1] - R * 0.35 + Math.floor(k / 3) * R * 0.22, R * 0.12, R * 0.08, -0.3, 0, 6.3); g.fill(); }
+  // eye (one visible from this side), blinking, sleepy when moody
+  const blink = (V.t % 4.2) < 0.13, sleepy = G.mood < 35;
+  const ex = p[0] + R * 0.25, ey = p[1] - R * 0.15;
+  g.fillStyle = '#fff'; g.beginPath(); g.ellipse(ex, ey, R * 0.22, blink ? R * 0.02 : R * (sleepy ? 0.1 : 0.2), 0, 0, 6.3); g.fill();
+  if (!blink) { g.fillStyle = '#1b1b1b'; g.beginPath(); g.arc(ex + R * 0.06, ey + R * 0.02, R * (sleepy ? 0.07 : 0.1), 0, 6.3); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(ex + R * 0.1, ey - R * 0.03, R * 0.03, 0, 6.3); g.fill(); }
+  if (sleepy) { g.strokeStyle = '#4e7d43'; g.lineWidth = 2 * V.s; g.beginPath(); g.moveTo(ex - R * 0.24, ey - R * 0.08); g.lineTo(ex + R * 0.24, ey - R * 0.08); g.stroke(); }
+  // mouth: smile when fed, frown when hungry
+  const hun = G.hunger / 100, mx = p[0] + R * 0.45, my = p[1] + R * 0.25;
+  g.strokeStyle = '#2f4f2a'; g.lineWidth = 2.2 * V.s; g.lineCap = 'round'; g.beginPath(); g.moveTo(mx - R * 0.42, my - R * 0.02); g.quadraticCurveTo(mx - R * 0.2, my + R * (0.14 - 0.3 * hun), mx + R * 0.02, my - R * 0.08); g.stroke();
+  // nostril
+  g.fillStyle = '#2f4f2a'; g.beginPath(); g.arc(p[0] + R * 0.82, p[1] - R * 0.02, R * 0.04, 0, 6.3); g.fill();
+  if (G.dive > 0) { g.fillStyle = '#ffd166'; g.font = `${Math.round(18 * V.s)}px ${DISP}`; g.textAlign = 'center'; g.fillText('!!', p[0], p[1] - R * 1.1); }
+  if (G.hunger > 70 && !G.dive) { g.fillStyle = 'rgba(255,255,255,0.9)'; g.font = `${Math.round(12 * V.s)}px ${BODY}`; g.textAlign = 'center'; g.fillText('*rumble*', p[0], p[1] - R * 1.05 - Math.sin(V.t * 6) * 2); }
+}
+
+// ---------------------------------------------------------------------
+// OCEAN, FX
+// ---------------------------------------------------------------------
+function drawOcean(g) {
+  const W = V.W, H = V.H;
+  const n = night();
+  const gr = g.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, shade('#2b8fb3', -0.45 * n)); gr.addColorStop(1, shade('#1a6e93', -0.5 * n));
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  // wave lines scroll toward the tail (Gerald is swimming head-first)
+  const sail = S && S.phase === 'sail', sp = sail ? 0.55 : 0.12;
+  g.strokeStyle = `rgba(255,255,255,${0.16 - 0.08 * n})`; g.lineWidth = 1.5;
+  const off = (V.t * sp) % 1;
+  g.beginPath();
+  for (let k = -6; k < 30; k++) for (let m = -6; m < 30; m += 3) {
+    const x = k - off * 2, y = m + (k % 2) * 1.5;
+    const a = scr(x - 8, y - 8, WATER0), b = scr(x - 7.6, y - 8, WATER0);
+    if (a[0] < -50 || a[0] > W + 50 || a[1] < -20 || a[1] > H + 20) continue;
+    g.moveTo(a[0], a[1]); g.quadraticCurveTo((a[0] + b[0]) / 2, a[1] - 3, b[0], b[1]);
+  }
+  g.stroke();
+  // foam ring around the shell at the waterline
+  g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2.5 * V.s;
+  g.beginPath();
+  for (let k = 0; k <= 64; k++) { const a = k / 64 * Math.PI * 2, x = CX + Math.cos(a) * (RX + 0.62), y = CY + Math.sin(a) * (RY + 0.62); const p = scr(x, y, waterZ() + 0.01 * Math.sin(V.t * 3 + k)); k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }
+  g.stroke();
+  if (sail) { for (const s2 of [-1, 1]) for (let k = 0; k < 9; k++) { const u = k + (V.t * 0.9) % 1, x = CX - RX * 0.85 - u * 0.75, y = CY + s2 * (RY * 0.6 + u * 0.18); const p = scr(x, y, WATER0); g.fillStyle = `rgba(255,255,255,${0.2 * (1 - u / 9)})`; g.beginPath(); g.ellipse(p[0], p[1], tw() * (0.18 + u * 0.02), th() * 0.14, 0, 0, 6.3); g.fill(); } }
+}
+function burst(x, y, z, n, col, spd = 40) { for (let i = 0; i < n; i++) { const [sx, sy] = scr(x, y, z); const a = Math.random() * Math.PI * 2; FXR.parts.push({ x:sx, y:sy, vx:Math.cos(a) * spd * (0.4 + Math.random()), vy:-Math.abs(Math.sin(a)) * spd * (0.6 + Math.random()), life:0.9, col }); } }
+function floatAt(x, y, text, col) { const [sx, sy] = scr(x, y, tileTopSafe(x, y) + 0.6); FXR.floats.push({ x:sx, y:sy, text, col, life:1.6 }); }
+function tileTopSafe(x, y) { return inB(Math.round(x), Math.round(y)) && GRID.inside[idx(Math.round(x), Math.round(y))] ? tileTop(Math.round(x), Math.round(y)) : waterZ(); }
+function fxStep(dt) {
+  V.t += dt; V.shake = Math.max(0, V.shake - dt * 1.5);
+  for (const p of FXR.parts) { p.life -= dt; p.vy += 120 * dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+  FXR.parts = FXR.parts.filter(p => p.life > 0);
+  for (const f of FXR.floats) { f.life -= dt; f.y -= 18 * dt; }
+  FXR.floats = FXR.floats.filter(f => f.life > 0);
+  // citizens wander on dry squares
+  if (S) {
+    const want = Math.min(36, Math.ceil(S.pop / 4));
+    while (FXR.walkers.length < want) { const t = randomDry(); if (!t) break; FXR.walkers.push({ x:t[0], y:t[1], tx:t[0], ty:t[1], c:PASTEL[FXR.walkers.length % PASTEL.length], w:0 }); }
+    if (FXR.walkers.length > want) FXR.walkers.length = want;
+    for (const w of FXR.walkers) {
+      const d = Math.hypot(w.tx - w.x, w.ty - w.y);
+      if (d < 0.05) { w.w -= dt; if (w.w <= 0) { const nx = Math.round(w.x) + Math.floor(Math.random() * 3) - 1, ny = Math.round(w.y) + Math.floor(Math.random() * 3) - 1; if (inB(nx, ny) && GRID.inside[idx(nx, ny)] && !GRID.wet[idx(nx, ny)]) { w.tx = nx + (Math.random() - 0.5) * 0.5; w.ty = ny + (Math.random() - 0.5) * 0.5; } w.w = 0.5 + Math.random() * 2; } }
+      else { const sp2 = Math.min(d, dt * 0.9); w.x += (w.tx - w.x) / d * sp2; w.y += (w.ty - w.y) / d * sp2; }
+      const ri = idx(Math.round(w.x), Math.round(w.y)); if (!inB(Math.round(w.x), Math.round(w.y)) || !GRID.inside[ri] || GRID.wet[ri]) { const t = randomDry(); if (t) { w.x = w.tx = t[0]; w.y = w.ty = t[1]; } }
+    }
+  }
+}
+function randomDry() { for (let k = 0; k < 30; k++) { const x = Math.floor(Math.random() * N), y = Math.floor(Math.random() * N), i = idx(x, y); if (GRID.inside[i] && !GRID.wet[i] && GRID.h[i] > 0.15) return [x, y]; } return null; }
+
+// ---------------------------------------------------------------------
+// FRAME
+// ---------------------------------------------------------------------
+function drawWorld(ui) {
+  const g = V.g; if (!g || !S) return;
+  g.setTransform(V.dpr, 0, 0, V.dpr, 0, 0);
+  viewFit();
+  if (V.shake > 0) g.translate((Math.random() - 0.5) * V.shake * 10, (Math.random() - 0.5) * V.shake * 6);
+  drawOcean(g);
+  // back flippers and tail first
+  drawTail(g); for (const f of FLIPPERS) drawFlipper(g, f); drawNeck(g);
+  // tiles and buildings, back to front
+  const anchors = {};
+  for (const b of Object.values(S.blds)) { const n = b.size; anchors[idx(b.x + n - 1, b.y + n - 1)] = b; }
+  const ghost = ui && ui.ghost;
+  for (let s2 = 0; s2 <= 2 * N - 2; s2++) {
+    for (let x = Math.max(0, s2 - N + 1); x <= Math.min(N - 1, s2); x++) {
+      const y = s2 - x, i = idx(x, y); if (!GRID.inside[i]) continue;
+      drawTile(g, x, y);
+    }
+    // buildings whose front corner is on this diagonal
+    for (let x = Math.max(0, s2 - N + 1); x <= Math.min(N - 1, s2); x++) {
+      const y = s2 - x, b = anchors[idx(x, y)];
+      if (b) drawBuilding(g, b);
+      if (ghost && ghost.x + ghost.size - 1 === x && ghost.y + ghost.size - 1 === y) drawBuilding(g, ghost, true);
+    }
+    // walkers on this diagonal
+    for (const w of FXR.walkers) if (Math.round(w.x + w.y) === s2) { const p = scr(w.x, w.y, tileTopSafe(w.x, w.y)); g.fillStyle = w.c; g.fillRect(p[0] - 1.5 * V.s, p[1] - 6 * V.s, 3 * V.s, 5 * V.s); g.fillStyle = '#f1c9a5'; g.beginPath(); g.arc(p[0], p[1] - 7.5 * V.s, 1.6 * V.s, 0, 6.3); g.fill(); }
+  }
+  // front parts of Gerald
+  drawHead(g);
+  // overlays
+  if (ui) drawOverlays(g, ui);
+  for (const p of FXR.parts) { g.globalAlpha = Math.max(0, p.life); g.fillStyle = p.col; g.beginPath(); g.arc(p.x, p.y, 2.2 * V.s, 0, 6.3); g.fill(); }
+  g.globalAlpha = 1; g.textAlign = 'center';
+  for (const f of FXR.floats) { g.globalAlpha = Math.min(1, f.life); g.font = `${Math.round(13 * Math.max(0.8, V.s))}px ${DISP}`; g.lineWidth = 3; g.strokeStyle = 'rgba(8,30,45,0.85)'; g.strokeText(f.text, f.x, f.y); g.fillStyle = f.col; g.fillText(f.text, f.x, f.y); }
+  g.globalAlpha = 1;
+  // night
+  const nt = night(); if (nt > 0) { g.setTransform(V.dpr, 0, 0, V.dpr, 0, 0); g.fillStyle = `rgba(10,20,50,${0.32 * nt})`; g.fillRect(0, 0, V.W, V.H); }
+}
+function outline(g, x, y, size, z, col, lw = 2) {
+  const n = size || 1, a = scr(x - 0.5, y - 0.5, z), b = scr(x + n - 0.5, y - 0.5, z), c = scr(x + n - 0.5, y + n - 0.5, z), d = scr(x - 0.5, y + n - 0.5, z);
+  g.strokeStyle = col; g.lineWidth = lw * Math.max(1, V.s); g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.lineTo(...c); g.lineTo(...d); g.closePath(); g.stroke();
+}
+function drawOverlays(g, ui) {
+  // rim squares when placing rim things
+  if (ui.tool && BLD[ui.tool] && BLD[ui.tool].rim) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = idx(x, y); if (GRID.rim[i] && !S.tiles[i]) { diamond(g, x, y, Math.max(tileTop(x, y), waterZ()), 0.2); g.fillStyle = ui.tool === 'kelp' ? (GRID.wet[i] ? 'rgba(80,220,120,0.45)' : 'rgba(255,200,80,0.25)') : 'rgba(255,255,255,0.22)'; g.fill(); } }
+  // itch
+  if (S.itch) { const it = S.itch, pulse = 0.5 + 0.5 * Math.sin(V.t * 6); for (let y = it.y - it.r; y <= it.y + it.r; y++) for (let x = it.x - it.r; x <= it.x + it.r; x++) { if (!inB(x, y) || !GRID.inside[idx(x, y)]) continue; const c = scr(x, y, tileTop(x, y)); g.strokeStyle = `rgba(255,93,93,${0.4 + 0.4 * pulse})`; g.lineWidth = 2 * V.s; g.beginPath(); for (let k = 0; k < 5; k++) { const xx = c[0] - 10 * V.s + k * 5 * V.s; g.lineTo(xx, c[1] + (k % 2 ? -3 : 3) * V.s); } g.stroke(); } const c = scr(it.x, it.y, tileTop(it.x, it.y) + 0.6); g.fillStyle = '#ff5d5d'; g.font = `${Math.round(14 * Math.max(0.8, V.s))}px ${DISP}`; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = '#0b2232'; const txt = `ITCH ${Math.max(0, it.t * DAY).toFixed(0)}s`; g.strokeText(txt, c[0], c[1]); g.fillText(txt, c[0], c[1]); }
+  // ranges
+  const showR = (x, y, size, r, col) => { const n = size || 1; for (let yy = y - r; yy <= y + n - 1 + r; yy++) for (let xx = x - r; xx <= x + n - 1 + r; xx++) { if (!inB(xx, yy) || !GRID.inside[idx(xx, yy)]) continue; diamond(g, xx, yy, Math.max(tileTop(xx, yy), waterZ()), 0.08); g.fillStyle = col; g.fill(); } };
+  if (ui.ghost && BLD[ui.ghost.type].r) showR(ui.ghost.x, ui.ghost.y, ui.ghost.size, BLD[ui.ghost.type].r, 'rgba(255,209,102,0.16)');
+  if (ui.sel && S.blds[ui.sel]) { const b = S.blds[ui.sel]; if (BLD[b.type].r) showR(b.x, b.y, b.size, BLD[b.type].r, 'rgba(255,209,102,0.16)'); let z = 0; for (let j = 0; j < b.size; j++) for (let i = 0; i < b.size; i++) z = Math.max(z, tileTop(b.x + i, b.y + j)); outline(g, b.x, b.y, b.size, z, '#ffd166', 2.5); }
+  if (ui.hover) { const { x, y } = ui.hover; const n = ui.ghost ? ui.ghost.size : 1; outline(g, x, y, n, Math.max(tileTop(x, y), waterZ()), ui.bad ? '#ff5d5d' : 'rgba(255,255,255,0.85)', 2); }
+  // predicted flooding for the ghost
+  if (ui.predWet) for (const i of ui.predWet) { const x = i % N, y = (i / N) | 0; const zz = Math.max(tileTop(x, y), waterZ()); diamond(g, x, y, zz, 0.06); g.fillStyle = `rgba(140,230,255,${0.45 + 0.25 * Math.sin(V.t * 6)})`; g.fill(); g.strokeStyle = '#ffffff'; g.lineWidth = 1.5 * Math.max(1, V.s); g.stroke(); }
+}
+// small portrait for buttons and panels
+function iconFor(type) {
+  if (ICONS[type]) return ICONS[type];
+  const c = document.createElement('canvas'); c.width = 112; c.height = 112; const g = c.getContext('2d'); g.scale(2, 2);
+  const save = { s:V.s, ox:V.ox, oy:V.oy, t:V.t };
+  const n = BLD[type].size || 1;
+  V.s = ({ tower:0.3, lighthouse:0.42, hotel:0.5, hall:0.36, bandshell:0.36, fishery:0.5, scratcher:0.55 })[type] || 0.6; V.t = 1.3;
+  const savedT = S.t; S.t = DAY * 0.4;
+  // place a fake flat tile under it (at the centre of the icon)
+  V.ox = 28 - (CX - CY) * tw() / 2 - (n - 1) * 0 ; V.oy = (n === 2 ? 40 : 44) - (CX + CY) * th() / 2;
+  const savedTilt = S.tilt; S.tilt = { x:0, y:0 };
+  const fake = { id:3, type, x:CX - (n - 1) / 2 | 0, y:CY - (n - 1) / 2 | 0, size:n, hp:100, wet:type === 'kelp' ? 1 : 0, fill:6, target:6, working:true, staff:1 };
+  const zc = tileTop(fake.x, fake.y);
+  g.translate(0, zc * hz() - (n === 2 ? 2 : 0));
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { diamond(g, fake.x + i, fake.y + j, zc); g.fillStyle = '#8a6d3b'; g.fill(); }
+  try { drawBuilding(g, fake, false); } catch (e) {}
+  S.tilt = savedTilt; S.t = savedT; Object.assign(V, save);
+  return (ICONS[type] = c.toDataURL());
+}
+const ICONS = {};
+// =====================================================================
+// GERALD'S BACK — interface
+// =====================================================================
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const SPEEDS = [0, 1, 2, 4];
+const U = { speed:1, tool:null, sel:null, hover:null, pend:null, playing:false, modal:null, sound:true, last:0, saveT:0, domT:0, just:null, chartSeen:-1, ghostKey:'', pred:null, cache:{} };
+
+// ---------------------------------------------------------------------
+// SOUND
+// ---------------------------------------------------------------------
+let AC = null, NOISE = null;
+function audio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); const n = AC.sampleRate; NOISE = AC.createBuffer(1, n, n); const d = NOISE.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); }
+function tone(f, t0, dur, type = 'sine', vol = 0.07, f2) {
+  if (!AC || !U.sound) return; const t = AC.currentTime + t0, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function noise(dur, vol, freq, q = 1, t0 = 0, f2) {
+  if (!AC || !U.sound || !NOISE) return; const t = AC.currentTime + t0, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = NOISE; f.type = 'bandpass'; f.frequency.setValueAtTime(freq, t); if (f2) f.frequency.exponentialRampToValueAtTime(f2, t + dur); f.Q.value = q;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + dur + 0.05);
+}
+function sfx(k) {
+  switch (k) {
+    case 'click': tone(660, 0, 0.05, 'triangle', 0.04); break;
+    case 'build': noise(0.12, 0.12, 900, 2); tone(220, 0.02, 0.12, 'square', 0.03, 160); tone(523, 0.09, 0.1, 'triangle', 0.05); break;
+    case 'err': tone(200, 0, 0.14, 'square', 0.04, 150); break;
+    case 'coin': tone(988, 0, 0.07, 'square', 0.035); tone(1319, 0.07, 0.12, 'square', 0.035); break;
+    case 'splash': noise(1.1, 0.2, 700, 0.6, 0, 200); tone(120, 0, 0.8, 'sine', 0.08, 60); break;
+    case 'thump': tone(90, 0, 0.3, 'sine', 0.14, 40); noise(0.25, 0.15, 300, 1); break;
+    case 'horn': tone(146, 0, 0.9, 'sawtooth', 0.04); tone(110, 0, 0.9, 'sawtooth', 0.035); break;
+    case 'alarm': tone(880, 0, 0.12, 'square', 0.04); tone(660, 0.14, 0.12, 'square', 0.04); break;
+    case 'paper': noise(0.18, 0.08, 3000, 0.8); break;
+    case 'polite': tone(523, 0, 0.1, 'triangle', 0.05); tone(659, 0.08, 0.1, 'triangle', 0.05); tone(784, 0.16, 0.16, 'triangle', 0.05); break;
+    case 'win': [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.13, 0.3, 'triangle', 0.06)); break;
+    case 'lose': [392, 330, 262, 196].forEach((f, i) => tone(f, i * 0.18, 0.35, 'triangle', 0.06)); break;
+  }
+}
+
+// ---------------------------------------------------------------------
+// ICONS (inline SVG)
+// ---------------------------------------------------------------------
+const SVG = {
+  clam:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15c0-5.5 4-10 9-10s9 4.5 9 10z" fill="#f3d98b"/><path d="M12 5.5V15M7.5 7.5L10 15M16.5 7.5L14 15M4.8 10.5L8 15M19.2 10.5L16 15" stroke="#c9a54e" stroke-width="1.4"/><rect x="4" y="15" width="16" height="4" rx="2" fill="#c9a54e"/></svg>',
+  pop:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7.5" r="3.2" fill="#f4a6b8"/><path d="M3.5 20c0-4.5 2.5-7 5.5-7s5.5 2.5 5.5 7z" fill="#f4a6b8"/><circle cx="16.5" cy="9" r="2.6" fill="#a9cbf5"/><path d="M12.5 20c.3-3.8 2-5.6 4-5.6s4 1.8 4 5.6z" fill="#a9cbf5"/></svg>',
+  fish:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12c3.2-5 10.5-6 14.5 0-4 6-11.3 5-14.5 0z" fill="#7fb3d5"/><path d="M16.5 12l5.5-4.5v9z" fill="#5d97c0"/><circle cx="7" cy="11" r="1.3" fill="#0f2b3d"/></svg>',
+  kelp:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 22c-2.5-6 3-8.5 0-15 3 2.5 4.5 7 2 15M15 22c3-5.5-2-9.5 2-17 2 4.5 0 9.5 0 17" stroke="#4caf7a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>',
+  goods:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v10l-8 4-8-4V7z" fill="#c4553f"/><path d="M12 11l8-4M12 11L4 7M12 11v10" stroke="#7d2a1b" stroke-width="1.4" fill="none"/><path d="M8 5l8 4" stroke="#f3d98b" stroke-width="1.6"/></svg>',
+  happy:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffd166"/><circle cx="9" cy="10" r="1.3" fill="#33281a"/><circle cx="15" cy="10" r="1.3" fill="#33281a"/><path d="M8 14c2 2.5 6 2.5 8 0" stroke="#33281a" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>',
+  scales:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5v22M8 27h16M6 9h20" stroke="#f3d98b" stroke-width="2.4" stroke-linecap="round"/><path d="M6 9l-4 9h8zM26 9l-4 9h8z" fill="#f3d98b" opacity=".8"/></svg>',
+  camera:'<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="10" width="24" height="16" rx="3" fill="#ff9fb5"/><rect x="11" y="6" width="10" height="6" rx="2" fill="#ff9fb5"/><circle cx="16" cy="18" r="5" fill="#16384d"/><circle cx="16" cy="18" r="2.4" fill="#5ec8ff"/></svg>',
+  scroll:'<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="6" width="18" height="20" rx="2" fill="#a9cbf5"/><path d="M11 12h10M11 16h10M11 20h6" stroke="#16384d" stroke-width="2" stroke-linecap="round"/><circle cx="7" cy="9" r="3" fill="#7fa9d8"/><circle cx="25" cy="23" r="3" fill="#7fa9d8"/></svg>',
+  anchor:'<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="7" r="3" stroke="#b8c4cc" stroke-width="2.4" fill="none"/><path d="M16 10v17M10 15h12M6 19c1 5 5 8 10 8s9-3 10-8" stroke="#b8c4cc" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>',
+  cloud:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 21a6 6 0 010-12 8 8 0 0115 2 5 5 0 010 10z" fill="#9aa8b2"/><path d="M16 21l-3 6h4l-2 4" stroke="#ffd166" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  star:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l3.8 8.2 9 1-6.7 6.1 1.9 8.8L16 22.6l-8 4.5 1.9-8.8L3.2 12.2l9-1z" fill="#ffd166"/></svg>',
+  forest:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 29c-3-8 4-11 0-20 4 3 6 9 3 20M17 29c4-7-3-12 2-22 3 6 0 12 0 22M24 29c-2-6 3-8 0-14 3 2 4 6 2 14" stroke="#4caf7a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'
+};
+const ISLE_ICON = { market:'scales', forest:'forest', tourist:'camera', bazaar:'scroll', wreck:'anchor', storm:'cloud', reef:'star' };
+
+// ---------------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------------
+function toast(text, k = '') { const t = document.createElement('div'); t.className = 'toast ' + k; t.textContent = text; const box = $('toasts'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), 3600); }
+function setHTML(el, html) { if (U.cache[el.id] !== html) { U.cache[el.id] = html; el.innerHTML = html; } }
+function sgn(v, d = 0) { const r = Math.round(v * 10 ** d) / 10 ** d; return (r > 0 ? '+' : r < 0 ? '−' : '±') + Math.abs(r).toFixed(d); }
+function sideName(T) { if (Math.hypot(T.x, T.y) < 0.05) return 'level'; return Math.abs(T.x) > Math.abs(T.y) ? (T.x > 0 ? 'head end' : 'tail end') : (T.y > 0 ? 'right flank' : 'left flank'); }
+function anchorOf(type, t) { const n = BLD[type].size || 1; return { x:t.x - (n - 1), y:t.y - (n - 1) }; }
+function eventuallyWeighs(type) { const d = BLD[type]; return type === 'ballast' ? 0 : d.w + (d.house ? d.house / 10 : 0); }
+function ghostTilt(type, x, y) { const n = BLD[type].size || 1; return tiltFor(massCentre({ w:eventuallyWeighs(type), x:x + (n - 1) / 2, y:y + (n - 1) / 2 })); }
+// which squares would be underwater in calm water at a given tilt
+function calmWet(T, wall) {
+  const out = new Set();
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const i = idx(x, y); if (!GRID.inside[i]) continue;
+    let wb = wallBonus(x, y); if (!wb && wall && Math.abs(wall.x - x) <= 1 && Math.abs(wall.y - y) <= 1) wb = 0.25;
+    if (GRID.h[i] + wb < WATER0 + WATER_TILT * (T.x * GRID.nx[i] + T.y * GRID.ny[i])) out.add(i);
+  }
+  return out;
+}
+function works(b) { const d = BLD[b.type]; const wet = isWet(b); return d.wet ? wet : (!wet || ['fishery', 'lighthouse'].includes(b.type)); }
+function econ() {
+  const workers = Math.floor(S.pop * 0.6); let jobs = 0; const act = [];
+  for (const b of Object.values(S.blds)) { const d = BLD[b.type]; if (!d.jobs || b.hp <= 0) continue; if (!works(b)) continue; jobs += d.jobs; act.push(b); }
+  const staff = jobs ? Math.min(1, workers / jobs) : 0, m = { fish:0, kelp:0, goods:0 };
+  for (const b of act) { const o = BLD[b.type].out; if (o) for (const k in o) m[k] += o[k] * staff; }
+  let goodsPop = 0, up = 0; for (const b of Object.values(S.blds)) { if (BLD[b.type].goods && b.hp > 0) goodsPop += BLD[b.type].house; up += (BLD[b.type].cost || 0) * 0.012; }
+  const eat = S.pop * 0.25, app = geraldAppetite(), fishNet = m.fish - eat;
+  const kelpNet = m.kelp - app - S.kelp * 0.04 - (S.fish < 1 && fishNet < 0 ? -fishNet : 0);
+  const tax = S.pop * (0.5 + S.hap / 100) * S.taxMod;
+  return { m, staff, jobs, workers, fishNet, kelpNet, goodsNet:m.goods - goodsPop * 0.08, goodsPop, clamNet:tax - up, tax, up, app, H:housing() };
+}
+// when the turtle isn't swimming the city still settles: the shell leans, ballast fills
+function idle(dt) {
+  const T = tiltFor(massCentre()); S.tiltT = T;
+  const k = 1 - Math.exp(-dt / 3); S.tilt.x += (T.x - S.tilt.x) * k; S.tilt.y += (T.y - S.tilt.y) * k;
+  for (const b of Object.values(S.blds)) { if (b.type === 'ballast') { const r = 20 * dt / DAY; b.fill += clamp(b.target - b.fill, -r, r); } }
+  computeWater();
+  for (const b of Object.values(S.blds)) { b.wet = isWet(b) ? (b.wet || 0.01) : 0; if (BLD[b.type].jobs) b.working = works(b); }
+  S.rate.housing = housing(); S.hap = cityHappiness();
+  if (S.pop > S.rate.housing) S.pop = S.rate.housing;
+}
+function happyBits(b) {
+  const d = BLD[b.type], out = [['Base', 55]];
+  const parks = inRange(b, 'park', 2) * 8, st = inRange(b, 'statue', 2) * 12, bs = inRange(b, 'bandshell', 3) * 12;
+  const amen = Math.min(30, parks + st + bs); if (amen) out.push(['Parks, statues, music nearby', amen]);
+  if (inRange(b, 'workshop', 1)) out.push(['Noisy workshop next door', -12]);
+  if (b.wet > 0) out.push(['Underwater', -35]);
+  if (S.rate.starving) out.push(['Not enough food', -20]);
+  if (d.goods && S.rate.goodsOk === false) out.push(['No Goods', -12]);
+  const tl = Math.round(Math.hypot(S.tilt.x, S.tilt.y) * 25); if (tl) out.push(['The tilt', -tl]);
+  if (S.gerald.hunger > 70) out.push(['Gerald\'s stomach rumbling', -8]);
+  const m = Math.round(modSum('hap')); if (m) out.push(['Recent news', m]);
+  return out;
+}
+
+// ---------------------------------------------------------------------
+// MODALS
+// ---------------------------------------------------------------------
+function openModal(html, o = {}) {
+  const tb = $('toasts'); if (tb) tb.innerHTML = '';
+  const w = $('ovWrap'); w.innerHTML = `<div class="ov"><div class="modal ${o.cls || ''}" role="dialog" aria-modal="true" aria-label="${esc(o.label || 'Dialog')}">${html}</div></div>`;
+  U.modal = { kind:o.kind || 'x', closable:!!o.closable, pause:!!o.pause };
+  const f = w.querySelector('[data-focus]') || w.querySelector('button:not(:disabled)'); if (f) try { f.focus({ preventScroll:true }); } catch (e) {}
+}
+function closeModal() { $('ovWrap').innerHTML = ''; U.modal = null; }
+function rerender(kind) { if (U.modal && U.modal.kind === kind) ({ port:portModal, chart:chartModal })[kind](); }
+
+function titleModal() {
+  const can = hasSave();
+  openModal(`<div class="title">
+    <div class="logo">GERALD'S<span>BACK</span></div>
+    <p class="tag">A whole city on the shell of a sea turtle.<br>The turtle has not been told.</p>
+    <div class="foot">${can ? '<button type="button" class="btn" data-act="cont" data-focus>Continue voyage</button>' : ''}
+      <button type="button" class="btn ${can ? 'alt' : ''}" data-act="new" ${can ? '' : 'data-focus'}>New voyage</button>
+      <button type="button" class="btn alt" data-act="help">How to play</button></div>
+    <p class="mute" style="margin-top:14px;font-size:12px">Saves automatically in this browser.</p></div>`, { kind:'title', pause:true, label:'Title' });
+}
+function helpModal(then) {
+  U.helpThen = then || null;
+  openModal(`<h1>How to run a city on a turtle</h1>
+    <ul class="help">
+      <li><b>Everything weighs something.</b> The shell leans toward the heavy side, and the sea comes up over the low edge. Flooded homes are miserable; buildings left underwater rot into rubble. Lean past 16° for 15 seconds and Gerald rolls over.</li>
+      <li><b>Watch the spirit level</b> (top left). The bubble floats to the high side. While you're placing something it shows where the bubble <i>will</i> go, and the blue squares show what would flood.</li>
+      <li><b>Ballast Tanks</b> can be filled and drained to fix a lean. Seawalls keep the water off the squares around them.</li>
+      <li><b>Kelp only grows underwater.</b> Kelp farms go on the rim and need a slight lean toward them. So you don't want the shell perfectly flat. You want it <i>just</i> wrong enough.</li>
+      <li><b>Gerald eats kelp</b>, more as the city grows. Hungry Gerald is slow and grumpy; starving Gerald dives for food and the whole city goes under for a moment.</li>
+      <li><b>Gerald gets itches.</b> A Back Scratcher within 3 squares deals with it politely. Otherwise he uses a flipper.</li>
+      <li><b>The voyage:</b> ten stops to Turtle Retirement Reef. In port you trade, take in new residents and buy blueprints, then choose the next island on the sea chart.</li>
+      <li><b>Controls:</b> pick a building, then click a square (on a touchscreen, tap twice). Click a building to inspect it. Drag to pan, scroll or pinch to zoom. Space pauses; 1, 2 and 3 set the speed; Esc cancels.</li>
+    </ul>
+    <div class="foot"><button type="button" class="btn" data-act="helpDone" data-focus>Got it</button></div>`, { kind:'help', closable:true, pause:true, label:'How to play' });
+}
+function menuModal() {
+  openModal(`<h1>Menu</h1>
+    <p class="mute">Stop ${S.stop + 1} of ${LEGS}. Day ${S.day + 1}. The voyage saves automatically.</p>
+    <div class="foot" style="justify-content:flex-start">
+      <button type="button" class="btn" data-act="close" data-focus>Back to the city</button>
+      <button type="button" class="btn alt" data-act="help">How to play</button>
+      <button type="button" class="btn alt" data-act="sound">Sound: ${U.sound ? 'on' : 'off'}</button>
+      <button type="button" class="btn alt" data-act="restartAsk">Start a new voyage</button>
+    </div>`, { kind:'menu', closable:true, pause:true, label:'Menu' });
+}
+function restartAsk() {
+  openModal(`<h1>Abandon this voyage?</h1><p>The city will be lost. Gerald will be fine either way.</p>
+    <div class="foot"><button type="button" class="btn alt" data-act="close" data-focus>Keep going</button><button type="button" class="btn" data-act="new">New voyage</button></div>`, { kind:'confirm', closable:true, pause:true, label:'Confirm' });
+}
+function routeDots() { let h = ''; for (let i = 0; i < LEGS; i++) h += `<i class="${i < S.stop ? 'done' : i === S.stop ? 'now' : ''}" title="Stop ${i + 1}"></i>`; return h; }
+function chartModal() {
+  const opts = S.options.map((o, i) => {
+    const I = ISLANDS[o.type], len = o.type === 'storm' ? 2 : 3;
+    return `<button type="button" class="opt" data-act="sail" data-arg="${i}">${SVG[ISLE_ICON[o.type]]}<span class="ty">${esc(I.n)}</span><b>${esc(o.name)}</b><p>${esc(I.d)}</p><span class="len">${o.type === 'reef' ? 'The final leg' : len + ' days' + (o.type === 'storm' ? ', rough seas' : '')}</span></button>`;
+  }).join('');
+  const e = econ();
+  const kelpDays = e.kelpNet < 0 ? S.kelp / -e.kelpNet : Infinity;
+  openModal(`<h1>Sea chart</h1><p class="mute">Leg ${S.stop + 1} of ${LEGS}. Where should Gerald swim next? He will mostly go where he's told.</p>
+    <div class="route" aria-label="Route">${routeDots()}</div>
+    <div class="opts">${opts}</div>
+    ${kelpDays < 3 ? `<p class="warn" style="margin-top:10px">Kelp will run out in about ${kelpDays.toFixed(1)} days at this rate. Gerald gets hungry without it.</p>` : ''}
+    <div class="foot"><button type="button" class="btn alt" data-act="close">Keep building first</button></div>`, { kind:'chart', closable:true, label:'Sea chart' });
+}
+function portModal() {
+  const P = S.port; if (!P) return;
+  const I = ISLANDS[P.type], room = Math.max(0, housing() - S.pop - S.immig);
+  let arrive = '';
+  if (P.type === 'forest') arrive = 'Gerald ate until he couldn\'t eat any more. He looks very pleased. +40 Kelp for the city.';
+  if (P.type === 'tourist') arrive = P.hotelPay ? `Your hotels earned <b>${fmt(P.hotelPay)} Clams</b> while docked.` : 'Tourists everywhere, and no hotels to put them in. Build a Hotel (from a Blueprint Bazaar) to earn here.';
+  if (P.type === 'wreck') arrive = `Salvage crews recovered <b>${fmt(P.salvage)} Clams</b> of slightly damp valuables.`;
+  if (P.type === 'storm') arrive = 'You made it through. There\'s a soggy trading post here, and not much else.';
+  if (P.type === 'market') arrive = 'Best prices on the route for Goods and fish.';
+  if (P.type === 'bazaar') arrive = 'The architects are offering two blueprints. The first one is free; the second costs 80 Clams.';
+  const rows = ['fish', 'kelp', 'goods'].map(k => {
+    const have = Math.floor(S[k]), pr = I.sell[k];
+    return `<div class="nm">${SVG[k]}<span>${k[0].toUpperCase() + k.slice(1)} <span class="mute">(${fmt(have)})</span><small class="pr">${pr} Clam${pr === 1 ? '' : 's'} each</small></span></div>
+      <button type="button" class="btn alt sm" data-act="sell" data-arg="${k}:10" ${have < 1 ? 'disabled' : ''}>Sell ${have >= 1 ? Math.min(10, have) : 10}</button>
+      <button type="button" class="btn alt sm" data-act="sell" data-arg="${k}:${have}" ${have < 1 ? 'disabled' : ''}>Sell all</button>`;
+  }).join('');
+  const kp = I.buy.kelp, app = Math.round(geraldAppetite());
+  let imm;
+  if (P.done.immig) imm = `<p class="good">${P.took} new residents moved aboard.</p>`;
+  else { const afford = P.immigCost ? Math.floor(Math.max(0, S.clams) / P.immigCost) : Infinity, n = Math.min(P.immig, room, afford), c = n * P.immigCost; imm = `<p>${P.immig} people want to move to a city on a turtle${P.immigCost ? ` (${P.immigCost} Clams each for paperwork)` : ', for free'}. You have room for <b>${room}</b>.</p>
+    <button type="button" class="btn kelp" data-act="immig" ${n <= 0 ? 'disabled' : ''}>${room <= 0 ? 'No room: build homes first' : n <= 0 ? 'Not enough Clams' : `Welcome ${n} aboard${c ? ` (${c} Clams)` : ''}`}</button>`; }
+  let plans = '';
+  if (P.plans) plans = `<h3>Blueprints</h3>${P.plans.length ? `<div class="plans">${P.plans.map(k => { const d = BLD[k], own = S.unlocked[k]; return `<div class="plan"><img src="${iconFor(k)}" alt=""><b>${esc(d.n)}</b><span class="mute">${d.cost} Clams · weight ${d.w}</span><p>${esc(d.d)}</p><button type="button" class="btn sm ${own ? 'alt' : ''}" data-act="plan" data-arg="${k}" ${own ? 'disabled' : ''}>${own ? 'Yours' : P.freePlan ? 'Take it (free)' : 'Buy (80 Clams)'}</button></div>`; }).join('')}</div>` : '<p class="mute">You already own every blueprint they have. They seem a bit put out.</p>'}`;
+  openModal(`<div class="row" style="gap:12px">${SVG[ISLE_ICON[P.type]].replace('<svg', '<svg width="44" height="44"')}<div><h1 style="margin:0">${esc(P.name)}</h1><span class="mute">${esc(I.n)} · stop ${S.stop} of ${LEGS}</span></div></div>
+    <div class="arrive">${arrive}</div>
+    <h3>Market</h3><div class="trade">${rows}</div>
+    <div class="row" style="margin-top:10px"><span>Buy kelp at ${kp} Clams each:</span>
+      <button type="button" class="btn alt sm" data-act="buyk" data-arg="10" ${S.clams < 10 * kp ? 'disabled' : ''}>+10 (${10 * kp})</button>
+      <button type="button" class="btn alt sm" data-act="buyk" data-arg="30" ${S.clams < 30 * kp ? 'disabled' : ''}>+30 (${30 * kp})</button></div>
+    <p class="mute" style="font-size:12px">Gerald eats about ${app} kelp a day now. You have ${fmt(S.kelp)}. Clams: ${fmt(S.clams)}.</p>
+    <h3>New residents</h3>${imm}
+    ${plans}
+    <div class="foot"><button type="button" class="btn alt" data-act="close">Keep building</button><button type="button" class="btn" data-act="castoff" data-focus>Cast off</button></div>`, { kind:'port', closable:true, label:'Port' });
+}
+function eventModal() {
+  const e = EVENTS.find(x => x.id === S.event); if (!e) return;
+  openModal(`<div class="mast">THE SHELL GAZETTE<small>Special edition · Day ${S.day + 1} · Price: one clam</small></div>
+    <h1>${esc(e.t)}</h1><p>${esc(e.d)}</p>
+    <div class="foot"><button type="button" class="btn alt" data-act="ev" data-arg="b">${esc(e.b[0])}</button><button type="button" class="btn" data-act="ev" data-arg="a" data-focus>${esc(e.a[0])}</button></div>`, { kind:'event', cls:'paper', label:'News' });
+}
+function eventResult(text) {
+  openModal(`<div class="mast">THE SHELL GAZETTE<small>Late edition · Day ${S.day + 1}</small></div><h1>${esc(text)}</h1>
+    <div class="foot"><button type="button" class="btn" data-act="close" data-focus>Carry on</button></div>`, { kind:'evres', cls:'paper', closable:true, pause:true, label:'News' });
+}
+function overModal() {
+  const why = S.over, st = S.stats;
+  let head, body;
+  if (why === 'win') { const r = rating(); head = `<h1>Welcome to the Reef</h1><p>Gerald drifts into Turtle Retirement Reef and settles on the sand. The city cheers. Gerald, for the first time, notices the city. He seems okay with it.</p><div class="rank">${r.title}</div><p class="score">Score ${fmt(r.score)} · ${esc(r.line)}</p>`; }
+  else if (why === 'capsize') head = '<h1>Gerald rolled over</h1><p>He\'s fine. He\'s a turtle; he rolled back. The city is now an artificial reef, which the fish say is lovely.</p>';
+  else head = '<h1>The city is empty</h1><p>Everyone has moved to a nicer turtle. Gerald swims on, lighter, and slightly relieved.</p>';
+  body = `<div class="stats"><div><b>${fmt(S.pop)}</b><small>residents</small></div><div><b>${Math.round(S.hap)}%</b><small>happiness</small></div><div><b>${S.day + 1}</b><small>days at sea</small></div><div><b>${S.stop}/${LEGS}</b><small>stops reached</small></div><div><b>${st.dives}</b><small>emergency dives</small></div><div><b>${st.scratches}</b><small>flipper scratches</small></div><div><b>${st.ruined}</b><small>buildings lost</small></div><div><b>${fmt(st.maxPop)}</b><small>peak population</small></div></div>`;
+  openModal(head + body + '<div class="foot"><button type="button" class="btn" data-act="new" data-focus>Sail again</button></div>', { kind:'over', label:'Voyage over' });
+}
+
+// ---------------------------------------------------------------------
+// ACTIONS
+// ---------------------------------------------------------------------
+const ACTS = {
+  new() { newGame(); U.playing = true; U.tool = null; U.sel = null; U.chartSeen = -1; FXR.walkers = []; V.zoom = 1; V.px = V.py = 0; S.clams = Math.round(S.clams); save(); let seen = false; try { seen = !!localStorage.getItem('geralds_back_seen'); localStorage.setItem('geralds_back_seen', '1'); } catch (e) {} if (!seen) helpModal(() => chartModal()); else chartModal(); sfx('horn'); },
+  cont() { U.playing = true; closeModal(); resumePhase(); },
+  help() { const back = U.modal && U.modal.kind; helpModal(back === 'title' ? titleModal : back === 'menu' ? menuModal : null); },
+  helpDone() { const t = U.helpThen; closeModal(); if (t) t(); else resumePhase(); },
+  close() { closeModal(); },
+  sound() { U.sound = !U.sound; try { localStorage.setItem('geralds_back_sound', U.sound ? '1' : '0'); } catch (e) {} menuModal(); },
+  restartAsk() { restartAsk(); },
+  sail(i) { setSail(+i); closeModal(); sfx('horn'); U.chartSeen = -1; },
+  sell(a) { const [k, n] = a.split(':'); const before = S.clams; const err = sell(k, +n); if (err) { toast(err, 'bad'); sfx('err'); } else { sfx('coin'); toast(`Sold for ${fmt(S.clams - before)} Clams.`, 'good'); } portModal(); },
+  buyk(n) { const err = buyKelp(+n); if (err) { toast(err, 'bad'); sfx('err'); } else sfx('coin'); portModal(); },
+  immig() { const err = takeImmigrants(); if (err) { toast(err, 'bad'); sfx('err'); } else { sfx('polite'); } portModal(); },
+  plan(k) { const err = buyPlan(k); if (err) { toast(err, 'bad'); sfx('err'); } else { sfx('polite'); toast(`New blueprint: ${BLD[k].n}.`, 'good'); buildPalette(); } portModal(); },
+  castoff() { leavePort(); chartModal(); sfx('click'); },
+  ev(w) { const e = EVENTS.find(x => x.id === S.event); const err = chooseEvent(w); if (err) { toast(err, 'bad'); sfx('err'); return; } sfx('paper'); eventResult(S.log[0] ? S.log[0].text : (e ? e.t : '')); buildPalette(); },
+  openPort() { portModal(); },
+  openChart() { chartModal(); },
+  tool(k) { if (!U.playing || S.over) return; if (!S.unlocked[k]) { toast('You need the blueprint for that. Blueprint Bazaars sell them.', 'warn'); sfx('err'); return; } U.tool = U.tool === k ? null : k; U.sel = null; U.pend = null; sfx('click'); buildPalette(); },
+  cancel() { U.tool = null; U.pend = null; buildPalette(); },
+  repair(id) { const err = repair(+id); if (err) { toast(err, 'bad'); sfx('err'); } else sfx('build'); },
+  demolish(id) {
+    const b = S.blds[+id]; if (!b) return;
+    if (U.just && U.just.id === b.id && performance.now() - U.just.at < 15000) { S.clams += BLD[b.type].cost; removeB(b.id); U.just = null; U.sel = null; sfx('click'); toast('Never mind. Full refund.'); return; }
+    const err = demolish(+id); if (err) { toast(err, 'bad'); sfx('err'); } else { burst(b.x, b.y, tileTopSafe(b.x, b.y), 14, '#b8a98f'); sfx('thump'); U.sel = null; }
+  },
+  bal(a) { const [id, v] = a.split(':'); setBallast(+id, +v); sfx('click'); },
+  zin() { zoomAt(V.W / 2, V.H / 2, V.zoom * 1.35); },
+  zout() { zoomAt(V.W / 2, V.H / 2, V.zoom / 1.35); },
+  zfit() { V.zoom = 1; V.px = V.py = 0; }
+};
+function resumePhase() {
+  if (!S || !U.playing) return;
+  if (S.phase === 'event') eventModal();
+  else if (S.phase === 'port') portModal();
+  else if (S.phase === 'chart') chartModal();
+  else if (S.phase === 'over') overModal();
+}
+function onAct(e) {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  audio(); const f = ACTS[el.dataset.act]; if (f) f(el.dataset.arg);
+}
+
+// ---------------------------------------------------------------------
+// ENGINE EVENTS
+// ---------------------------------------------------------------------
+function handlePending() {
+  if (!S.pending.length) return;
+  const list = S.pending.splice(0);
+  for (const p of list) {
+    switch (p.type) {
+      case 'warn': toast(p.text, 'bad'); sfx('alarm'); break;
+      case 'ruin': burst(p.x, p.y, tileTopSafe(p.x, p.y), 16, '#8b8378'); floatAt(p.x, p.y, 'RUINED', '#ff5d5d'); sfx('thump'); if (U.sel && !S.blds[U.sel]) U.sel = null; break;
+      case 'dive': V.shake = 1.6; sfx('splash'); toast('Gerald dove for a snack. Everyone got very wet.', 'bad'); break;
+      case 'itch': sfx('alarm'); toast(`Gerald has an itch near ${where(p.x, p.y)}. A Back Scratcher within 3 squares will handle it.`, 'warn'); break;
+      case 'polite': floatAt(p.x, p.y, 'AHHH', '#6fe0a0'); sfx('polite'); break;
+      case 'scratch': V.shake = 1.2; burst(p.x, p.y, tileTopSafe(p.x, p.y), 24, '#7fb56f', 70); sfx('thump'); toast('Gerald scratched with his flipper. Nearby buildings took a beating.', 'bad'); break;
+      case 'shake': V.shake = Math.max(V.shake, 0.9); sfx('thump'); break;
+      case 'unlock': toast(`New blueprint: ${BLD[p.k].n}.`, 'good'); buildPalette(); break;
+      case 'port': sfx('horn'); portModal(); break;
+      case 'event': sfx('paper'); eventModal(); break;
+      case 'over': wipeSave(); U.tool = null; sfx(S.over === 'win' ? 'win' : 'lose'); overModal(); break;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------
+// HUD
+// ---------------------------------------------------------------------
+function buildPalette() {
+  const h = PALETTE.map(k => {
+    const d = BLD[k], lock = !S.unlocked[k], poor = S.clams < d.cost;
+    return `<button type="button" class="pb ${U.tool === k ? 'on' : ''} ${lock ? 'locked' : ''} ${poor && !lock ? 'poor' : ''}" data-act="tool" data-arg="${k}" title="${esc(d.d)}" aria-pressed="${U.tool === k}"><img src="${iconFor(k)}" alt=""><span class="nm">${esc(d.n)}</span><span class="st">${lock ? 'Blueprint needed' : `<span class="c">${d.cost}c</span><span class="w">wt ${k === 'ballast' ? '0–10' : d.w}</span>${d.rim ? '<span>rim</span>' : ''}`}</span></button>`;
+  }).join('');
+  setHTML($('pal'), h);
+}
+function meterClass(v) { return v < 30 ? 'low' : v < 55 ? 'mid' : ''; }
+function hud() {
+  const e = econ();
+  const r = (ico, val, small, cls, title) => `<div class="r ${cls || ''}" title="${esc(title)}">${SVG[ico]}<b>${val}</b>${small ? `<small>${small}</small>` : ''}</div>`;
+  const perDay = v => `${sgn(v)}/day`;
+  setHTML($('res'),
+    r('clam', fmt(S.clams), perDay(e.clamNet), S.clams < 0 ? 'neg' : '', `Clams. Taxes ${e.tax.toFixed(0)}/day, upkeep ${e.up.toFixed(0)}/day.`) +
+    r('pop', `${fmt(S.pop)}<span style="font-size:11px;color:var(--mute)">/${e.H}</span>`, '', S.pop >= e.H && e.H ? 'low' : '', `Residents / room in homes. Workers: ${e.workers}, jobs: ${e.jobs}.`) +
+    r('fish', fmt(S.fish), perDay(e.fishNet), S.fish < 10 && e.fishNet < 0 ? 'low' : '', `Fish. Everyone eats a quarter-fish a day (kelp if the fish runs out).`) +
+    r('kelp', fmt(S.kelp), perDay(e.kelpNet), S.kelp < e.app * 1.5 ? 'low' : '', `Kelp. Gerald eats ${e.app.toFixed(0)} a day. It wilts a little each day.`) +
+    r('goods', fmt(S.goods), e.goodsPop || e.m.goods ? perDay(e.goodsNet) : '', e.goodsPop && S.goods < 5 && e.goodsNet < 0 ? 'low' : '', 'Goods. Townhouses and Shell Towers need them; ports buy them.') +
+    r('happy', Math.round(S.hap) + '%', '', S.hap < 40 ? 'low' : '', 'Average happiness in homes. Above 50% people move in; below 30% they leave.'));
+  $('hDay').textContent = `Day ${S.day + 1}`;
+  document.querySelectorAll('.speed button').forEach(b => b.classList.toggle('on', +b.dataset.sp === U.speed));
+  // Gerald
+  const G = S.gerald, full = 100 - G.hunger;
+  const fb = $('gFull'), mb = $('gMood'); fb.style.width = full + '%'; fb.className = meterClass(full); mb.style.width = G.mood + '%'; mb.className = meterClass(G.mood);
+  let note = '', bad = false;
+  if (G.dive > 0) { note = 'About to dive for food!'; bad = true; }
+  else if (S.itch) { note = `Itchy near ${where(S.itch.x, S.itch.y)}: ${Math.max(0, S.itch.t * DAY).toFixed(0)}s`; bad = !scratcherCovers(S.itch.x, S.itch.y); }
+  else if (G.hunger > 70) { note = 'Starving. Needs kelp now.'; bad = true; }
+  else if (G.mood < 35) note = 'Sulking. Swimming slowly.';
+  else note = `Eats ${e.app.toFixed(0)} kelp a day.`;
+  const gn = $('gNote'); gn.textContent = note; gn.className = 'gnote' + (bad ? ' bad' : '');
+  // voyage
+  let v = '';
+  if (S.phase === 'sail' && S.leg) { const L = S.leg, p = clamp(L.prog / L.len, 0, 1); v = `<div class="vstops">${routeDots()}</div><span class="vtxt">To <b>${esc(L.to.name)}</b></span><span class="vbar"><b style="width:${(p * 100).toFixed(1)}%"></b></span><span class="vtxt mute">${Math.max(0, L.len - L.prog).toFixed(1)} days</span>`; }
+  else if (S.phase === 'chart') v = `<div class="vstops">${routeDots()}</div><span class="vtxt">Waiting for orders</span><button type="button" class="btn sm" data-act="openChart">Sea chart</button>`;
+  else if (S.phase === 'port' && S.port) v = `<span class="vtxt">Docked at <b>${esc(S.port.name)}</b></span><button type="button" class="btn alt sm" data-act="openPort">Port</button><button type="button" class="btn sm" data-act="castoff">Cast off</button>`;
+  else if (S.phase === 'event') v = '<span class="vtxt">Stop the presses</span><button type="button" class="btn sm" data-act="openEvent">Read it</button>';
+  setHTML($('voy'), v);
+  inspector(e);
+  // feed
+  setHTML($('feed'), S.log.slice(0, 40).map(l => `<li class="${l.k}"><small>Day ${l.d + 1}</small>${esc(l.text)}</li>`).join(''));
+  buildPalette();
+}
+ACTS.openEvent = () => eventModal();
+function inspector(e) {
+  let h = '';
+  const b = U.sel && S.blds[U.sel];
+  if (U.tool) {
+    const d = BLD[U.tool];
+    h = `<div class="hd"><img src="${iconFor(U.tool)}" alt=""><div><b>${esc(d.n)}</b><small>${d.cost} Clams · weight ${U.tool === 'ballast' ? '0 to 10' : d.w}${d.house ? ` (+${d.house / 10} once people move in)` : ''}</small></div></div><p>${esc(d.d)}</p>
+      <p>${d.rim ? 'Goes on the rim (the highlighted edge squares). ' : ''}Click a square to build${matchMedia('(pointer: coarse)').matches ? ' (tap twice to confirm)' : ''}. Keep building as long as you like.</p>
+      <div class="acts"><button type="button" class="btn alt sm" data-act="cancel">Done building</button></div>`;
+  } else if (b) {
+    const d = BLD[b.type], max = d.hp || 100, wet = b.wet > 0;
+    const facts = [['Weight', weightOf(b).toFixed(1)], ['Condition', `<span class="${b.hp < max * 0.5 ? 'bad' : ''}">${Math.round(b.hp / max * 100)}%</span>`]];
+    if (wet) facts.push(['Status', `<span class="bad">Underwater${['kelp', 'fishery', 'seawall', 'lighthouse', 'rubble', 'ballast'].includes(b.type) ? '' : ': rotting'}</span>`]);
+    if (d.house) { facts.push(['Residents', `room for ${d.goods && S.rate.goodsOk === false ? Math.round(d.house * 0.6) : d.house}`]); facts.push(['Happiness', `${Math.round(homeHappiness(b))}%`]); }
+    if (d.jobs) { const w = works(b); facts.push(['Jobs', `${d.jobs}, ${w ? Math.round(e.staff * 100) + '% filled' : '<span class="bad">not working</span>'}`]); if (d.out) for (const k in d.out) facts.push(['Makes', `${(d.out[k] * (w ? e.staff : 0)).toFixed(1)} ${k}/day (max ${d.out[k]})`]); }
+    if (b.type === 'kelp' && !wet) facts.push(['Why idle', 'Dry. Kelp only grows underwater.']);
+    if (b.type === 'ballast') facts.push(['Water', `${b.fill.toFixed(1)} / 10${Math.abs(b.target - b.fill) > 0.05 ? ` → ${b.target}` : ''}`]);
+    let acts = '';
+    if (b.type === 'ballast') { const pv = [0, 2.5, 5, 7.5, 10].map(t => `<button type="button" class="btn ${Math.abs(b.target - t) < 0.01 ? '' : 'alt'} sm" data-act="bal" data-arg="${b.id}:${t}">${t === 0 ? 'Empty' : t === 10 ? 'Full' : t}</button>`).join(''); const keep = b.fill; b.fill = 10; const Tf = tiltFor(massCentre()); b.fill = 0; const Te = tiltFor(massCentre()); b.fill = keep; acts += `<div class="acts" style="margin-bottom:6px">${pv}</div><p style="font-size:12px">Full: ${tiltDeg(Tf).toFixed(1)}° to the ${sideName(Tf)}. Empty: ${tiltDeg(Te).toFixed(1)}° to the ${sideName(Te)}.</p>`; }
+    const rc = b.type !== 'rubble' ? repairCost(b) : 0;
+    if (rc > 0) acts += `<button type="button" class="btn sm" data-act="repair" data-arg="${b.id}" ${S.clams < rc ? 'disabled' : ''}>Repair (${rc})</button> `;
+    if (b.type === 'rubble') acts += `<button type="button" class="btn alt sm" data-act="demolish" data-arg="${b.id}" ${S.clams < 10 ? 'disabled' : ''}>Clear (10)</button>`;
+    else if (b.type !== 'hall') { const undo = U.just && U.just.id === b.id && performance.now() - U.just.at < 15000; acts += `<button type="button" class="btn alt sm" data-act="demolish" data-arg="${b.id}">${undo ? `Undo (refund ${d.cost})` : `Demolish (+${Math.floor(d.cost * 0.4 * b.hp / max)})`}</button>`; }
+    let why = '';
+    if (d.house) why = '<p style="font-size:12px;margin-top:8px">' + happyBits(b).map(([l, v]) => `${esc(l)} <b class="${v < 0 ? 'bad' : 'good'}">${sgn(v)}</b>`).join(' · ') + '</p>';
+    h = `<div class="hd"><img src="${iconFor(b.type)}" alt=""><div><b>${esc(d.n)}</b><small>${b.type === 'hall' ? 'The heart of the city' : ''}</small></div></div><p>${esc(d.d)}</p>
+      <dl class="facts">${facts.map(([a, c]) => `<dt>${a}</dt><dd>${c}</dd>`).join('')}</dl><div class="acts">${acts}</div>${why}`;
+  } else {
+    const tips = [];
+    const dryKelp = Object.values(S.blds).filter(x => x.type === 'kelp' && !isWet(x)).length;
+    if (dryKelp) tips.push(`${dryKelp} kelp farm${dryKelp > 1 ? 's are' : ' is'} high and dry. Kelp only grows underwater: let the shell lean a little toward ${dryKelp > 1 ? 'them' : 'it'}.`);
+    if (e.kelpNet < 0) tips.push(`Kelp is shrinking by ${(-e.kelpNet).toFixed(0)} a day. Gerald gets hungry when it runs out. More kelp farms (wet ones) or a Kelp Forest stop will help.`);
+    if (e.fishNet < 0 && S.fish < 40) tips.push('Fish is running short. Fisheries go on the rim and feed about 28 people each.');
+    if (e.jobs && e.staff < 0.7) tips.push(`Only ${Math.round(e.staff * 100)}% of jobs are filled. More homes means more workers.`);
+    if (S.pop >= e.H - 1) tips.push('Homes are full. People only move in when there\'s room.');
+    if (!count(S, 'scratcher')) tips.push('Gerald gets itchy every couple of days. A Back Scratcher handles itches within 3 squares.');
+    if (Math.hypot(S.tiltT.x, S.tiltT.y) > 0.45) tips.push(`The city is leaning hard toward the ${sideName(S.tiltT)}. Build on the other side, demolish something heavy, or use a Ballast Tank.`);
+    if (!tips.length) tips.push('Everything is fine, which on a turtle is suspicious.');
+    h = `<h2>Council briefing</h2><dl class="facts"><dt>Homes</dt><dd>${fmt(S.pop)} people, room for ${e.H}</dd><dt>Work</dt><dd>${e.workers} workers for ${e.jobs} jobs</dd><dt>Tilt</dt><dd>${tiltDeg(S.tilt).toFixed(1)}° to the ${sideName(S.tilt)}</dd></dl>${tips.slice(0, 3).map(t => `<p>${esc(t)}</p>`).join('')}<p style="font-size:12px">Click any building to inspect it.</p>`;
+  }
+  setHTML($('insp'), h);
+}
+
+// ---------------------------------------------------------------------
+// SPIRIT LEVEL
+// ---------------------------------------------------------------------
+function drawLevel(pred) {
+  const c = $('lv'), g = c.getContext('2d'), W = c.width, H = c.height, cx = W / 2, cy = H / 2, R = 88;
+  g.clearRect(0, 0, W, H);
+  const P = T => { let m = Math.hypot(T.x, T.y), k = m > CAPSIZE * 1.15 ? CAPSIZE * 1.15 / m : 1; return [cx - (T.x - T.y) * k * R / 2 / CAPSIZE, cy - (T.x + T.y) * k * R / 4 / CAPSIZE]; };   // bubble goes to the high side
+  const ell = (r, fill, stroke, lw = 2) => { g.beginPath(); g.ellipse(cx, cy, R / 2 * r * Math.SQRT2, R / 4 * r * Math.SQRT2, 0, 0, 6.3); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } };
+  ell(1, '#0b2232', '#ff5d5d', 3); ell(0.45 / CAPSIZE, null, 'rgba(255,176,32,0.8)', 2); ell(0.08, null, 'rgba(255,255,255,0.35)', 1.5);
+  // head marker so the dial lines up with the turtle on screen
+  const hp = [cx + R / 2 * 1.12, cy + R / 4 * 1.12]; g.fillStyle = '#7fb56f'; g.beginPath(); g.arc(hp[0], hp[1], 7, 0, 6.3); g.fill(); g.fillStyle = '#0b2232'; g.beginPath(); g.arc(hp[0] + 2, hp[1] - 2, 1.6, 0, 6.3); g.fill();
+  const mag = Math.hypot(S.tilt.x, S.tilt.y);
+  if (pred) { const p = P(pred); g.strokeStyle = '#ffd166'; g.setLineDash([4, 3]); g.lineWidth = 2.5; g.beginPath(); g.arc(p[0], p[1], 11, 0, 6.3); g.stroke(); g.setLineDash([]); }
+  const p = P(S.tilt); g.fillStyle = mag > CAPSIZE ? '#ff5d5d' : mag > 0.45 ? '#ffb020' : '#8ff0c0'; g.beginPath(); g.arc(p[0], p[1], 11, 0, 6.3); g.fill(); g.fillStyle = 'rgba(255,255,255,0.7)'; g.beginPath(); g.arc(p[0] - 3, p[1] - 4, 3.5, 0, 6.3); g.fill();
+  const el = $('level'); el.classList.toggle('warn', mag > 0.45 && mag <= CAPSIZE); el.classList.toggle('bad', mag > CAPSIZE);
+  $('lvDeg').textContent = (pred ? tiltDeg(pred) : tiltDeg(S.tilt)).toFixed(1) + '°';
+  $('lvNote').textContent = pred ? `would lean: ${sideName(pred)}` : mag < 0.05 ? 'Level' : `low side: ${sideName(S.tilt)}`;
+}
+
+// ---------------------------------------------------------------------
+// POINTER, CAMERA
+// ---------------------------------------------------------------------
+const PTR = new Map(); let DRAG = null, PINCH = null;
+function evPos(e) { const r = V.cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+function zoomAt(mx, my, z) {
+  z = clamp(z, 1, 4); const k = z / V.zoom;
+  V.px = mx - V.W / 2 - (mx - V.W / 2 - V.px) * k; V.py = my - V.H / 2 - (my - V.H / 2 - V.py) * k; V.zoom = z;
+  clampPan();
+}
+function clampPan() { const mx = V.W * 0.5 * V.zoom, my = V.H * 0.5 * V.zoom; V.px = clamp(V.px, -mx, mx); V.py = clamp(V.py, -my, my); if (V.zoom <= 1.001) { V.px = clamp(V.px, -V.W * 0.25, V.W * 0.25); V.py = clamp(V.py, -V.H * 0.25, V.H * 0.25); } }
+function onDown(e) {
+  audio(); const [x, y] = evPos(e); try { V.cv.setPointerCapture(e.pointerId); } catch (er) {}
+  PTR.set(e.pointerId, { x, y });
+  if (PTR.size === 2) { const [a, b] = [...PTR.values()]; PINCH = { d:Math.hypot(a.x - b.x, a.y - b.y) || 1, z:V.zoom }; DRAG = null; }
+  else if (PTR.size === 1) DRAG = { x0:x, y0:y, px:V.px, py:V.py, moved:false, type:e.pointerType, btn:e.button };
+}
+function onMove(e) {
+  const [x, y] = evPos(e);
+  if (PTR.has(e.pointerId)) PTR.set(e.pointerId, { x, y });
+  if (PINCH && PTR.size >= 2) { const [a, b] = [...PTR.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y) || 1; zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, PINCH.z * d / PINCH.d); return; }
+  if (DRAG && PTR.has(e.pointerId)) {
+    if (!DRAG.moved && Math.hypot(x - DRAG.x0, y - DRAG.y0) > (DRAG.type === 'mouse' ? 5 : 10)) DRAG.moved = true;
+    if (DRAG.moved) { V.px = DRAG.px + x - DRAG.x0; V.py = DRAG.py + y - DRAG.y0; clampPan(); return; }
+  }
+  if (e.pointerType === 'mouse') setHover(screenToTile(x, y));
+}
+function onUp(e) {
+  const [x, y] = evPos(e); const had = PTR.has(e.pointerId); PTR.delete(e.pointerId);
+  if (PINCH) { if (PTR.size < 2) { PINCH = null; DRAG = null; } return; }
+  if (had && DRAG && !DRAG.moved && DRAG.btn === 0) tap(x, y, DRAG.type);
+  DRAG = null;
+}
+function setHover(t) { const k = t ? t.x + ',' + t.y : ''; if (k !== (U.hover ? U.hover.x + ',' + U.hover.y : '')) { U.hover = t; U.ghostKey = ''; } }
+function tap(px, py, type) {
+  if (!S || !U.playing || U.modal) return;
+  const t = screenToTile(px, py);
+  if (U.tool) {
+    if (!t) { U.pend = null; setHover(null); return; }
+    if (type !== 'mouse') { if (!U.pend || U.pend.x !== t.x || U.pend.y !== t.y) { U.pend = t; setHover(t); sfx('click'); return; } }
+    U.pend = null; setHover(t); tryPlace(t); return;
+  }
+  const b = t && bAt(t.x, t.y); U.sel = b ? b.id : null; if (b) sfx('click');
+  if (type !== 'mouse') setHover(t);
+}
+function ghostFor(t) { if (!U.tool || !t) return null; const a = anchorOf(U.tool, t); return { id:0, type:U.tool, x:a.x, y:a.y, size:BLD[U.tool].size || 1, hp:100, wet:0, fill:0, target:0, working:true, staff:1 }; }
+function ghostWhy(gh) { if (!S.unlocked[gh.type]) return 'You need the blueprint for that.'; const w = canPlace(gh.type, gh.x, gh.y); if (w) return w; if (S.clams < BLD[gh.type].cost) return `Costs ${BLD[gh.type].cost} Clams. You have ${fmt(S.clams)}.`; return ''; }
+function tryPlace(t) {
+  const gh = ghostFor(t); if (!gh) return;
+  const err = place(gh.type, gh.x, gh.y);
+  if (err) { toast(err, 'bad'); sfx('err'); return; }
+  const id = S.nextId - 1; U.just = { id, at:performance.now() };
+  const z = tileTopSafe(gh.x, gh.y); burst(gh.x + (gh.size - 1) / 2, gh.y + (gh.size - 1) / 2, z, 12, '#f3d98b'); floatAt(gh.x, gh.y, `−${BLD[gh.type].cost}`, '#f3d98b');
+  sfx('build'); U.ghostKey = '';
+  if (S.clams < BLD[gh.type].cost) { U.tool = null; toast('Out of Clams for another one of those.', 'warn'); }
+}
+function uiState() {
+  const ui = { tool:U.tool, sel:U.sel, hover:U.hover, ghost:null, bad:false, predWet:null };
+  if (U.tool && U.hover && U.playing && !U.modal) {
+    const gh = ghostFor(U.hover); ui.ghost = gh; ui.hover = { x:gh.x, y:gh.y };
+    const why = ghostWhy(gh); ui.bad = !!why;
+    const key = `${gh.type}|${gh.x}|${gh.y}|${S.nextId}|${S.clams >= BLD[gh.type].cost}|${S.unlocked[gh.type]}|${Object.values(S.blds).filter(b => b.type === 'ballast').map(b => b.fill.toFixed(1)).join()}`;
+    if (key !== U.ghostKey) {
+      U.ghostKey = key;
+      if (!why) {
+        const T = ghostTilt(gh.type, gh.x, gh.y), before = calmWet(S.tiltT), after = calmWet(T, gh.type === 'seawall' ? gh : null);
+        const fresh = [...after].filter(i => !before.has(i)), hit = new Set();
+        for (const i of fresh) { const b = S.blds[S.tiles[i]]; if (b && b.type !== 'rubble') hit.add(b.id); }
+        const drained = [...before].filter(i => !after.has(i)).length;
+        U.pred = { T, fresh, hit:hit.size, drained, why:'' };
+      } else U.pred = { why };
+    }
+    ui.predWet = U.pred && U.pred.fresh || null;
+  } else { U.pred = null; U.ghostKey = ''; }
+  return ui;
+}
+function tipText() {
+  const tip = $('tip');
+  if (U.tool && U.pred) {
+    const d = BLD[U.tool];
+    if (U.pred.why) { tip.textContent = U.pred.why; tip.className = 'tip bad'; tip.hidden = false; return; }
+    const T = U.pred.T; let s = `${d.n}: ${d.cost} Clams. Shell would lean ${tiltDeg(T).toFixed(1)}° to the ${sideName(T)}.`;
+    if (U.pred.fresh.length) s += ` ${U.pred.fresh.length} more square${U.pred.fresh.length > 1 ? 's' : ''} would flood${U.pred.hit ? ` (${U.pred.hit} building${U.pred.hit > 1 ? 's' : ''})` : ''}.`;
+    else if (U.pred.drained) s += ` ${U.pred.drained} square${U.pred.drained > 1 ? 's' : ''} would dry out.`;
+    if (U.pend) s += ' Tap again to build.';
+    tip.textContent = s; tip.className = 'tip' + (Math.hypot(T.x, T.y) > 0.6 || U.pred.hit ? ' bad' : ''); tip.hidden = false; return;
+  }
+  if (!U.tool && U.hover && !U.modal) { const b = bAt(U.hover.x, U.hover.y); if (b) { tip.textContent = `${BLD[b.type].n}${b.wet > 0 ? ' (underwater)' : ''}`; tip.className = 'tip'; tip.hidden = false; return; } }
+  tip.hidden = true;
+}
+
+// ---------------------------------------------------------------------
+// LOOP
+// ---------------------------------------------------------------------
+function loop(ts) {
+  const dt = Math.min(0.1, Math.max(0, (ts - U.last) / 1000 || 0)); U.last = ts;
+  if (S && U.playing && !S.over) {
+    const mult = U.modal && U.modal.pause ? 0 : SPEEDS[U.speed];
+    if (S.phase === 'sail') { let left = dt * mult; while (left > 1e-6 && S.phase === 'sail') { const st = Math.min(0.1, left); tick(st); left -= st; } }
+    else if (S.phase !== 'over') idle(dt);
+    U.saveT += dt; if (U.saveT > 4) { U.saveT = 0; save(); }
+  } else if (S && !U.playing) idle(dt);
+  if (S && U.playing) handlePending();
+  if (S) {
+    fxStep(dt);
+    const ui = uiState();
+    try { drawWorld(ui); } catch (e) { console.error(e); }
+    U.domT -= dt; if (U.domT <= 0) { U.domT = 0.2; if (U.playing) hud(); drawLevel(U.pred && U.pred.T); }
+    tipText();
+    const cw = $('capWarn'), mag = Math.hypot(S.tilt.x, S.tilt.y);
+    if (S.cap > 0 && mag > CAPSIZE && !S.over) { cw.hidden = false; cw.textContent = `GERALD IS ROLLING OVER! ${Math.max(0, 15 - S.cap).toFixed(0)}s`; } else cw.hidden = true;
+    V.cv.classList.toggle('placing', !!U.tool);
+  }
+  requestAnimationFrame(loop);
+}
+
+function start(data) {
+  V.cv = $('cv'); V.g = V.cv.getContext('2d');
+  try { U.sound = localStorage.getItem('geralds_back_sound') !== '0'; } catch (e) {}
+  if (data && data.s && loadRaw(data.s)) { U.playing = !!data.playing; }
+  else if (hasSave()) { let raw = null; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {} if (!raw || !loadRaw(raw)) newGame(); }
+  else newGame();
+  viewResize();
+  addEventListener('resize', viewResize);
+  if (window.ResizeObserver) new ResizeObserver(() => viewResize()).observe($('stage'));
+  V.cv.addEventListener('pointerdown', onDown);
+  V.cv.addEventListener('pointermove', onMove);
+  V.cv.addEventListener('pointerup', onUp);
+  V.cv.addEventListener('pointercancel', e => { PTR.delete(e.pointerId); PINCH = null; DRAG = null; });
+  V.cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setHover(null); });
+  V.cv.addEventListener('contextmenu', e => { e.preventDefault(); if (U.tool) ACTS.cancel(); else U.sel = null; });
+  V.cv.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = evPos(e); zoomAt(x, y, V.zoom * Math.exp(-e.deltaY * 0.0015)); }, { passive:false });
+  for (const id of ['ovWrap', 'pal', 'insp', 'voy', 'zoom']) { const el = $(id); if (el) el.addEventListener('click', onAct); }
+  document.querySelectorAll('.speed button').forEach(b => b.addEventListener('click', () => { audio(); U.speed = +b.dataset.sp; sfx('click'); }));
+  $('bHelp').onclick = () => { audio(); if (!U.modal || U.modal.closable) helpModal(); };
+  $('bMenu').onclick = () => { audio(); if (!U.playing) return; if (!U.modal) menuModal(); else if (U.modal.closable) closeModal(); };
+  addEventListener('keydown', e => {
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === 'Escape') { if (U.tool) { ACTS.cancel(); return; } if (U.modal && U.modal.closable) { const t = U.modal.kind === 'help' ? U.helpThen : null; closeModal(); if (t) t(); return; } if (U.sel) { U.sel = null; return; } if (!U.modal && U.playing) menuModal(); return; }
+    if (U.modal) return;
+    if (e.key === ' ') { e.preventDefault(); U.speed = U.speed === 0 ? (U.prevSpeed || 1) : (U.prevSpeed = U.speed, 0); }
+    else if (e.key === '1' || e.key === '2' || e.key === '3') U.speed = +e.key;
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && U.sel) ACTS.demolish(U.sel);
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && U.playing) save(); });
+  buildPalette();
+  if (U.playing) { hud(); resumePhase(); } else titleModal();
+  requestAnimationFrame(loop);
+}
+try { window.claude?.hot?.snapshot?.(() => ({ s:S && !S.over ? JSON.stringify(S) : null, playing:U.playing })); } catch (e) {}
+(window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {}));
+</script>
+
+</body></html>

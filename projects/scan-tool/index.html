@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper-to-Sprite Scan Tool | Josh Ritchie</title>
+<meta name="description" content="A Python tool that turns scanned hand-drawn animation frames into clean game sprites.">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="site">
+  <a class="name" href="../../">Josh Ritchie</a>
+  <nav><a href="../../#featured">Games</a><a href="../../#tools">Tools</a><a href="../../#skills">Skills</a><a href="../../#contact">Contact</a></nav>
+</header>
+<article>
+  <p><a href="../../#tools">&larr; Back to the site</a></p>
+  <h1>Paper-to-Sprite Scan Tool</h1>
+  <p class="lede">An artist draws animation frames on printed sheets. This tool turns a scan or phone photo of those sheets into clean, aligned sprites with transparent backgrounds, with no image editing by hand.</p>
+  <a class="btn ghost" href="https://github.com/joshritchie-dev/desktop-companion">Source code</a>
+  <img src="../../assets/scan-to-companion.png" alt="A scanned sheet of drawn frames on the left and the finished animated character on the right">
+  <div class="facts"><dl>
+    <dt>Built with</dt><dd>Python, Pillow, NumPy, SciPy, PyMuPDF</dd>
+    <dt>Input</dt><dd>Scans, phone photos, or PDFs</dd>
+    <dt>Output</dt><dd>Sprite strips, settings file, and a preview GIF</dd>
+    <dt>Tests</dt><dd>18 checks on simulated scans and photos</dd>
+  </dl></div>
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>Printable sheets.</strong> The tool generates the paper templates. Each page has corner marks and a small dot code that says which animation and page it is.</li>
+    <li><strong>Find and straighten.</strong> It locates the corner marks, works out which way is up, and flattens the page, including angled phone photos.</li>
+    <li><strong>Clean up.</strong> It evens out lighting, removes the light-blue guide lines, and drops dust and smudges while keeping faint pencil that belongs to the drawing.</li>
+    <li><strong>Cut out.</strong> It builds a transparent background with soft edges and no white halo.</li>
+    <li><strong>Align.</strong> Every frame is placed on the same ground line at the same scale, so the animation doesn't jitter.</li>
+  </ol>
+  <h2>Why I built it</h2>
+  <p>The goal was to let someone who draws on paper get a character into the desktop companion in a few minutes. The whole process is: print, draw, scan, drag the folder onto one file.</p>
+</article>
+<footer>Josh Ritchie &middot; Portage, Michigan</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desktop Companion | Josh Ritchie</title>
+<meta name="description" content="A small animated character that lives on the Windows desktop, built in Godot 4.">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="site">
+  <a class="name" href="../../">Josh Ritchie</a>
+  <nav><a href="../../#featured">Games</a><a href="../../#tools">Tools</a><a href="../../#skills">Skills</a><a href="../../#contact">Contact</a></nav>
+</header>
+<article>
+  <p><a href="../../#tools">&larr; Back to the site</a></p>
+  <h1>Desktop Companion</h1>
+  <p class="lede">A small animated character that stands on your taskbar, wanders, naps, and reacts when you click it. Built so an artist can add new characters with image files and one short text file.</p>
+  <a class="btn" href="https://github.com/joshritchie-dev/desktop-companion/releases/latest">Download for Windows</a>
+  <a class="btn ghost" href="https://github.com/joshritchie-dev/desktop-companion">Source code</a>
+  <img src="../../assets/desktop-preview.gif" alt="The companion idling, walking along the taskbar, reacting to a click, and falling asleep">
+  <div class="facts"><dl>
+    <dt>Built with</dt><dd>Godot 4, GDScript</dd>
+    <dt>Platform</dt><dd>Windows</dd>
+    <dt>Status</dt><dd>Working prototype with stand-in characters</dd>
+    <dt>Tests</dt><dd>43 automated checks</dd>
+  </dl></div>
+  <h2>What it does</h2>
+  <ul>
+    <li>Runs in a transparent, borderless window that stays on top, and clicks pass through everywhere except the character.</li>
+    <li>Idles, walks, sleeps, reacts to clicks, and can be picked up and dropped.</li>
+    <li>Drops to a lower frame rate while the character sleeps, to stay light on the processor.</li>
+    <li>Right-click menu to switch characters, resize, or reload art without restarting.</li>
+  </ul>
+  <h2>The part I care about</h2>
+  <p>The app is driven by data. A character is a folder with a few image strips and a settings file. Drop a folder next to the program and it shows up in the menu. If something is wrong with the art, the app says which file and why, in plain language.</p>
+  <img src="../../assets/stand-in-characters.gif" alt="The two stand-in characters cycling through their animations">
+  <p class="note">The characters shown are placeholders. Final art is in progress.</p>
+</article>
+<footer>Josh Ritchie &middot; Portage, Michigan</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Natural Twenty</title>
+<style>
+  :root {
+    --bg:#15110d; --panel:#1f1914; --panel2:#2a221a; --line:#3d3226; --text:#efe4cf; --muted:#a8977c;
+    --gold:#e8b84a; --gold-ink:#2a1d05; --red:#d9544a; --green:#7cbf6a; --violet:#a98be0;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--text); }
+  body { font:15px/1.45 Georgia,"Palatino Linotype",Palatino,serif; min-height:100vh;
+         background:radial-gradient(ellipse at top, #241b12 0%, var(--bg) 60%); }
+  button { font:inherit; color:inherit; }
+  .num { font-family:ui-monospace,Menlo,Consolas,monospace; }
+
+  header { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; padding:14px 22px 6px; }
+  header h1 { margin:0; font-size:24px; letter-spacing:.04em; color:var(--gold); }
+  header .tag { color:var(--muted); font-style:italic; }
+
+  #log { margin:6px 22px 0; background:#0f0c09; border:1px solid var(--line); border-radius:8px; padding:8px 12px;
+         height:118px; overflow:hidden; font:13px/1.55 ui-monospace,Menlo,Consolas,monospace; color:#cbbd9f;
+         display:flex; flex-direction:column-reverse; }
+  #log div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #log div:first-child { color:var(--text); }
+  #log .crit { color:var(--gold); } #log .fumble { color:var(--red); } #log .good { color:var(--green); } #log .lore { color:var(--violet); }
+
+  main { display:grid; grid-template-columns:300px minmax(0,1fr) minmax(0,1.15fr); gap:16px; padding:14px 22px 30px; align-items:start; }
+  section { min-width:0; }
+  h2 { margin:0 0 10px; font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:normal;
+       border-bottom:1px solid var(--line); padding-bottom:6px; display:flex; justify-content:space-between; gap:8px; }
+  h2 small { letter-spacing:0; text-transform:none; font-style:italic; }
+
+  /* Die */
+  .die-wrap { position:relative; display:flex; flex-direction:column; align-items:center; background:var(--panel);
+              border:1px solid var(--line); border-radius:12px; padding:18px 12px 14px; }
+  #die { width:190px; height:206px; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; filter:drop-shadow(0 8px 14px rgba(0,0,0,.5)); }
+  #die:active { transform:scale(.97); }
+  #die.roll { animation:spin .32s ease-out; }
+  @keyframes spin { 0% { transform:rotate(-200deg) scale(.82); } 70% { transform:rotate(12deg) scale(1.05); } 100% { transform:none; } }
+  #die .face { transition:fill .2s; }
+  #die.crit .body { fill:url(#gCrit); } #die.fumble .body { fill:url(#gFumble); }
+  #dieNum { font:bold 46px Georgia,serif; fill:#fff7e6; }
+  .die-hint { color:var(--muted); font-size:13px; margin-top:4px; text-align:center; }
+  .floaty { position:absolute; pointer-events:none; font:bold 16px ui-monospace,Menlo,monospace; color:var(--gold);
+            text-shadow:0 2px 4px #000; animation:float 1s ease-out forwards; }
+  .floaty.f { color:var(--red); }
+  @keyframes float { to { transform:translateY(-60px); opacity:0; } }
+
+  .stats { margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 10px; }
+  .stat .k { font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); }
+  .stat .v { font-size:20px; color:var(--text); }
+  .stat.gold .v { color:var(--gold); } .stat.insp .v { color:var(--violet); }
+  .stat.wide { grid-column:1 / -1; }
+  .rules { margin-top:10px; font-size:12.5px; color:var(--muted); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 10px; }
+  .rules b { color:var(--text); font-weight:normal; }
+
+  #chest { position:absolute; right:10px; top:10px; font-size:34px; cursor:pointer; display:none; animation:bob 1s ease-in-out infinite;
+           background:none; border:0; padding:0; filter:drop-shadow(0 0 8px rgba(232,184,74,.8)); }
+  #chest.show { display:block; }
+  #chest.mimic { filter:drop-shadow(0 0 8px rgba(217,84,74,.9)); }
+  @keyframes bob { 50% { transform:translateY(-5px) rotate(-4deg); } }
+
+  /* Lists */
+  .list { display:flex; flex-direction:column; gap:7px; }
+  .buy { display:grid; grid-template-columns:1fr auto; gap:2px 10px; text-align:left; width:100%; cursor:pointer;
+         background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:9px 11px; transition:border-color .1s, background .1s; }
+  .buy:hover:not(:disabled) { border-color:var(--gold); background:var(--panel2); }
+  .buy:disabled { cursor:default; opacity:.5; }
+  .buy .nm { font-weight:bold; }
+  .buy .ct { font-family:ui-monospace,Menlo,monospace; color:var(--gold); font-size:13px; text-align:right; white-space:nowrap; }
+  .buy .ct .i { color:var(--violet); }
+  .buy .ds { grid-column:1 / -1; color:var(--muted); font-size:13px; font-style:italic; }
+  .buy .fx { grid-column:1 / -1; color:#d7c9ab; font-size:12.5px; }
+  .buy .own { font-family:ui-monospace,Menlo,monospace; color:var(--text); font-size:20px; text-align:right; }
+  .buy.fol { grid-template-columns:1fr auto; }
+  .empty { color:var(--muted); font-style:italic; font-size:13.5px; padding:6px 2px; }
+  .sub { margin-top:22px; }
+
+  .quest { background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:10px 11px; }
+  .quest .q { font-weight:bold; }
+  .quest .meta { color:var(--muted); font-size:13px; margin:3px 0 8px; }
+  .quest button { background:var(--gold); color:var(--gold-ink); border:0; border-radius:6px; padding:6px 12px; cursor:pointer; font-weight:bold; }
+  .quest.cool { opacity:.5; }
+
+  .planes { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:6px; }
+  .plane { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:13px; }
+  .plane.done { border-color:var(--gold); color:var(--gold); }
+  .progress { height:8px; background:#0f0c09; border:1px solid var(--line); border-radius:4px; overflow:hidden; margin:8px 0; }
+  .progress i { display:block; height:100%; background:linear-gradient(90deg,#a87a22,var(--gold)); }
+
+  footer { padding:0 22px 26px; color:var(--muted); font-size:13px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  footer button { background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:5px 11px; cursor:pointer; color:var(--muted); }
+  footer button:hover { border-color:var(--gold); color:var(--text); }
+  #saveBox { display:none; width:100%; }
+  #saveBox.show { display:flex; gap:8px; flex-wrap:wrap; }
+  #saveBox textarea { flex:1 1 300px; min-height:60px; background:#0f0c09; color:var(--text); border:1px solid var(--line); border-radius:7px; padding:6px; font:12px ui-monospace,monospace; }
+
+  .overlay { position:fixed; inset:0; background:rgba(8,6,4,.92); display:none; align-items:center; justify-content:center; padding:20px; z-index:10; }
+  .overlay.show { display:flex; }
+  .overlay .card { max-width:560px; text-align:center; }
+  .overlay h2 { justify-content:center; border:0; font-size:15px; }
+  .overlay p { color:#d7c9ab; }
+  .overlay .big { font-size:28px; color:var(--gold); margin:10px 0; }
+  .overlay button { background:var(--gold); color:var(--gold-ink); border:0; border-radius:8px; padding:11px 24px; font-weight:bold; cursor:pointer; margin:6px; }
+
+  @media (max-width: 1000px) {
+    main { grid-template-columns:1fr 1fr; }
+    #colDie { grid-column:1 / -1; }
+    .die-wrap { flex-direction:row; justify-content:center; gap:20px; flex-wrap:wrap; }
+  }
+  @media (max-width: 640px) {
+    main { grid-template-columns:1fr; padding:12px 14px 24px; }
+    header, footer { padding-left:14px; padding-right:14px; }
+    #log { margin:6px 14px 0; height:96px; }
+    #die { width:160px; height:174px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Natural Twenty</h1>
+  <span class="tag">An incremental adventure. Roll the die. Hoard the gold. Roll everything.</span>
+</header>
+
+<div id="log"></div>
+
+<main>
+  <section id="colDie">
+    <div class="die-wrap">
+      <button id="chest" title="A treasure chest! Surely nothing could go wrong.">🧰</button>
+      <div style="text-align:center">
+        <svg id="die" viewBox="0 0 200 216" role="button" aria-label="Roll the d20" tabindex="0">
+          <defs>
+            <linearGradient id="gBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a4ad0"/><stop offset="1" stop-color="#3b1f73"/></linearGradient>
+            <linearGradient id="gCrit" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd96b"/><stop offset="1" stop-color="#b07a12"/></linearGradient>
+            <linearGradient id="gFumble" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2574c"/><stop offset="1" stop-color="#6e1a14"/></linearGradient>
+          </defs>
+          <polygon class="body" points="100,8 182,55 182,153 100,200 18,153 18,55" fill="url(#gBody)" stroke="#1a0f2e" stroke-width="3"/>
+          <g fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.35)" stroke-width="1.5" stroke-linejoin="round">
+            <polygon points="100,8 182,55 100,48"/><polygon points="100,8 18,55 100,48"/>
+            <polygon points="18,55 45,140 100,48"/><polygon points="182,55 155,140 100,48"/>
+            <polygon points="18,55 18,153 45,140"/><polygon points="182,55 182,153 155,140"/>
+            <polygon points="18,153 100,200 45,140"/><polygon points="182,153 100,200 155,140"/>
+            <polygon points="45,140 155,140 100,200"/>
+          </g>
+          <polygon class="face" points="100,48 155,140 45,140" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.6)" stroke-width="2"/>
+          <text id="dieNum" x="100" y="124" text-anchor="middle">20</text>
+        </svg>
+        <div class="die-hint" id="dieHint">Click the die to roll for gold</div>
+      </div>
+      <div style="flex:1 1 240px; min-width:240px">
+        <div class="stats">
+          <div class="stat gold wide"><div class="k">Gold</div><div class="v num" id="sGold">0</div></div>
+          <div class="stat"><div class="k">Gold / sec</div><div class="v num" id="sGps">0</div></div>
+          <div class="stat insp"><div class="k">Inspiration</div><div class="v num" id="sInsp">0</div></div>
+          <div class="stat"><div class="k">Natural 20s</div><div class="v num" id="sN20">0</div></div>
+          <div class="stat"><div class="k">Natural 1s</div><div class="v num" id="sN1">0</div></div>
+        </div>
+        <div class="rules" id="rules"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Your Party <small id="rollRate"></small></h2>
+    <div class="list" id="followers"></div>
+  </section>
+
+  <section>
+    <h2>Feats &amp; Boons <small>one-time upgrades</small></h2>
+    <div class="list" id="projects"></div>
+    <div class="sub" id="questWrap" style="display:none">
+      <h2>Quest Board <small>roll a skill check vs the DC</small></h2>
+      <div class="list" id="quests"></div>
+    </div>
+    <div class="sub" id="planeWrap" style="display:none">
+      <h2>The Great Wheel <small>roll every plane into dice</small></h2>
+      <div class="progress"><i id="planeBar"></i></div>
+      <div class="list" id="planeBuy"></div>
+      <div class="planes" id="planes" style="margin-top:8px"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span id="saveNote">Progress saves automatically in this browser.</span>
+  <button id="saveToggle">Save data…</button>
+  <button id="resetBtn">Reset</button>
+  <div id="saveBox">
+    <textarea id="saveText" placeholder="Click Export to get your save code, or paste one here and click Import."></textarea>
+    <div style="display:flex;flex-direction:column;gap:6px"><button id="exportBtn">Export</button><button id="importBtn">Import</button></div>
+  </div>
+</footer>
+
+<div class="overlay" id="ending">
+  <div class="card">
+    <h2>THE END?</h2>
+    <p id="endText"></p>
+    <div class="big" id="endBig"></div>
+    <p id="endStats"></p>
+    <button id="endRoll">Roll one last time</button>
+    <button id="campaignBtn" style="display:none">Begin a New Campaign</button>
+  </div>
+</div>
+
+<div class="overlay" id="away">
+  <div class="card">
+    <h2>WHILE YOU WERE AWAY</h2>
+    <p id="awayText"></p>
+    <button onclick="document.getElementById('away').classList.remove('show')">Back to the table</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// =====================================================================
+// HELPERS
+// =====================================================================
+const $ = id => document.getElementById(id);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const SUFFIX = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'UDc', 'DDc', 'TDc'];
+function fmt(n, dec = 0) {
+  if (!isFinite(n)) return '∞';
+  if (n < 1000) return n.toFixed(n < 10 && dec ? dec : 0);
+  const e = Math.min(SUFFIX.length - 1, Math.floor(Math.log10(n) / 3));
+  const v = n / Math.pow(1000, e);
+  return (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2)) + SUFFIX[e];
+}
+
+// =====================================================================
+// CONTENT: followers
+// =====================================================================
+const FOLLOWERS = [
+  { id:'kobold',   name:'Kobold Intern',        cost:150,    rate:0.1,    desc:'"Yes boss! Rolling, boss!"' },
+  { id:'bard',     name:'Tavern Bard',          cost:1000,   rate:1,      desc:'Rolls dice between verses. Mostly between verses.' },
+  { id:'rogue',    name:'Halfling Rogue',       cost:11000,  rate:8,      desc:'Annoyingly lucky. Pockets every third die.' },
+  { id:'wizard',   name:"Wizard's Apprentice",  cost:120000, rate:47,     desc:'Mage Hand, but exclusively for dice.' },
+  { id:'dwarf',    name:'Dwarven Dice Forge',   cost:1.3e6,  rate:260,    desc:'Delved too greedily and too deep. Found dice.' },
+  { id:'ent',      name:'Ent Dice Grove',       cost:1.4e7,  rate:1400,   desc:'Takes three days to roll. Rolls ten thousand.' },
+  { id:'beholder', name:'Beholder Croupier',    cost:2e8,    rate:7800,   desc:'Ten eyestalks. Ten dice. Zero chill.' },
+  { id:'dragon',   name:'Dragon Hoard',         cost:3.3e9,  rate:44000,  desc:'Sleeps on a pile of dice. Rolls over in its sleep.' },
+  { id:'lich',     name:'Lich Casino',          cost:5.1e10, rate:260000, desc:'The house always wins. The house is undead.' },
+  { id:'planar',   name:'Planar Dice Engine',   cost:7.5e11, rate:1.6e6,  desc:'Rolls dice in eleven dimensions. Mostly the fourth.' },
+];
+const FBY = Object.fromEntries(FOLLOWERS.map(f => [f.id, f]));
+const followerCost = (f, owned) => Math.ceil(f.cost * Math.pow(1.15, owned));
+
+// =====================================================================
+// CONTENT: projects (one-time upgrades). fx is read in recompute().
+// =====================================================================
+const S = () => state;
+const own = id => state.followers[id] || 0;
+const has = id => state.projects.includes(id);
+const PROJECTS = [
+  // --- Tavern ---
+  { id:'weighted',  name:'Weighted Dice', gold:100, req:() => S().totalGold >= 40,
+    ds:'Totally legal. Do not let the DM inspect them.', fx:'+1 to every roll' },
+  { id:'dual',      name:'Two-Weapon Fighting', gold:600, req:() => S().rolls >= 25,
+    ds:'Bonus action: roll another die.', fx:'Each click rolls +1 die' },
+  { id:'union',     name:'Kobold Union', gold:1500, req:() => own('kobold') >= 5,
+    ds:'They demanded dental. You gave them shiny rocks.', fx:'Kobolds roll ×2' },
+  { id:'adv',       name:'Roll With Advantage', insp:3, req:() => S().nat20 >= 1,
+    ds:'Roll twice, keep the higher. Why did nobody think of this sooner?', fx:'Every roll has advantage' },
+  { id:'bardic',    name:'Bardic Inspiration', gold:6000, insp:3, req:() => own('bard') >= 5,
+    ds:'Bards now inspire others. Previously, only themselves.', fx:'Bards roll ×2' },
+  { id:'lucky',     name:'Lucky (Feat)', insp:6, req:() => S().nat1 >= 3,
+    ds:'Halflings hate this one weird trick.', fx:'Natural 1s are rerolled once' },
+  { id:'lawyer',    name:'Hire a Rules Lawyer', gold:12000, req:() => S().totalGold >= 6000,
+    ds:'"Well, ACTUALLY, page 147 says…"', fx:'+25% gold from every roll' },
+  { id:'traps',     name:'Kobold Trap Expertise', gold:20000, req:() => own('kobold') >= 15,
+    ds:'They booby-trapped the dice. The dice are now 30% more dangerous.', fx:'Kobolds roll ×2' },
+  { id:'breakfast', name:'Second Breakfast', gold:50000, req:() => own('rogue') >= 5,
+    ds:'What about elevenses? Luncheon? Afternoon tea?', fx:'Halfling Rogues roll ×2' },
+  { id:'initiative',name:'Roll for Initiative', insp:12, req:() => S().nat20 >= 6,
+    ds:'Your hand twitches. It rolls by itself now.', fx:'Your hand rolls automatically once per second' },
+  { id:'lute',      name:'Lute of Mild Seduction', gold:90000, req:() => own('bard') >= 15,
+    ds:'The bard tried to seduce the dice. It worked.', fx:'Bards roll ×2' },
+  { id:'extra',     name:'Extra Attack', gold:150000, req:() => has('dual') && S().totalGold >= 60000,
+    ds:'Level 5 martial classes, rejoice.', fx:'Each click rolls +1 die' },
+  { id:'crit',      name:'Improved Critical', gold:250000, insp:25, req:() => S().nat20 >= 20,
+    ds:'The Champion Fighter\'s one and only trick.', fx:'Crit on 19–20' },
+  { id:'failfwd',   name:'Fail Forward', insp:15, req:() => S().nat1 >= 12,
+    ds:'The DM takes pity on you. Again.', fx:'Natural 1s grant 1 Inspiration' },
+  { id:'pizza',     name:'The DM Ordered Pizza', gold:600000, req:() => S().totalGold >= 300000,
+    ds:'A distracted DM is a generous DM.', fx:'All party members roll +50%' },
+  { id:'late',      name:'A Wizard Is Never Late', gold:900000, req:() => own('wizard') >= 5,
+    ds:'He rolls precisely when he means to.', fx:'Wizard\'s Apprentices roll ×2' },
+  { id:'mellon',    name:'Speak, Friend, and Enter', gold:1, insp:1, req:() => own('dwarf') >= 1,
+    ds:'The password was "friend". It was always "friend".', fx:'Dwarven Dice Forges roll ×3' },
+  { id:'rulecool',  name:'Rule of Cool', insp:60, req:() => has('crit'),
+    ds:'The DM allows it because it sounds awesome.', fx:'Crits pay ×4 instead of ×2' },
+  { id:'bag',       name:'Bag of Holding', gold:2.5e6, req:() => has('extra') && S().totalGold >= 1e6,
+    ds:'Do NOT put it inside the other Bag of Holding.', fx:'Each click rolls +3 dice' },
+  { id:'shallnot',  name:'You Shall Not Pass (On This Deal)', gold:8e6, req:() => own('wizard') >= 15,
+    ds:'A wizard\'s staff makes an excellent dice-rolling stick.', fx:'Wizard\'s Apprentices roll ×3' },
+  { id:'reliable',  name:'Reliable Talent', gold:1e7, insp:80, req:() => own('rogue') >= 25,
+    ds:'Rogues at level 11 simply refuse to roll below a 10.', fx:'Rolls below 10 count as 10. No more fumbles.' },
+  { id:'leader',    name:'Inspiring Leader', insp:40, req:() => S().totalInsp >= 60,
+    ds:'You give a rousing speech. The kobolds weep openly.', fx:'Crits grant 2 Inspiration instead of 1' },
+  { id:'haste',     name:'Haste', insp:100, req:() => has('initiative') && S().totalInsp >= 150,
+    ds:'Watch out for the lethargy afterward.', fx:'Automatic hand rolls happen 4× per second' },
+  { id:'greedy',    name:'Delve Too Greedily', gold:4e7, req:() => own('dwarf') >= 10,
+    ds:'You woke something in the deep. It also likes dice.', fx:'Dwarven Dice Forges roll ×2' },
+  { id:'entmoot',   name:'Entmoot', gold:1.5e8, req:() => own('ent') >= 5,
+    ds:'Took three days to agree on anything. Worth it.', fx:'Ent Dice Groves roll ×2' },
+  { id:'portent',   name:'Portent', insp:150, req:() => S().totalInsp >= 300,
+    ds:'You saw this roll in a dream. You rolled well in the dream.', fx:'+2 to every roll' },
+  { id:'hasty',     name:'Don\'t Be Hasty', gold:9e8, req:() => own('ent') >= 15,
+    ds:'Slow and steady wins the roll.', fx:'Ent Dice Groves roll ×3' },
+  { id:'antimagic', name:'Antimagic Cone (Dice Exempt)', gold:2e9, req:() => own('beholder') >= 5,
+    ds:'Beholders are weirdly good at accounting.', fx:'Beholder Croupiers roll ×2' },
+  { id:'tarrasque', name:'Tarrasque? In This Economy?', gold:5e9, req:() => S().totalGold >= 2e9,
+    ds:'You charge the Tarrasque rent. It pays.', fx:'+100% gold from every roll' },
+  { id:'sickness',  name:'Dragon Sickness', gold:3e10, req:() => own('dragon') >= 5,
+    ds:'Mine. MINE. The dice are MINE.', fx:'Dragon Hoards roll ×2' },
+  { id:'worship',   name:'Kobolds Find Their True Master', gold:5e10, req:() => own('dragon') >= 1 && own('kobold') >= 40,
+    ds:'They were dragon fanboys all along.', fx:'Kobolds roll ×25' },
+  { id:'phylactery',name:'Phylactery Insurance', gold:4e11, req:() => own('lich') >= 5,
+    ds:'Death is just a minor setback for the house.', fx:'Lich Casinos roll ×2' },
+  { id:'wish',      name:'Wish', gold:1e12, insp:2000, req:() => S().totalGold >= 3e11,
+    ds:'You wished for more gold. The DM granted it. Literally.', fx:'All gold ×2' },
+  { id:'sigil',     name:'Sigil Franchise', gold:6e12, req:() => own('planar') >= 5,
+    ds:'Location, location, location. Every location.', fx:'Planar Dice Engines roll ×2' },
+  // --- Quests (phase 2) ---
+  { id:'hooded',    name:'A Hooded Figure in the Corner', gold:25000, req:() => S().totalGold >= 12000,
+    ds:'He\'s been brooding there all session. He has a job for you.', fx:'Unlocks the Quest Board', phase:true },
+  { id:'guidance',  name:'Guidance (Cantrip)', insp:20, req:() => has('hooded') && S().questsDone >= 2,
+    ds:'Annoying, spammable, effective.', fx:'+3 to quest checks' },
+  { id:'expertise', name:'Expertise', insp:90, req:() => has('guidance') && S().questsDone >= 8,
+    ds:'You are very, very good at talking to trolls.', fx:'+5 to quest checks' },
+  { id:'lore',      name:'Bardic Lore', gold:5e7, req:() => has('hooded') && S().questsDone >= 5,
+    ds:'The bard insists on a ballad about every quest. Sponsors pay well.', fx:'Quest rewards ×3' },
+  { id:'detect',    name:'Detect Magic', insp:10, req:() => S().chests >= 2,
+    ds:'You concentrate. The chest… is breathing.', fx:'Mimics are revealed, and chests appear more often' },
+  // --- Endgame ---
+  { id:'onedie',    name:'Forge the One Die', gold:2e13, insp:5000, req:() => S().totalGold >= 5e12,
+    ds:'One Die to rule them all, One Die to find them, One Die to bring them all, and in the darkness roll them.',
+    fx:'Begin rolling the planes of existence into dice', phase:true },
+];
+const PBY = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
+
+// =====================================================================
+// CONTENT: quests, planes, flavor
+// =====================================================================
+const QUESTS = [
+  ['Persuade the bridge troll to accept exact change', 'Persuasion'],
+  ['Convince the innkeeper the rats are "regular sized"', 'Deception'],
+  ['Sneak past the dragon (who is clearly fake-sleeping)', 'Stealth'],
+  ['Out-riddle a creepy guy in a cave about "precious" things', 'Intelligence'],
+  ['Return a library book to Candlekeep, 300 years late', 'Persuasion'],
+  ['Explain to the paladin why you looted the temple', 'Deception'],
+  ['Climb the stairs of Cirith Ungol without complaining once', 'Athletics'],
+  ['Escape the mimic you were absolutely sure was a chair', 'Acrobatics'],
+  ['Negotiate with a goblin union over hazard pay', 'Persuasion'],
+  ['Recover the eagles\' contract (nobody knows why they didn\'t just fly)', 'Investigation'],
+  ['Win a drinking contest against a dwarf', 'Constitution'],
+  ['Keep the bard from seducing the quest-giver', 'Insight'],
+  ['Pick the lock on a door that was never locked', 'Sleight of Hand'],
+  ['Find the princess (wrong franchise, she\'s in another castle)', 'Perception'],
+  ['Calm an owlbear that just wanted a hug', 'Animal Handling'],
+  ['Survive the ten-foot pole inspection at the dungeon entrance', 'Survival'],
+  ['Talk the necromancer into a healthier hobby', 'Persuasion'],
+  ['Read the fine print on a devil\'s contract', 'Investigation'],
+  ['Carry a gnome across a river of lava', 'Athletics'],
+  ['Convince the party to finally go INTO the dungeon', 'Persuasion'],
+];
+const PLANES = [
+  ['The Material Plane', 'Home. Was home. Is dice now.'],
+  ['The Feywild', 'The fey were delighted. They always wanted to be cubes. Well, icosahedrons.'],
+  ['The Shadowfell', 'Gloomy dice. Very goth.'],
+  ['The Elemental Chaos', 'Fire dice, water dice, earth dice. Air dice are hard to find.'],
+  ['The Nine Hells', 'The devils demanded a contract first. It had a dice clause.'],
+  ['The Abyss', 'It was already chaos. Nobody noticed the change.'],
+  ['Mechanus', 'The modrons are thrilled. Finally, order with random numbers.'],
+  ['Limbo', 'Unsure whether it became dice. Schrödinger\'s plane.'],
+  ['Mount Celestia', 'The angels sigh, then roll for initiative.'],
+  ['Arborea', 'The elves made them very pretty dice.'],
+  ['The Astral Sea', 'Githyanki dice-pirates sail it now.'],
+  ['Sigil, City of Doors', 'The Lady of Pain is… not amused.'],
+  ['The Far Realm', 'The dice have too many sides now. Don\'t look directly at them.'],
+  ['The Tavern Where It All Began', 'The last plane. A kobold intern waves at you from the bar.'],
+];
+const NAT20 = [
+  'NATURAL 20! The dragon is so impressed it pays YOU.',
+  'NATURAL 20! You seduce the dragon. The bard is furious.',
+  'NATURAL 20! The DM puts down their pizza.',
+  'NATURAL 20! Somewhere, a dice goblin squeals with joy.',
+  'NATURAL 20! You roll so hard the table flips.',
+  'NATURAL 20! The paladin weeps. The rogue takes notes.',
+  'NATURAL 20! Your character sheet glows faintly.',
+];
+const NAT1 = [
+  'Natural 1. The die rolls under the couch. The cat has it now.',
+  'Natural 1. You attack the darkness.',
+  'Natural 1. You throw your sword. Your sword was your only weapon.',
+  'Natural 1. The bard laughs. The bard always laughs.',
+  'Natural 1. "Is that a 1?" asks everyone, at once.',
+  'Natural 1. You fall off your horse. You were not on a horse.',
+  'Natural 1. The DM smiles. That is never good.',
+];
+
+// =====================================================================
+// STATE
+// =====================================================================
+const SAVE_KEY = 'natural-twenty-v1';
+function freshState(legacy = 0) {
+  return { gold:0, totalGold:0, insp:0, totalInsp:0, rolls:0, nat20:0, nat1:0, followers:{}, projects:[],
+           quests:[], questsDone:0, questCooldown:0, planes:0, chests:0, legacy, ended:false, time:0, last:Date.now(),
+           seenFollowers:1, log:[] };
+}
+let state = freshState();
+let derived = {};
+
+// =====================================================================
+// RULES ENGINE
+// =====================================================================
+// Distribution of the natural face after Lucky (reroll a 1 once) and Advantage (keep higher of two).
+function faceDist(lucky, adv) {
+  const s = new Array(21).fill(0);
+  for (let f = 1; f <= 20; f++) s[f] = lucky ? (f === 1 ? 1/400 : 1/20 + 1/400) : 1/20;
+  if (!adv) return s;
+  const out = new Array(21).fill(0); let cPrev = 0, c = 0;
+  for (let f = 1; f <= 20; f++) { c += s[f]; out[f] = c * c - cPrev * cPrev; cPrev = c; }
+  return out;
+}
+
+function recompute() {
+  const d = {};
+  d.bonus = (has('weighted') ? 1 : 0) + (has('portent') ? 2 : 0);
+  d.adv = has('adv'); d.lucky = has('lucky');
+  d.minRoll = has('reliable') ? 10 : 0;
+  d.critFrom = has('crit') ? 19 : 20;
+  d.critMult = has('rulecool') ? 4 : 2;
+  d.inspPerCrit = has('leader') ? 2 : 1;
+  d.failForward = has('failfwd');
+  d.hand = 1 + (has('dual') ? 1 : 0) + (has('extra') ? 1 : 0) + (has('bag') ? 3 : 0);
+  d.autoHand = has('haste') ? 4 : has('initiative') ? 1 : 0;
+  d.goldMult = (1 + 0.5 * state.legacy) * (has('lawyer') ? 1.25 : 1) * (has('tarrasque') ? 2 : 1) * (has('wish') ? 2 : 1) * Math.pow(1.5, state.planes);
+  d.questBonus = (has('guidance') ? 3 : 0) + (has('expertise') ? 5 : 0);
+  d.questMult = has('lore') ? 3 : 1;
+
+  const m = {
+    kobold:   (has('union') ? 2 : 1) * (has('traps') ? 2 : 1) * (has('worship') ? 25 : 1),
+    bard:     (has('bardic') ? 2 : 1) * (has('lute') ? 2 : 1),
+    rogue:    (has('breakfast') ? 2 : 1),
+    wizard:   (has('late') ? 2 : 1) * (has('shallnot') ? 3 : 1),
+    dwarf:    (has('mellon') ? 3 : 1) * (has('greedy') ? 2 : 1),
+    ent:      (has('entmoot') ? 2 : 1) * (has('hasty') ? 3 : 1),
+    beholder: (has('antimagic') ? 2 : 1),
+    dragon:   (has('sickness') ? 2 : 1),
+    lich:     (has('phylactery') ? 2 : 1),
+    planar:   (has('sigil') ? 2 : 1),
+  };
+  const party = has('pizza') ? 1.5 : 1;
+  d.followerRate = {};
+  d.autoRolls = 0;
+  for (const f of FOLLOWERS) { d.followerRate[f.id] = f.rate * m[f.id] * party; d.autoRolls += own(f.id) * d.followerRate[f.id]; }
+
+  // Expected value of one die
+  const p = faceDist(d.lucky, d.adv);
+  d.p = p; d.ev = 0; d.critP = 0; d.fumbleP = 0;
+  for (let f = 1; f <= 20; f++) {
+    const fumble = f === 1 && d.minRoll <= 1, crit = f >= d.critFrom;
+    const pips = Math.max(f, d.minRoll) + d.bonus;
+    d.ev += p[f] * (fumble ? 0 : pips * (crit ? d.critMult : 1));
+    if (crit) d.critP += p[f];
+    if (fumble) d.fumbleP += p[f];
+  }
+  d.ev *= d.goldMult;
+  d.gps = (d.autoRolls + d.autoHand * d.hand) * d.ev;
+  derived = d;
+}
+
+function sampleFace() {
+  const roll = () => { let f = 1 + Math.floor(Math.random() * 20); if (derived.lucky && f === 1) f = 1 + Math.floor(Math.random() * 20); return f; };
+  return derived.adv ? Math.max(roll(), roll()) : roll();
+}
+
+// Roll one die for real (used for clicks). Returns {face, gold, crit, fumble}.
+function rollOne() {
+  const d = derived, f = sampleFace();
+  const fumble = f === 1 && d.minRoll <= 1, crit = f >= d.critFrom;
+  const gold = fumble ? 0 : (Math.max(f, d.minRoll) + d.bonus) * (crit ? d.critMult : 1) * d.goldMult;
+  state.rolls++;
+  if (crit) { state.nat20++; addInsp(d.inspPerCrit); }
+  if (fumble) { state.nat1++; if (d.failForward) addInsp(1); }
+  addGold(gold);
+  return { face: Math.max(f, d.minRoll), natural: f, gold, crit, fumble };
+}
+
+function addGold(n) { state.gold += n; state.totalGold += n; }
+function addInsp(n) { state.insp += n; state.totalInsp += n; }
+
+// =====================================================================
+// ACTIONS
+// =====================================================================
+function clickDie(fromAuto = false) {
+  const results = [];
+  for (let i = 0; i < derived.hand; i++) results.push(rollOne());
+  const total = results.reduce((s, r) => s + r.gold, 0);
+  const crit = results.some(r => r.crit), fumble = results[0].fumble && results.length === 1;
+  if (!fromAuto) {
+    const shown = results.find(r => r.crit) || results[0];
+    showRoll(shown, total, results.length);
+    if (shown.crit) log(pick(NAT20), 'crit');
+    else if (shown.fumble && results.length === 1) log(pick(NAT1), 'fumble');
+  }
+  return { total, crit, fumble };
+}
+
+function buyFollower(id) {
+  const f = FBY[id], c = followerCost(f, own(id));
+  if (state.gold < c) return false;
+  state.gold -= c; state.followers[id] = own(id) + 1;
+  if (own(id) === 1) log(`${f.name} joins the party. ${f.desc}`, 'good');
+  recompute(); return true;
+}
+
+function buyProject(id) {
+  const p = PBY[id];
+  if (has(id) || state.gold < (p.gold || 0) || state.insp < (p.insp || 0)) return false;
+  state.gold -= p.gold || 0; state.insp -= p.insp || 0;
+  state.projects.push(id);
+  log(`${p.name}: ${p.fx}.`, 'lore');
+  if (id === 'hooded') { log('The hooded figure slides a quest board across the table. "Adventure awaits. For a fee."', 'lore'); refillQuests(); }
+  if (id === 'onedie') log('The One Die is forged. The planes tremble. They are about to become dice.', 'lore');
+  recompute(); return true;
+}
+
+// ---------- Quests ----------
+function makeQuest() {
+  const [name, skill] = pick(QUESTS.filter(q => !state.quests.some(x => x.name === q[0])));
+  const dc = 10 + Math.floor(Math.random() * 16) + Math.min(10, Math.floor(state.questsDone / 3));
+  const secs = 40 + dc * 6;
+  return { name, skill, dc, gold: Math.max(500, derived.gps * secs + derived.ev * derived.hand * 30) * derived.questMult, insp: Math.ceil(dc / 4), cool: 0 };
+}
+function refillQuests() { while (state.quests.length < 3) state.quests.push(makeQuest()); }
+function attemptQuest(i) {
+  const q = state.quests[i];
+  if (!q || q.cool > 0) return;
+  const nat = sampleFace(), total = Math.max(nat, derived.minRoll) + derived.bonus + derived.questBonus;
+  const ok = nat === 20 || (nat !== 1 || derived.minRoll > 1) && total >= q.dc;
+  if (ok) {
+    addGold(q.gold); addInsp(q.insp); state.questsDone++;
+    log(`Quest complete! ${q.skill} check: ${total} vs DC ${q.dc}. "${q.name}" → +${fmt(q.gold)} gold, +${q.insp} Inspiration.`, 'good');
+    state.quests[i] = makeQuest(); state.quests[i].cool = 4;
+  } else {
+    log(`Quest failed. ${q.skill} check: ${total} vs DC ${q.dc}. You'll get them next time. Probably.`, 'fumble');
+    q.cool = 15;
+  }
+}
+
+// ---------- Planes ----------
+const planeCost = i => 5e13 * Math.pow(7, i);
+function rollPlane() {
+  if (state.planes >= PLANES.length) return;
+  const c = planeCost(state.planes);
+  if (state.gold < c) return;
+  state.gold -= c;
+  const [name, quip] = PLANES[state.planes];
+  state.planes++;
+  log(`${name} has been rolled into dice. ${quip}`, 'crit');
+  recompute();
+  if (state.planes >= PLANES.length) showEnding();
+}
+
+// ---------- Treasure chests ----------
+let chestTimer = rand(40, 70), chestLife = 0, chestMimic = false;
+function spawnChest() {
+  chestMimic = Math.random() < 0.22; chestLife = 11;
+  const c = $('chest'); c.classList.add('show'); c.classList.toggle('mimic', chestMimic && has('detect'));
+  c.textContent = chestMimic && has('detect') ? '👄' : '🧰';
+}
+function openChest() {
+  if (chestLife <= 0) return;
+  chestLife = 0; $('chest').classList.remove('show'); state.chests++;
+  if (chestMimic && !has('detect')) {
+    const lost = state.gold * 0.05;
+    state.gold -= lost;
+    log(`IT WAS A MIMIC. It was always a mimic. It eats ${fmt(lost)} gold and leaves.`, 'fumble');
+  } else if (chestMimic) {
+    addInsp(5); log('You stab the mimic before it can blink. +5 Inspiration.', 'good');
+  } else if (Math.random() < 0.3) {
+    const n = Math.max(3, Math.ceil(state.totalInsp * 0.03)); addInsp(n);
+    log(`The chest holds a Potion of Heroism. +${n} Inspiration.`, 'good');
+  } else {
+    const g = Math.max(200, derived.gps * 75 + derived.ev * derived.hand * 25); addGold(g);
+    log(`Treasure! The chest holds ${fmt(g)} gold and one (1) suspicious sandwich.`, 'good');
+  }
+}
+
+// =====================================================================
+// TICK
+// =====================================================================
+let autoAcc = 0;
+function tick(dt) {
+  const d = derived;
+  state.time += dt;
+  // Party rolls (statistical), plus your hand's automatic rolls
+  const n = d.autoRolls * dt;
+  addGold(n * d.ev);
+  state.rolls += n;
+  const crits = n * d.critP, fumbles = n * d.fumbleP;
+  state.nat20 += crits; addInsp(crits * d.inspPerCrit * 0.25);       // party crits inspire you a little
+  state.nat1 += fumbles; if (d.failForward) addInsp(fumbles * 0.25);
+  if (d.autoHand) { autoAcc += d.autoHand * dt; while (autoAcc >= 1) { autoAcc--; clickDie(true); } }
+
+  // Quests
+  if (has('hooded')) { refillQuests(); for (const q of state.quests) q.cool = Math.max(0, q.cool - dt); }
+
+  // Chests
+  if (chestLife > 0) { chestLife -= dt; if (chestLife <= 0) $('chest').classList.remove('show'); }
+  else { chestTimer -= dt; if (chestTimer <= 0) { spawnChest(); chestTimer = rand(45, 90) * (has('detect') ? 0.6 : 1); } }
+}
+
+// =====================================================================
+// UI
+// =====================================================================
+function log(text, cls = '') {
+  state.log.unshift([text, cls]); state.log.length = Math.min(state.log.length, 40);
+  const div = document.createElement('div'); div.textContent = text; if (cls) div.className = cls;
+  const L = $('log'); L.prepend(div); while (L.children.length > 8) L.lastChild.remove();
+}
+
+function showRoll(r, total, n) {
+  const die = $('die');
+  $('dieNum').textContent = r.natural;
+  die.classList.remove('roll', 'crit', 'fumble'); void die.getBoundingClientRect();
+  die.classList.add('roll'); if (r.crit) die.classList.add('crit'); else if (r.fumble && n === 1) die.classList.add('fumble');
+  const fl = document.createElement('div');
+  fl.className = 'floaty' + (total === 0 ? ' f' : '');
+  fl.textContent = total === 0 ? 'FUMBLE' : `+${fmt(total)}`;
+  const wrap = die.parentElement, rect = die.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+  fl.style.left = (rect.left - wr.left + rect.width / 2 - 20 + rand(-30, 30)) + 'px';
+  fl.style.top = (rect.top - wr.top + 40) + 'px';
+  wrap.appendChild(fl); setTimeout(() => fl.remove(), 1000);
+}
+
+const costHtml = (g, i) => [g ? `${fmt(g)} gp` : '', i ? `<span class="i">${fmt(i)} insp</span>` : ''].filter(Boolean).join(' · ');
+
+let lastStructure = '';
+function render() {
+  const d = derived;
+  $('sGold').textContent = fmt(state.gold);
+  $('sGps').textContent = fmt(d.gps, 1);
+  $('sInsp').textContent = fmt(Math.floor(state.insp));
+  $('sN20').textContent = fmt(Math.floor(state.nat20));
+  $('sN1').textContent = fmt(Math.floor(state.nat1));
+  $('rollRate').textContent = d.autoRolls ? `${fmt(d.autoRolls, 1)} rolls/sec` : '';
+  $('rules').innerHTML =
+    `Your die: <b>d20${d.bonus ? ' + ' + d.bonus : ''}</b>${d.adv ? ', <b>advantage</b>' : ''}${d.lucky ? ', <b>Lucky</b>' : ''}${d.minRoll ? ', <b>min 10</b>' : ''}<br>` +
+    `Crit on <b>${d.critFrom === 20 ? '20' : '19–20'}</b> for <b>×${d.critMult}</b> · ${d.hand > 1 ? `<b>${d.hand} dice</b> per click` : '1 die per click'}<br>` +
+    `Average per die: <b>${fmt(d.ev, 1)} gp</b>${state.legacy ? ` · Campaign ${state.legacy + 1} bonus <b>+${state.legacy * 50}%</b>` : ''}`;
+  $('dieHint').textContent = d.autoHand ? `Your hand rolls ${d.autoHand}×/sec on its own (clicking still works)` : 'Click the die to roll for gold';
+
+  // Followers: show owned + next affordable-ish
+  let shown = 0;
+  const fHtml = FOLLOWERS.map((f, i) => {
+    const o = own(f.id), c = followerCost(f, o);
+    const visible = o > 0 || i === 0 || own(FOLLOWERS[i - 1].id) > 0 || state.totalGold >= f.cost * 0.4;
+    if (!visible) return '';
+    shown++;
+    const each = d.followerRate[f.id];
+    return `<button class="buy fol" data-f="${f.id}" ${state.gold < c ? 'disabled' : ''}>
+      <span class="nm">${f.name}</span><span class="own">${o}</span>
+      <span class="ds">${f.desc}</span>
+      <span class="fx">${fmt(each, 1)} rolls/sec each${o ? ` · ${fmt(o * each * d.ev, 1)} gp/sec total` : ''}</span>
+      <span class="ct" style="grid-column:1/-1;text-align:left">${fmt(c)} gp</span></button>`;
+  }).join('');
+  // Projects: available, not bought
+  const avail = PROJECTS.filter(p => !has(p.id) && p.req());
+  const pHtml = avail.length ? avail.map(p => {
+    const ok = state.gold >= (p.gold || 0) && state.insp >= (p.insp || 0);
+    return `<button class="buy" data-p="${p.id}" ${ok ? '' : 'disabled'}>
+      <span class="nm">${p.name}</span><span class="ct">${costHtml(p.gold, p.insp)}</span>
+      <span class="ds">${p.ds}</span><span class="fx">→ ${p.fx}</span></button>`;
+  }).join('') : `<div class="empty">Keep rolling. New feats appear as your legend grows.</div>`;
+  // Quests
+  let qHtml = '';
+  if (has('hooded')) {
+    $('questWrap').style.display = '';
+    qHtml = state.quests.map((q, i) => {
+      const bonus = d.bonus + d.questBonus;
+      return `<div class="quest ${q.cool > 0 ? 'cool' : ''}"><div class="q">${q.name}</div>
+        <div class="meta">${q.skill} · DC ${q.dc} · your bonus +${bonus} · reward ${fmt(q.gold)} gp + ${q.insp} insp</div>
+        <button data-q="${i}" ${q.cool > 0 ? 'disabled' : ''}>${q.cool > 0 ? `Recovering… ${Math.ceil(q.cool)}s` : `Roll ${q.skill}`}</button></div>`;
+    }).join('');
+  }
+  // Planes
+  let plHtml = '', plBuy = '';
+  if (has('onedie')) {
+    $('planeWrap').style.display = '';
+    $('planeBar').style.width = (state.planes / PLANES.length * 100) + '%';
+    plHtml = PLANES.map(([n], i) => `<div class="plane ${i < state.planes ? 'done' : ''}">${i < state.planes ? '⚄ ' : ''}${n}</div>`).join('');
+    if (state.planes < PLANES.length) {
+      const c = planeCost(state.planes), [n, q] = PLANES[state.planes];
+      plBuy = `<button class="buy" data-plane="1" ${state.gold < c ? 'disabled' : ''}><span class="nm">Roll ${n} into dice</span><span class="ct">${fmt(c)} gp</span>
+        <span class="fx">→ Each plane rolled: all gold ×1.5 (currently ×${fmt(Math.pow(1.5, state.planes), 1)})</span></button>`;
+    }
+  }
+
+  // Only rebuild lists when their content changes (keeps hover/click stable)
+  const key = fHtml + pHtml + qHtml + plHtml + plBuy;
+  if (key !== lastStructure) {
+    lastStructure = key;
+    $('followers').innerHTML = fHtml; $('projects').innerHTML = pHtml; $('quests').innerHTML = qHtml;
+    $('planes').innerHTML = plHtml; $('planeBuy').innerHTML = plBuy;
+  }
+}
+
+// =====================================================================
+// ENDING + NEW CAMPAIGN
+// =====================================================================
+function showEnding() {
+  state.ended = true; save();
+  $('endText').textContent = 'Every plane of existence has been rolled into dice. The multiverse is now one hundred percent d20. There is no one left to roll them. Except you.';
+  $('endBig').textContent = '';
+  $('endStats').textContent = `${fmt(state.rolls)} rolls · ${fmt(Math.floor(state.nat20))} natural 20s · ${fmt(Math.floor(state.nat1))} natural 1s · ${Math.round(state.time / 60)} minutes`;
+  $('endRoll').style.display = ''; $('campaignBtn').style.display = 'none';
+  $('ending').classList.add('show');
+}
+$('endRoll').addEventListener('click', () => {
+  $('endBig').textContent = '20';
+  $('endText').textContent = 'The die lands on 20. Of course it does. It was always going to. The DM closes the book, smiles, and asks: "Same time next week?"';
+  $('endRoll').style.display = 'none'; $('campaignBtn').style.display = '';
+});
+$('campaignBtn').addEventListener('click', () => {
+  const legacy = state.legacy + 1;
+  state = freshState(legacy); recompute(); save();
+  $('ending').classList.remove('show');
+  $('log').innerHTML = '';
+  log(`Campaign ${legacy + 1} begins. Your legend carries over: +${legacy * 50}% gold forever.`, 'lore');
+  lastStructure = '';
+});
+
+// =====================================================================
+// SAVE / LOAD
+// =====================================================================
+let storageOK = true;
+function save() {
+  state.last = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+  catch (e) { storageOK = false; $('saveNote').textContent = 'This browser can\'t autosave here. Use Save data → Export to keep your progress.'; }
+}
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { storageOK = false; }
+  if (!raw) return false;
+  try { applySave(JSON.parse(raw)); return true; } catch (e) { return false; }
+}
+function applySave(obj) {
+  state = Object.assign(freshState(), obj);
+  recompute();
+  // Offline progress: half speed, up to 8 hours
+  const away = Math.min(8 * 3600, Math.max(0, (Date.now() - (state.last || Date.now())) / 1000));
+  if (away > 60 && derived.gps > 0 && !state.ended) {
+    const g = derived.gps * away * 0.5; addGold(g);
+    $('awayText').textContent = `You were gone ${away >= 3600 ? (away / 3600).toFixed(1) + ' hours' : Math.round(away / 60) + ' minutes'}. Your party kept rolling (at half speed, they missed you) and earned ${fmt(g)} gold.`;
+    $('away').classList.add('show');
+  }
+  $('log').innerHTML = '';
+  for (const [t, c] of state.log.slice(0, 8).reverse()) { const div = document.createElement('div'); div.textContent = t; if (c) div.className = c; $('log').prepend(div); }
+  lastStructure = '';
+}
+$('saveToggle').addEventListener('click', () => $('saveBox').classList.toggle('show'));
+$('exportBtn').addEventListener('click', () => { state.last = Date.now(); $('saveText').value = btoa(unescape(encodeURIComponent(JSON.stringify(state)))); $('saveText').select(); });
+$('importBtn').addEventListener('click', () => {
+  try { applySave(JSON.parse(decodeURIComponent(escape(atob($('saveText').value.trim()))))); save(); log('Save imported. Welcome back, adventurer.', 'good'); }
+  catch (e) { log('That save code didn\'t work. Did a mimic eat part of it?', 'fumble'); }
+});
+let resetArmed = 0;
+$('resetBtn').addEventListener('click', () => {
+  if (Date.now() - resetArmed > 3000) { resetArmed = Date.now(); $('resetBtn').textContent = 'Click again to wipe everything'; setTimeout(() => $('resetBtn').textContent = 'Reset', 3000); return; }
+  state = freshState(); recompute(); save(); $('log').innerHTML = ''; lastStructure = ''; $('resetBtn').textContent = 'Reset';
+  log('A new adventurer walks into a tavern…', 'lore');
+});
+addEventListener('beforeunload', save);
+setInterval(save, 10000);
+
+// =====================================================================
+// EVENTS + LOOP
+// =====================================================================
+$('die').addEventListener('click', () => { clickDie(); render(); });
+$('die').addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); clickDie(); render(); } });
+$('chest').addEventListener('click', () => { openChest(); render(); });
+document.addEventListener('click', e => {
+  const f = e.target.closest('[data-f]'), p = e.target.closest('[data-p]'), q = e.target.closest('[data-q]'), pl = e.target.closest('[data-plane]');
+  if (f) buyFollower(f.dataset.f);
+  else if (p) buyProject(p.dataset.p);
+  else if (q) attemptQuest(+q.dataset.q);
+  else if (pl) rollPlane();
+  else return;
+  lastStructure = ''; render();
+});
+
+let last = performance.now(), renderAcc = 0;
+function loop(now) {
+  const dt = Math.min(1, (now - last) / 1000); last = now;
+  if (!state.ended) tick(dt);
+  renderAcc += dt;
+  if (renderAcc > 0.1) { renderAcc = 0; render(); }
+  requestAnimationFrame(loop);
+}
+
+recompute();
+if (!load()) log('You walk into a tavern. A hooded stranger hands you a twenty-sided die. "Roll it," he says. So you do.', 'lore');
+recompute();
+if (state.ended) showEnding();
+render();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

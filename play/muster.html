@@ -1,0 +1,2256 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Muster</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Libre+Franklin:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one screen. The hill fills it; the shepherd's ledger opens over it between days. */
+:root {
+  /* the ledger: pale green account paper, green rules, red total rules, ink, and raddle blue */
+  --paper: #e3ebd6;
+  --paper-deep: #d3dfc3;
+  --rule: #9cba90;
+  --rule-red: #b2493a;
+  --ink: #1f2a22;
+  --ink-soft: #4d5c50;
+  --raddle: #2f57a0;
+  --raddle-deep: #24457f;
+  --hill: #6f8f4e;
+  --night: #16211c;
+  --display: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  --ui: "Libre Franklin", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--ui);
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+#app { position: relative; width: 100%; height: 100%; overflow: hidden; }
+canvas#field { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+/* ---------- HUD over the field ---------- */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  color: #f4f6ee;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.hud-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; }
+.hud-place { font-family: var(--display); font-size: clamp(17px, 2.2vw, 24px); line-height: 1.1; }
+.hud-place small { display: block; font-family: var(--ui); font-size: 12px; opacity: 0.85; margin-top: 3px; letter-spacing: 0.02em; }
+#dial { width: 132px; height: 70px; justify-self: center; }
+.hud-count { justify-self: end; text-align: right; }
+.hud-count b { font-size: clamp(24px, 3.4vw, 36px); font-weight: 700; font-variant-numeric: tabular-nums; }
+.hud-count span { font-size: 15px; opacity: 0.9; }
+.hud-count em { display: block; font-family: var(--display); font-style: italic; font-size: 17px; min-height: 1.2em; }
+.hud-bottom { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.meters { display: grid; gap: 6px; min-width: 150px; }
+.meter { display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 8px; font-size: 12px; }
+.meter i { display: block; height: 7px; background: rgba(255, 255, 255, 0.22); border-radius: 4px; overflow: hidden; }
+.meter i b { display: block; height: 100%; width: 100%; background: #f4f6ee; border-radius: 4px; }
+.meter.cool i b { background: #9fc0ff; }
+.keys { font-size: 12px; opacity: 0.85; text-align: right; line-height: 1.5; }
+.keys kbd { font-family: var(--ui); font-size: 11px; border: 1px solid rgba(255,255,255,0.55); border-radius: 3px; padding: 0 4px; }
+
+/* touch controls */
+.pads { display: none; gap: 10px; pointer-events: auto; }
+.pad {
+  width: 66px; height: 66px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: rgba(20, 30, 24, 0.45);
+  color: #fff; font: 600 13px var(--ui);
+  display: grid; place-items: center;
+}
+.pad[aria-pressed="true"] { background: var(--raddle); border-color: #cfe0ff; }
+.pad:disabled { opacity: 0.4; }
+@media (pointer: coarse) {
+  .pads { display: flex; }
+  .keys { display: none; }
+}
+
+.banner {
+  position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%);
+  font-family: var(--display); font-size: clamp(34px, 7vw, 76px); color: #fbfcf6;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.45); pointer-events: none; white-space: nowrap;
+  transition: opacity 0.5s;
+}
+
+/* ---------- the ledger (title, day's tally, farm) ---------- */
+.sheet {
+  position: absolute; inset: 0;
+  display: grid; place-items: center; grid-template-columns: minmax(0, 1fr);
+  padding-block: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: rgba(14, 22, 17, 0.35);
+  overflow: auto;
+  touch-action: pan-y;
+  -webkit-user-select: text; user-select: text;
+}
+.ledger {
+  position: relative;
+  box-sizing: border-box;
+  width: min(980px, 100%);
+  min-width: 0;
+  max-height: 100%;
+  overflow: auto;
+  background:
+    linear-gradient(to right, transparent 46px, var(--rule-red) 46px, var(--rule-red) 47px, transparent 47px, transparent 50px, var(--rule-red) 50px, var(--rule-red) 51px, transparent 51px),
+    repeating-linear-gradient(to bottom, var(--paper) 0 27px, var(--rule) 27px 28px);
+  background-color: var(--paper);
+  border-radius: 3px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(31,42,34,0.15);
+  padding: 22px 26px 26px 70px;
+  color: var(--ink);
+}
+.ledger h1, .ledger h2, .ledger h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+.ledger h1 { font-size: clamp(54px, 9vw, 96px); line-height: 0.95; }
+.ledger h2 { font-size: clamp(28px, 4vw, 38px); line-height: 1.05; }
+.ledger h3 { font-size: 23px; line-height: 1.1; }
+.ledger p { margin: 0; line-height: 1.55; max-width: 62ch; }
+.lead { font-family: var(--display); font-style: italic; font-size: 21px; line-height: 1.4; }
+.muted { color: var(--ink-soft); }
+.stack { display: grid; gap: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 26px 34px; }
+@media (max-width: 760px) {
+  .cols { grid-template-columns: 1fr; }
+  .ledger { padding: 18px 16px 22px 44px; background:
+    linear-gradient(to right, transparent 26px, var(--rule-red) 26px, var(--rule-red) 27px, transparent 27px, transparent 30px, var(--rule-red) 30px, var(--rule-red) 31px, transparent 31px),
+    repeating-linear-gradient(to bottom, var(--paper) 0 27px, var(--rule) 27px 28px); background-color: var(--paper); }
+}
+
+.btn {
+  font: 600 15px var(--ui);
+  padding: 11px 18px;
+  border-radius: 4px;
+  border: 2px solid var(--raddle);
+  background: var(--raddle);
+  color: #fff;
+  cursor: pointer;
+}
+.btn:hover { background: var(--raddle-deep); border-color: var(--raddle-deep); }
+.btn.ghost { background: transparent; color: var(--raddle); }
+.btn.ghost:hover { background: rgba(47, 87, 160, 0.1); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.big { font-size: 17px; padding: 13px 24px; }
+:focus-visible { outline: 3px solid #f0b43c; outline-offset: 2px; }
+
+/* the day's tally: an account with a red rule above the total */
+.account { display: grid; grid-template-columns: 1fr auto; column-gap: 18px; font-variant-numeric: tabular-nums; line-height: 28px; }
+.account .total { border-top: 2px solid var(--rule-red); font-weight: 700; }
+.account .neg { color: var(--rule-red); }
+.tally-marks { color: var(--raddle); display: flex; flex-wrap: wrap; gap: 2px 6px; }
+
+/* upgrades: written into the ledger as entries, not cards */
+.entries { display: grid; gap: 0; }
+.entry {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--rule);
+}
+.entry:first-child { border-top: 1px solid var(--rule); }
+.entry .name { font-weight: 600; }
+.entry .what { font-size: 13px; color: var(--ink-soft); }
+.pips { font-size: 12px; letter-spacing: 2px; color: var(--raddle); margin-left: 6px; }
+.entry .btn { padding: 7px 12px; font-size: 14px; min-width: 88px; font-variant-numeric: tabular-nums; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { font: 600 14px var(--ui); padding: 7px 12px; border: 1.5px solid var(--ink-soft); border-radius: 3px; background: transparent; color: var(--ink); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.purse { font-family: var(--display); font-size: 30px; }
+.purse small { font-family: var(--ui); font-size: 13px; color: var(--ink-soft); }
+.field-pick { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 4px 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.field-pick input { width: 18px; height: 18px; accent-color: var(--raddle); }
+.chip { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 3px; border: 1px solid currentColor; margin-left: 6px; vertical-align: 2px; }
+.danger { color: var(--rule-red); }
+.howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 12px 24px; }
+.howto div { font-size: 14px; line-height: 1.5; }
+.howto b { display: block; font-family: var(--display); font-weight: 400; font-size: 19px; }
+.note { font-size: 13px; color: var(--ink-soft); }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .banner { transition: none; } }
+</style>
+
+<div id="app">
+  <canvas id="field" aria-label="The hill. Move the dog with the mouse, a finger, or the arrow keys."></canvas>
+
+  <div class="hud" id="hud" hidden>
+    <div class="hud-top">
+      <div class="hud-place"><span id="hudField">Low Pasture</span><small id="hudDay">Day 1</small></div>
+      <canvas id="dial" width="264" height="140" aria-hidden="true"></canvas>
+      <div class="hud-count"><b id="hudPen">0</b><span id="hudOf"> / 10 in the fold</span><em id="hudWord"></em></div>
+    </div>
+    <div></div>
+    <div class="hud-bottom">
+      <div class="meters">
+        <div class="meter"><span>Wind</span><i><b id="mStam"></b></i></div>
+        <div class="meter cool"><span>Bark</span><i><b id="mBark"></b></i></div>
+        <div class="meter cool" id="mWhistleRow" hidden><span>Whistle</span><i><b id="mWhistle"></b></i></div>
+      </div>
+      <div class="pads">
+        <button class="pad" id="padSteady" aria-pressed="false">Steady</button>
+        <button class="pad" id="padWhistle" hidden>Whistle</button>
+        <button class="pad" id="padBark">Bark</button>
+      </div>
+      <div class="keys">
+        Dog follows the mouse &middot; <kbd>Shift</kbd> or right-hold: steady<br>
+        <kbd>Space</kbd> / click: bark &middot; <kbd>Q</kbd>: whistle &middot; <kbd>M</kbd>: sound &middot; <kbd>Esc</kbd>: pause
+      </div>
+    </div>
+  </div>
+  <div class="banner" id="banner" style="opacity:0"></div>
+
+  <div class="sheet" id="sheet">
+    <div class="ledger" id="ledger" role="dialog" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================================
+   MUSTER — a border collie, a hill, a flock, and the dark coming on.
+   Sheep are a flock (boids) that fear the dog in proportion to how fast it comes at them.
+   Run in and they scatter; walk up steady and they move as one.
+   ===================================================================================== */
+
+// ------------------------------------------------------------------ small utilities
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const hyp = Math.hypot;
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let rand = mulberry32(12345);
+const rr = (a, b) => a + (b - a) * rand();
+const fmt = (n) => "£" + Math.floor(n).toLocaleString("en-GB");
+
+// Old shepherds' counting (Cumbria and the Dales; the word for ten varies by valley), by the score.
+const YAN = ["yan", "tyan", "tethera", "methera", "pimp", "sethera", "lethera", "hovera", "dovera", "dec",
+  "yan-a-dec", "tyan-a-dec", "tethera-dec", "methera-dec", "bumfit", "yan-a-bumfit", "tyan-a-bumfit",
+  "tethera-bumfit", "methera-bumfit", "jiggit"];
+function shepherdCount(n) {
+  if (n <= 0) return "";
+  const scores = Math.floor((n - 1) / 20);
+  const rest = ((n - 1) % 20) + 1;
+  const w = YAN[rest - 1];
+  if (scores === 0) return w;
+  return (scores === 1 ? "a score" : YAN[scores - 1] + " score") + (rest === 20 ? " and jiggit" : " and " + w);
+}
+
+// ------------------------------------------------------------------ the fields
+const REGIONS = {
+  pasture: { name: "Low Pasture", mult: 1, w: 120, h: 76, lease: 0, grass: ["#7fa457", "#739a4c", "#8bb062"], dayLen: 120,
+    note: "Easy grass and a beck with a ford. Nothing hunts here.", night: 0 },
+  moor: { name: "Heather Moor", mult: 1.7, w: 150, h: 94, lease: 250, grass: ["#7d8f52", "#6f8249", "#8a9a5c"], dayLen: 135,
+    note: "Heather slows the flock; bog pools to skirt. Foxes come at dusk.", night: 0.1 },
+  fell: { name: "Stony Fell", mult: 2.6, w: 165, h: 104, lease: 900, grass: ["#87935f", "#7a8756", "#929d69"], dayLen: 140,
+    note: "Dry-stone walls with narrow gaps. Rams that stand their ground and charge.", night: 0.1 },
+  coast: { name: "Sea Cliffs", mult: 3.8, w: 165, h: 104, lease: 3000, grass: ["#86a65f", "#789a54", "#93b26a"], dayLen: 135,
+    note: "An unfenced cliff edge, and gusts off the sea that push the flock toward it.", night: 0.15 },
+  glen: { name: "High Glen", mult: 5.6, w: 185, h: 116, lease: 9000, grass: ["#8d9a74", "#7f8d68", "#9aa680"], dayLen: 125,
+    note: "Snow drifts, short days, and wolves that hunt in a pack.", night: 0.25 },
+};
+const REGION_ORDER = ["pasture", "moor", "fell", "coast", "glen"];
+const GOAL = 80; // pen this many in a single day on the High Glen to be Master of the Muster
+
+// ------------------------------------------------------------------ upgrades
+const UPGRADES = {
+  pace:    { group: "dog", name: "Pace", max: 8, base: 15, g: 1.65, what: (l) => `Runs ${(8.5 + 0.6 * l).toFixed(1)} m/s` },
+  wind:    { group: "dog", name: "Wind", max: 6, base: 12, g: 1.6, what: (l) => `${6 + 2 * l} s of hard running` },
+  bark:    { group: "dog", name: "Bark", max: 6, base: 20, g: 1.7, what: (l) => `${(9 + 1.2 * l).toFixed(0)} m reach, every ${(4 - 0.4 * l).toFixed(1)} s` },
+  eye:     { group: "dog", name: "Eye", max: 5, base: 25, g: 1.8, what: (l) => `Walking up, sheep give ground from ${(5.5 - 0.5 * l).toFixed(1)} m` },
+  whistle: { group: "dog", name: "Whistle", max: 4, base: 60, g: 2.0, what: (l) => l === 0 ? "Learn a whistle that bunches the flock (Q)" : `Flock bunches for ${(2 + 1.5 * l).toFixed(1)} s` },
+  meg:     { group: "dog", name: "Meg, a second dog", max: 4, base: 400, g: 1.9, what: (l) => l === 0 ? "A young bitch who fetches strays on her own" : `Meg runs ${(6 + 0.8 * l).toFixed(1)} m/s` },
+  ewes:    { group: "farm", name: "Buy three ewes", max: 999, base: 18, g: 1.22, what: () => "More sheep, more wool" },
+  grazing: { group: "farm", name: "Grazing", max: 12, base: 30, g: 1.55, what: (l) => `Land for ${15 + 8 * l} sheep` },
+  fold:    { group: "farm", name: "Wider gate", max: 4, base: 20, g: 1.85, what: (l) => `Fold gate ${(4 + 1.3 * l).toFixed(1)} m wide` },
+  shed:    { group: "farm", name: "Shearing shed", max: 8, base: 40, g: 1.7, what: (l) => `+${20 * l}% for every fleece` },
+  lambing: { group: "farm", name: "Lambing pens", max: 6, base: 35, g: 1.7, what: (l) => `${6 + 4 * l}% of folded ewes lamb overnight` },
+  lantern: { group: "farm", name: "Lantern", max: 5, base: 30, g: 1.8, what: (l) => `+${12 * l} s before dark` },
+};
+const upCost = (k, lvl) => {
+  const u = UPGRADES[k];
+  if (k === "ewes") return Math.round(u.base * Math.pow(u.g, lvl));
+  return Math.round(u.base * Math.pow(u.g, lvl));
+};
+
+// ------------------------------------------------------------------ save
+const SAVE_KEY = "muster-save-v1";
+function freshSave() {
+  const up = {};
+  for (const k in UPGRADES) up[k] = 0;
+  return { v: 1, money: 0, day: 1, flock: 10, up, leases: { pasture: true }, region: "pasture", lifetime: 0,
+    bestDay: 0, won: false, lastSeen: Date.now(), muted: false, ewesBought: 0, history: [] };
+}
+let S = freshSave();
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.v === 1) { S = Object.assign(freshSave(), s); S.up = Object.assign(freshSave().up, s.up || {}); }
+    }
+  } catch (e) { /* no storage: play without saving */ }
+}
+function writeSave() {
+  S.lastSeen = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* ignore */ }
+}
+const cap = () => 15 + 8 * S.up.grazing;
+const woolPrice = (region) => 2 * REGIONS[region].mult * (1 + 0.2 * S.up.shed);
+
+// ------------------------------------------------------------------ dog stats from upgrades
+const dogRun = () => 8.5 + 0.6 * S.up.pace;
+const dogWind = () => 6 + 2 * S.up.wind;
+const barkRange = () => 9 + 1.2 * S.up.bark;
+const barkCool = () => 4 - 0.4 * S.up.bark;
+const eyeBase = () => 5.5 - 0.5 * S.up.eye;
+const whistleTime = () => 2 + 1.5 * S.up.whistle;
+const gateWidth = () => 4 + 1.3 * S.up.fold;
+const lambChance = () => 0.06 + 0.04 * S.up.lambing;
+const dayLength = (region) => REGIONS[region].dayLen + 12 * S.up.lantern;
+
+// ------------------------------------------------------------------ geometry helpers
+// does the segment (ax, ay)-(bx, by) cross wall segment s (allowing for its thickness)?
+function segsCross(ax, ay, bx, by, s) {
+  const n = Math.ceil(hyp(bx - ax, by - ay) / 0.8);
+  for (let k = 0; k <= n; k++) {
+    const x = lerp(ax, bx, k / n), y = lerp(ay, by, k / n);
+    const [qx, qy] = closestOnSeg(x, y, s);
+    if (hyp(qx - x, qy - y) < s.r + 1) return true;
+  }
+  return false;
+}
+function closestOnSeg(px, py, s) {
+  const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
+  const l2 = dx * dx + dy * dy || 1e-9;
+  const t = clamp(((px - s.x1) * dx + (py - s.y1) * dy) / l2, 0, 1);
+  return [s.x1 + dx * t, s.y1 + dy * t];
+}
+// push a body (x, y, radius) out of every solid thing; returns true if it touched something
+function collide(b, rad, D, isDog) {
+  let hit = false;
+  for (const s of D.segs) {
+    if (s.dogPass && isDog) continue;
+    const [cx, cy] = closestOnSeg(b.x, b.y, s);
+    const dx = b.x - cx, dy = b.y - cy;
+    const d = hyp(dx, dy), min = rad + s.r;
+    if (d < min) {
+      hit = true;
+      if (d < 1e-6) { b.x += min; continue; }
+      const push = (min - d) / d;
+      b.x += dx * push; b.y += dy * push;
+      const vn = (b.vx * dx + b.vy * dy) / d;
+      if (vn < 0) { b.vx -= (vn * dx) / d; b.vy -= (vn * dy) / d; }
+    }
+  }
+  for (const c of D.solids) {
+    const dx = b.x - c.x, dy = b.y - c.y;
+    const d = hyp(dx, dy), min = rad + c.r;
+    if (d < min) {
+      hit = true;
+      if (d < 1e-6) { b.x += min; continue; }
+      const push = (min - d) / d;
+      b.x += dx * push; b.y += dy * push;
+      const vn = (b.vx * dx + b.vy * dy) / d;
+      if (vn < 0) { b.vx -= (vn * dx) / d; b.vy -= (vn * dy) / d; }
+    }
+  }
+  // the field's own boundary (the cliff side is open for sheep, a wall for dogs)
+  const m = rad + 0.4;
+  if (b.x < m) { b.x = m; b.vx = Math.max(0, b.vx); hit = true; }
+  if (b.x > D.w - m) { b.x = D.w - m; b.vx = Math.min(0, b.vx); hit = true; }
+  if (b.y > D.h - m) { b.y = D.h - m; b.vy = Math.min(0, b.vy); hit = true; }
+  if (D.cliff) {
+    const cy = cliffY(D, b.x);
+    if (isDog && b.y < cy + m) { b.y = cy + m; b.vy = Math.max(0, b.vy); hit = true; }
+  } else if (b.y < m) { b.y = m; b.vy = Math.max(0, b.vy); hit = true; }
+  return hit;
+}
+function cliffY(D, x) {
+  if (!D.cliff) return 0;
+  const c = D.cliff;
+  return c.base + Math.sin(x * c.f1 + c.p1) * c.a1 + Math.sin(x * c.f2 + c.p2) * c.a2;
+}
+// how much a patch slows things (heather, snow): 1 = not at all
+function slowAt(D, x, y, isDog) {
+  let m = 1;
+  for (const z of D.zones) {
+    const d = hyp(x - z.x, y - z.y);
+    if (d < z.r) {
+      const k = z.kind === "heather" ? (isDog ? 0.85 : 0.7) : z.kind === "water" ? (isDog ? 0.55 : 0.4) : (isDog ? 0.62 : 0.8);
+      const edge = clamp((z.r - d) / 2, 0, 1);
+      m = Math.min(m, lerp(1, k, edge));
+    }
+  }
+  return m;
+}
+
+// ------------------------------------------------------------------ building a day's field
+let D = null; // the day in progress
+
+function buildField(regionKey, seed, flockSize, opts = {}) {
+  rand = mulberry32(seed);
+  const R = REGIONS[regionKey];
+  const W = R.w, H = R.h;
+  const day = {
+    region: regionKey, w: W, h: H, segs: [], solids: [], zones: [], trees: [], rocks: [], water: [],
+    walls: [], sheep: [], dogs: [], preds: [], waves: [], fx: [], words: [], cliff: null, sea: false,
+    t: 0, len: dayLength(regionKey), phase: "ready", penned: 0, lost: 0, lostWhy: { fox: 0, cliff: 0, wolf: 0 },
+    gust: { t: rr(6, 10), on: 0, dir: -1 }, predSpawned: 0, seed, demo: !!opts.demo, allInAt: 0,
+  };
+  // the fold: sized to the flock, against one side, gate facing the middle of the field
+  const area = Math.max(70, flockSize * 2.4);
+  const ph = clamp(Math.sqrt(area * 0.9), 8, 30);
+  const pw = clamp(area / ph, 7, 26);
+  const side = rand() < 0.5 ? 1 : -1; // +1: fold on the right
+  const px = side > 0 ? W - pw - 5 : 5;
+  const minY = regionKey === "coast" ? 22 : 8;
+  const py = clamp(rr(H * 0.25, H * 0.7 - ph), minY, H - ph - 6);
+  const gate = Math.min(gateWidth(), ph - 2);
+  day.pen = { x: px, y: py, w: pw, h: ph, gate, side };
+  const gx = side > 0 ? px : px + pw; // the gate wall
+  const gy1 = py + ph / 2 - gate / 2, gy2 = py + ph / 2 + gate / 2;
+  const hurdle = (x1, y1, x2, y2) => day.segs.push({ x1, y1, x2, y2, r: 0.25, kind: "hurdle" });
+  hurdle(px, py, px + pw, py);
+  hurdle(px, py + ph, px + pw, py + ph);
+  const back = side > 0 ? px + pw : px;
+  hurdle(back, py, back, py + ph);
+  hurdle(gx, py, gx, gy1);
+  hurdle(gx, gy2, gx, py + ph);
+  day.gatePt = { x: gx - side * 2.5, y: py + ph / 2 }; // just outside the gate
+  day.gateIn = { x: gx + side * 2, y: py + ph / 2 };
+  const nearPen = (x, y, pad) => x > px - pad && x < px + pw + pad && y > py - pad && y < py + ph + pad;
+
+  // region features
+  if (regionKey === "coast") {
+    day.cliff = { base: 8, f1: 0.05, p1: rr(0, 6), a1: 2.2, f2: 0.13, p2: rr(0, 6), a2: 1.1 };
+    day.sea = true;
+  }
+  const freeSpot = (r, pad = 2, tries = 60) => {
+    for (let i = 0; i < tries; i++) {
+      const x = rr(r + 3, W - r - 3), y = rr(r + 3 + (day.cliff ? 14 : 0), H - r - 3);
+      if (nearPen(x, y, r + 7)) continue;
+      if (hyp(x - day.gatePt.x, y - day.gatePt.y) < r + 10) continue;
+      let ok = true;
+      for (const c of day.solids) if (hyp(x - c.x, y - c.y) < c.r + r + pad) { ok = false; break; }
+      if (ok) for (const s of day.segs) { const [cx, cy] = closestOnSeg(x, y, s); if (hyp(x - cx, y - cy) < r + pad + s.r) { ok = false; break; } }
+      if (ok) return [x, y];
+    }
+    return null;
+  };
+  if (regionKey === "pasture") {
+    // a beck running across the field with a ford or two
+    const bx = W * rr(0.42, 0.55);
+    const fords = [rr(H * 0.2, H * 0.4), rr(H * 0.6, H * 0.85)];
+    for (let y = -1; y <= H + 1; y += 1.1) {
+      const x = bx + Math.sin(y * 0.09 + seed) * 5 + Math.sin(y * 0.23) * 1.5;
+      const isFord = fords.some((f) => Math.abs(y - f) < 3.4);
+      day.water.push({ x, y, ford: isFord });
+      if (!isFord) day.zones.push({ x, y, r: 1.9, kind: "water" });
+    }
+    const dry = () => { for (let k = 0; k < 20; k++) { const p = freeSpot(2.4, 4); if (p && !day.water.some((w) => hyp(w.x - p[0], w.y - p[1]) < 5)) return p; } return null; };
+    for (let i = 0; i < 9; i++) { const p = dry(); if (p) { day.trees.push({ x: p[0], y: p[1], r: rr(2.2, 3.4) }); day.solids.push({ x: p[0], y: p[1], r: 0.7, kind: "trunk" }); } }
+  }
+  if (regionKey === "moor") {
+    for (let i = 0; i < 26; i++) day.zones.push({ x: rr(0, W), y: rr(0, H), r: rr(4, 9), kind: "heather" });
+    for (let i = 0; i < 7; i++) { const p = freeSpot(3.5, 5); if (p) day.solids.push({ x: p[0], y: p[1], r: rr(2, 3.6), kind: "bog" }); }
+    for (let i = 0; i < 6; i++) { const p = freeSpot(1.6, 3); if (p) { const r = rr(0.8, 1.6); day.solids.push({ x: p[0], y: p[1], r, kind: "rock" }); } }
+  }
+  if (regionKey === "fell") {
+    // dry-stone walls running across the field, each broken by a gap or two
+    const n = 3;
+    for (let i = 0; i < n; i++) {
+      const vertical = rand() < 0.55;
+      let x1, y1, x2, y2;
+      if (vertical) {
+        const x = lerp(W * 0.2, W * 0.8, (i + 0.5) / n) + rr(-6, 6);
+        x1 = x2 = x; y1 = rr(4, H * 0.25); y2 = rr(H * 0.7, H - 4);
+      } else {
+        const y = lerp(H * 0.2, H * 0.8, rand());
+        y1 = y2 = y; x1 = rr(4, W * 0.3); x2 = rr(W * 0.55, W - 4);
+      }
+      const len = hyp(x2 - x1, y2 - y1);
+      const gaps = [rr(0.15, 0.4), rr(0.6, 0.85)];
+      const gw = 9 / len;
+      const cuts = [0, gaps[0] - gw / 2, gaps[0] + gw / 2, gaps[1] - gw / 2, gaps[1] + gw / 2, 1];
+      for (let k = 0; k < cuts.length; k += 2) {
+        const a = cuts[k], b = cuts[k + 1];
+        const s = { x1: lerp(x1, x2, a), y1: lerp(y1, y2, a), x2: lerp(x1, x2, b), y2: lerp(y1, y2, b), r: 0.55, kind: "wall" };
+        // never wall in the fold or its gate
+        const mx = (s.x1 + s.x2) / 2, my = (s.y1 + s.y2) / 2;
+        const [qx, qy] = closestOnSeg(day.gatePt.x, day.gatePt.y, s);
+        if (hyp(qx - day.gatePt.x, qy - day.gatePt.y) < 9) continue;
+        if (nearPen(qx, qy, 4) || nearPen(mx, my, 4)) continue;
+        day.segs.push(s);
+        day.walls.push(s);
+      }
+    }
+    for (let i = 0; i < 12; i++) { const p = freeSpot(1.8, 3); if (p) day.solids.push({ x: p[0], y: p[1], r: rr(0.9, 1.9), kind: "rock" }); }
+  }
+  if (regionKey === "coast") {
+    for (let i = 0; i < 8; i++) { const p = freeSpot(1.6, 3); if (p) day.solids.push({ x: p[0], y: p[1], r: rr(0.8, 1.6), kind: "rock" }); }
+    for (let i = 0; i < 5; i++) { const p = freeSpot(2.4, 4); if (p) { day.trees.push({ x: p[0], y: p[1], r: rr(2, 2.8), wind: true }); day.solids.push({ x: p[0], y: p[1], r: 0.6, kind: "trunk" }); } }
+  }
+  if (regionKey === "glen") {
+    for (let i = 0; i < 18; i++) day.zones.push({ x: rr(0, W), y: rr(0, H), r: rr(5, 11), kind: "snow" });
+    for (let i = 0; i < 12; i++) { const p = freeSpot(2.2, 4); if (p) { day.trees.push({ x: p[0], y: p[1], r: rr(1.8, 2.6), pine: true }); day.solids.push({ x: p[0], y: p[1], r: 0.6, kind: "trunk" }); } }
+    for (let i = 0; i < 8; i++) { const p = freeSpot(1.6, 3); if (p) day.solids.push({ x: p[0], y: p[1], r: rr(0.8, 1.7), kind: "rock" }); }
+  }
+
+  // the flock: a few clusters out on the far side of the field
+  const clusters = Math.min(2 + REGION_ORDER.indexOf(regionKey) + (flockSize > 40 ? 1 : 0), Math.max(1, Math.ceil(flockSize / 6)));
+  // grazing bunches spread over one stretch of the far side, not the whole hill
+  const centres = [];
+  const yLo = day.cliff ? 26 : 10;
+  const ancX = side > 0 ? rr(W * 0.3, W * 0.5) : rr(W * 0.5, W * 0.7), ancY = rr(yLo + 8, H - 18);
+  const roam = 8 + 3.5 * clusters;
+  for (let c = 0; c < clusters; c++) {
+    for (let tries = 0; tries < 80; tries++) {
+      const a = rr(0, TAU), d = c === 0 ? rr(0, 4) : rr(0, roam);
+      const x = clamp(ancX + Math.cos(a) * d * 1.3, 10, W - 10);
+      const y = clamp(ancY + Math.sin(a) * d * 0.8, yLo, H - 10);
+      if ((side > 0 ? x > W * 0.62 : x < W * 0.38) && tries < 70) continue;
+      if (centres.some((q) => hyp(q[0] - x, q[1] - y) < 12) && tries < 60) continue;
+      // keep the bunches on the same side of any wall: one flock grazing one intake
+      if (c > 0 && day.segs.some((sg) => segsCross(centres[0][0], centres[0][1], x, y, sg)) && tries < 76) continue;
+      centres.push([x, y]);
+      break;
+    }
+  }
+  const ramShare = regionKey === "fell" ? 0.12 : regionKey === "glen" ? 0.06 : 0;
+  for (let i = 0; i < flockSize; i++) {
+    const c = centres[i % centres.length];
+    let x = 0, y = 0;
+    for (let k = 0; k < 40; k++) {
+      x = c[0] + rr(-4.5, 4.5); y = c[1] + rr(-3.5, 3.5);
+      x = clamp(x, 3, W - 3); y = clamp(y, (day.cliff ? cliffY(day, x) + 6 : 3), H - 3);
+      if (!day.solids.some((s) => hyp(x - s.x, y - s.y) < s.r + 1)) break;
+    }
+    const a = rr(0, TAU);
+    day.sheep.push({
+      x, y, vx: 0, vy: 0, h: a, penned: false, lost: false, fear: 0, panic: 0, huddle: 0,
+      ram: rand() < ramShare, wander: a, wt: rr(0, 4), graze: rr(0, 3), step: rr(0, TAU), id: i,
+      baa: rr(4, 30), charge: 0, chargeCd: 0, carried: null,
+    });
+  }
+  day.nav = buildNav(day);
+  day.flow = flowFrom(day.nav, day.gateIn.x, day.gateIn.y);
+  // dogs: Fly (you), and Meg if she's been bought
+  day.dogs.push(makeDog(day.gatePt.x - day.pen.side * 2, day.gatePt.y, false));
+  if (S.up.meg > 0 && !opts.noMeg) day.dogs.push(makeDog(day.gatePt.x - day.pen.side * 3, day.gatePt.y + 3, true, "meg"));
+  return day;
+}
+
+function makeDog(x, y, ai, name = "fly") {
+  return { x, y, vx: 0, vy: 0, h: 0, ai, name, stam: 1, bark: 0, whistle: 0, stun: 0, step: 0, run: 0,
+    target: null, steady: false, tail: 0 };
+}
+
+// ------------------------------------------------------------------ input
+const canvas = document.getElementById("field");
+const ctx = canvas.getContext("2d");
+const input = { px: 0, py: 0, active: false, keys: new Set(), steady: false, steadyHold: false, barkReq: false, whistleReq: false, touch: false };
+
+function toWorld(sx, sy) {
+  return [(sx - cam.ox) / cam.s, (sy - cam.oy) / cam.s];
+}
+canvas.addEventListener("pointermove", (e) => {
+  const r = canvas.getBoundingClientRect();
+  input.px = e.clientX - r.left; input.py = e.clientY - r.top;
+  if (e.pointerType === "mouse") input.active = true;
+});
+canvas.addEventListener("pointerdown", (e) => {
+  audio.unlock();
+  const r = canvas.getBoundingClientRect();
+  input.px = e.clientX - r.left; input.py = e.clientY - r.top;
+  input.active = true;
+  if (e.pointerType === "mouse") {
+    if (e.button === 0) input.barkReq = true;
+    if (e.button === 2) input.steadyHold = true;
+  } else {
+    input.touch = true;
+  }
+});
+window.addEventListener("pointerup", (e) => {
+  if (e.pointerType === "mouse" && e.button === 2) input.steadyHold = false;
+  if (e.pointerType !== "mouse") input.active = false;
+});
+canvas.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") input.active = false; });
+canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+window.addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k) && game.mode === "play") e.preventDefault();
+  if (e.repeat) return;
+  audio.unlock();
+  input.keys.add(k);
+  if (k === " ") input.barkReq = true;
+  if (k === "q") input.whistleReq = true;
+  if (k === "m") { S.muted = !S.muted; audio.setMuted(S.muted); writeSave(); }
+  if (k === "escape" && game.mode === "play") pauseGame();
+});
+window.addEventListener("keyup", (e) => input.keys.delete(e.key.toLowerCase()));
+window.addEventListener("blur", () => { input.keys.clear(); input.steadyHold = false; });
+document.getElementById("padBark").addEventListener("pointerdown", (e) => { e.stopPropagation(); audio.unlock(); input.barkReq = true; });
+document.getElementById("padWhistle").addEventListener("pointerdown", (e) => { e.stopPropagation(); audio.unlock(); input.whistleReq = true; });
+document.getElementById("padSteady").addEventListener("pointerdown", (e) => {
+  e.stopPropagation(); input.steady = !input.steady;
+  e.currentTarget.setAttribute("aria-pressed", String(input.steady));
+});
+
+// ------------------------------------------------------------------ sound (synthesised; starts on first input)
+const audio = (() => {
+  let ac = null, master = null, windGain = null, muted = false;
+  function unlock() {
+    if (ac) { if (ac.state === "suspended") ac.resume(); return; }
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = muted ? 0 : 0.6; master.connect(ac.destination);
+      // wind over the hill: filtered noise, very low
+      const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 420; f.Q.value = 0.6;
+      windGain = ac.createGain(); windGain.gain.value = 0.035;
+      src.connect(f); f.connect(windGain); windGain.connect(master); src.start();
+    } catch (e) { ac = null; }
+  }
+  function noise(dur) {
+    const len = Math.max(1, Math.floor(ac.sampleRate * dur)), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const s = ac.createBufferSource(); s.buffer = buf; return s;
+  }
+  function env(g, t, a, peak, dec) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec);
+  }
+  return {
+    unlock,
+    setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 0.6; },
+    wind(v) { if (windGain) windGain.gain.value = v; },
+    bark() {
+      if (!ac || muted) return;
+      const t = ac.currentTime;
+      for (let k = 0; k < 2; k++) {
+        const t0 = t + k * 0.16;
+        const o = ac.createOscillator(); o.type = "sawtooth";
+        o.frequency.setValueAtTime(420, t0); o.frequency.exponentialRampToValueAtTime(190, t0 + 0.12);
+        const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 900; f.Q.value = 2.5;
+        const g = ac.createGain(); env(g, t0, 0.008, 0.5, 0.13);
+        o.connect(f); f.connect(g); g.connect(master); o.start(t0); o.stop(t0 + 0.2);
+        const n = noise(0.1); const nf = ac.createBiquadFilter(); nf.type = "bandpass"; nf.frequency.value = 1300; nf.Q.value = 1.4;
+        const ng = ac.createGain(); env(ng, t0, 0.004, 0.25, 0.08);
+        n.connect(nf); nf.connect(ng); ng.connect(master); n.start(t0);
+      }
+    },
+    whistle() {
+      if (!ac || muted) return;
+      const t = ac.currentTime;
+      const o = ac.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(1700, t); o.frequency.linearRampToValueAtTime(2600, t + 0.22);
+      o.frequency.linearRampToValueAtTime(2100, t + 0.42); o.frequency.linearRampToValueAtTime(2750, t + 0.62);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+      g.gain.setValueAtTime(0.22, t + 0.56); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.75);
+    },
+    baa(pitch = 1, vol = 0.12) {
+      if (!ac || muted) return;
+      const t = ac.currentTime, dur = 0.55;
+      const o = ac.createOscillator(); o.type = "sawtooth"; o.frequency.value = 230 * pitch;
+      const lfo = ac.createOscillator(); lfo.frequency.value = 7; const lg = ac.createGain(); lg.gain.value = 14 * pitch;
+      lfo.connect(lg); lg.connect(o.frequency);
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.setValueAtTime(700, t); f.frequency.linearRampToValueAtTime(1100, t + dur); f.Q.value = 3;
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.06);
+      g.gain.setValueAtTime(vol, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t + dur); lfo.start(t); lfo.stop(t + dur);
+    },
+    fold(n) {
+      if (!ac || muted) return;
+      const scale = [0, 2, 4, 7, 9];
+      const step = (n - 1) % 15;
+      const freq = 392 * Math.pow(2, (scale[step % 5] + 12 * Math.floor(step / 5)) / 12);
+      const t = ac.currentTime;
+      const o = ac.createOscillator(); o.type = "triangle"; o.frequency.value = freq;
+      const g = ac.createGain(); env(g, t, 0.005, 0.16, 0.5);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.6);
+    },
+    howl(fox) {
+      if (!ac || muted) return;
+      const t = ac.currentTime, dur = fox ? 0.35 : 1.6;
+      const o = ac.createOscillator(); o.type = fox ? "square" : "sine";
+      const f0 = fox ? 900 : 320;
+      o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * (fox ? 1.4 : 1.6), t + dur * 0.4);
+      o.frequency.linearRampToValueAtTime(f0 * (fox ? 0.9 : 1.1), t + dur);
+      const fl = ac.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = fox ? 2200 : 1200;
+      const g = ac.createGain(); env(g, t, fox ? 0.01 : 0.25, fox ? 0.08 : 0.12, dur);
+      o.connect(fl); fl.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.4);
+    },
+    allIn() {
+      if (!ac || muted) return;
+      const t = ac.currentTime;
+      [523, 659, 784, 1047].forEach((f, i) => {
+        const o = ac.createOscillator(); o.type = "triangle"; o.frequency.value = f;
+        const g = ac.createGain(); env(g, t + i * 0.09, 0.005, 0.14, 0.7);
+        o.connect(g); g.connect(master); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.8);
+      });
+    },
+    lost() {
+      if (!ac || muted) return;
+      const t = ac.currentTime;
+      const o = ac.createOscillator(); o.type = "triangle";
+      o.frequency.setValueAtTime(330, t); o.frequency.exponentialRampToValueAtTime(160, t + 0.5);
+      const g = ac.createGain(); env(g, t, 0.01, 0.14, 0.5);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.6);
+    },
+  };
+})();
+
+// ------------------------------------------------------------------ simulation
+const SHEEP_R = 0.62;
+const DOG_R = 0.5;
+
+function flightRadius(dog) {
+  const spd = hyp(dog.vx, dog.vy);
+  // a dog that comes at them hard frightens them from much further off
+  return eyeBase() + 0.75 * spd;
+}
+
+function unpennedSheep() { return D.sheep.filter((s) => !s.penned && !s.lost); }
+
+function flockCentre(list) {
+  let x = 0, y = 0;
+  for (const s of list) { x += s.x; y += s.y; }
+  const n = Math.max(1, list.length);
+  x /= n; y /= n;
+  let sp = 0;
+  for (const s of list) sp += (s.x - x) ** 2 + (s.y - y) ** 2;
+  return { x, y, spread: Math.sqrt(sp / n) };
+}
+
+function step(dt) {
+  if (!D) return;
+  const playing = D.phase === "run";
+  if (playing) D.t += dt;
+  const dayFrac = D.t / D.len;
+
+  // ---- dogs
+  for (const dog of D.dogs) {
+    dog.bark = Math.max(0, dog.bark - dt);
+    dog.whistle = Math.max(0, dog.whistle - dt);
+    let dvx = 0, dvy = 0, maxSp = dogRun(), steady = false;
+    if (dog.stun > 0) { dog.stun -= dt; dvx = 0; dvy = 0; }
+    else if (dog.ai || (D.demo || game.autopilot) && dog.name === "fly") {
+      const t = herdTarget(dog);
+      if (t) {
+        const dx = t.x - dog.x, dy = t.y - dog.y, d = hyp(dx, dy);
+        const sp = Math.min(t.speed, d * 2.2);
+        if (d > 0.05) { dvx = (dx / d) * sp; dvy = (dy / d) * sp; }
+        if (t.bark && dog.bark <= 0 && !dog.ai) doBark(dog);
+        if (dog.ai) maxSp = 6 + 0.8 * S.up.meg;
+      }
+    } else if (playing) {
+      // the player's dog
+      const kx = (input.keys.has("d") || input.keys.has("arrowright") ? 1 : 0) - (input.keys.has("a") || input.keys.has("arrowleft") ? 1 : 0);
+      const ky = (input.keys.has("s") || input.keys.has("arrowdown") ? 1 : 0) - (input.keys.has("w") || input.keys.has("arrowup") ? 1 : 0);
+      steady = input.steady || input.steadyHold || input.keys.has("shift");
+      if (kx || ky) {
+        const l = hyp(kx, ky);
+        dvx = (kx / l) * 99; dvy = (ky / l) * 99;
+      } else if (input.active) {
+        const [wx, wy] = toWorld(input.px, input.py);
+        const dx = wx - dog.x, dy = wy - dog.y, d = hyp(dx, dy);
+        const sp = d * 2.4;
+        if (d > 0.3) { dvx = (dx / d) * sp; dvy = (dy / d) * sp; }
+      }
+      if (input.barkReq && dog.bark <= 0) doBark(dog);
+      if (input.whistleReq && S.up.whistle > 0 && dog.whistle <= 0) doWhistle(dog);
+    }
+    if (!dog.ai) {
+      // wind: hard running spends it; easing off brings it back
+      if (dog.stam <= 0.02) maxSp = Math.min(maxSp, 5);
+    }
+    if (steady) maxSp = Math.min(maxSp, 2.6);
+    const slow = slowAt(D, dog.x, dog.y, true);
+    maxSp *= slow;
+    const want = hyp(dvx, dvy);
+    if (want > maxSp) { dvx = (dvx / want) * maxSp; dvy = (dvy / want) * maxSp; }
+    const k = 1 - Math.exp(-dt * 9);
+    dog.vx = lerp(dog.vx, dvx, k); dog.vy = lerp(dog.vy, dvy, k);
+    dog.x += dog.vx * dt; dog.y += dog.vy * dt;
+    collide(dog, DOG_R, D, true);
+    const sp = hyp(dog.vx, dog.vy);
+    if (!dog.ai) {
+      if (sp > 4.6) dog.stam = Math.max(0, dog.stam - dt / dogWind());
+      else dog.stam = Math.min(1, dog.stam + dt * 0.18);
+    }
+    if (sp > 0.3) dog.h = Math.atan2(dog.vy, dog.vx);
+    dog.step += sp * dt * 1.6;
+    dog.run = sp;
+    dog.tail += dt * (2 + sp);
+  }
+  input.barkReq = false; input.whistleReq = false;
+
+  // ---- sheep
+  const alive = D.sheep;
+  const n = alive.length;
+  // gusts off the sea
+  if (D.sea && playing) {
+    D.gust.t -= dt;
+    if (D.gust.t <= 0) { D.gust.on = 2.6; D.gust.t = rr(7, 12); }
+    if (D.gust.on > 0) D.gust.on -= dt;
+  }
+  const gustPush = D.sea && D.gust.on > 0 ? 1.5 * Math.sin(Math.min(1, D.gust.on / 2.6) * Math.PI) : 0;
+
+  for (let i = 0; i < n; i++) {
+    const s = alive[i];
+    if (s.lost || s.carried) continue;
+    s.step += hyp(s.vx, s.vy) * dt * 2.2;
+    s.panic = Math.max(0, s.panic - dt);
+    s.huddle = Math.max(0, s.huddle - dt);
+    s.chargeCd = Math.max(0, s.chargeCd - dt);
+    if (s.penned) {
+      // inside the fold: settle, mill about a little
+      s.wt -= dt;
+      if (s.wt <= 0) { s.wander = rr(0, TAU); s.wt = rr(1.5, 4); }
+      let tvx = Math.cos(s.wander) * 0.25, tvy = Math.sin(s.wander) * 0.25;
+      for (let j = 0; j < n; j++) {
+        if (j === i) continue;
+        const o = alive[j];
+        if (!o.penned || o.lost) continue;
+        const dx = s.x - o.x, dy = s.y - o.y, d2 = dx * dx + dy * dy;
+        if (d2 < 1.6 && d2 > 1e-6) { const d = Math.sqrt(d2); tvx += (dx / d) * (1.3 - d) * 3; tvy += (dy / d) * (1.3 - d) * 3; }
+      }
+      s.vx = lerp(s.vx, tvx, 1 - Math.exp(-dt * 4)); s.vy = lerp(s.vy, tvy, 1 - Math.exp(-dt * 4));
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      const P = D.pen;
+      s.x = clamp(s.x, P.x + 0.9, P.x + P.w - 0.9); s.y = clamp(s.y, P.y + 0.9, P.y + P.h - 0.9);
+      if (hyp(s.vx, s.vy) > 0.05) s.h = Math.atan2(s.vy, s.vx);
+      continue;
+    }
+    // what frightens it
+    let fx = 0, fy = 0, fear = 0, alert = 0;
+    for (const dog of D.dogs) {
+      const dx = s.x - dog.x, dy = s.y - dog.y, d = hyp(dx, dy) || 1e-3;
+      // a dog in sight, even far off, and the flock draws itself together
+      alert = Math.max(alert, clamp((38 - d) / 16, 0, 1));
+      let R = flightRadius(dog) * (s.ram ? 0.6 : 1);
+      if (dog.ai) R *= 0.9;
+      if (d < R) {
+        const f = Math.pow((R - d) / R, 0.65);
+        fear = Math.max(fear, f);
+        fx += (dx / d) * f; fy += (dy / d) * f;
+        // rams stand and charge a dog that crowds them
+        if (s.ram && d < 3.2 && s.panic <= 0 && s.chargeCd <= 0 && playing) { s.charge = 0.7; s.chargeCd = 4; s.cdog = dog; }
+      }
+    }
+    for (const p of D.preds) {
+      if (p.mode === "gone" || p.mode === "wait") continue;
+      const dx = s.x - p.x, dy = s.y - p.y, d = hyp(dx, dy) || 1e-3;
+      const R = p.kind === "wolf" ? 16 : 12;
+      if (d < R) {
+        const f = (R - d) / R;
+        fear = Math.max(fear, Math.min(1, f * 1.3));
+        fx += (dx / d) * f * 1.4; fy += (dy / d) * f * 1.4;
+      }
+    }
+    for (const w of D.waves) {
+      if (w.kind !== "bark") continue;
+      const d = hyp(s.x - w.x, s.y - w.y);
+      if (d < w.reach && w.age < 0.05) s.panic = Math.max(s.panic, 1.1 * (1 - d / w.reach) + 0.3);
+    }
+    if (s.panic > 0) {
+      // a bark: away from the dog that barked, hard
+      const dog = D.dogs[0];
+      const dx = s.x - dog.x, dy = s.y - dog.y, d = hyp(dx, dy) || 1e-3;
+      const f = Math.min(1, s.panic);
+      fear = Math.max(fear, f);
+      fx += (dx / d) * f; fy += (dy / d) * f;
+    }
+    s.fear = lerp(s.fear, fear, 1 - Math.exp(-dt * 8));
+
+    // flockmates
+    let cx = 0, cy = 0, cn = 0, ax = 0, ay = 0, sx = 0, sy = 0, nf = 0, lone = null, ld = 1e18;
+    const reach = 9 + 8 * s.fear + 14 * alert + (s.huddle > 0 ? 18 : 0);
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue;
+      const o = alive[j];
+      if (o.lost || o.penned || o.carried) continue;
+      const dx = o.x - s.x, dy = o.y - s.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < ld) { ld = d2; lone = o; }
+      if (d2 > reach * reach) continue;
+      const d = Math.sqrt(d2) || 1e-3;
+      cx += o.x; cy += o.y; cn++;
+      ax += o.vx; ay += o.vy;
+      if (d < 1.6) { sx -= (dx / d) * (1.6 - d); sy -= (dy / d) * (1.6 - d); }
+      if (d < 3.5 && o.fear > nf) nf = o.fear;
+    }
+    // fright spreads through a flock: a sheep takes most of its neighbours' alarm
+    if (nf * 0.9 > s.fear) s.fear = lerp(s.fear, nf * 0.9, 1 - Math.exp(-dt * 10));
+    const F = s.fear;
+    // sheep that only caught the fright run with the others, not from the dog's exact spot
+    if (fear < F * 0.6 && cn > 0) { fx += (ax / cn) * 0.25; fy += (ay / cn) * 0.25; }
+    let tvx = 0, tvy = 0, going = 0;
+    // grazing: amble, stop, crop the grass, amble on
+    s.wt -= dt;
+    if (s.wt <= 0) { s.wander += rr(-1.4, 1.4); s.wt = rr(2, 6); s.graze = rand() < 0.55 ? rr(1.5, 4) : 0; }
+    s.graze = Math.max(0, s.graze - dt);
+    const amble = s.graze > 0 ? 0 : 0.42;
+    tvx += Math.cos(s.wander) * amble * (1 - F);
+    tvy += Math.sin(s.wander) * amble * (1 - F);
+    if (cn > 0) {
+      cx /= cn; cy /= cn;
+      const toCx = cx - s.x, toCy = cy - s.y, dc = hyp(toCx, toCy) || 1e-3;
+      // frightened sheep bunch hard (each wants the others between it and the dog)
+      // and a sheep follows flockmates on the move, frightened or not: none wants to be left behind
+      going = Math.min(3, hyp(ax, ay) / cn);
+      const coh = (0.15 + 0.55 * alert + 3.0 * F + 0.6 * going + (s.huddle > 0 ? 2.8 : 0)) * Math.min(1, dc / 3);
+      let chx = (toCx / dc) * coh, chy = (toCy / dc) * coh;
+      // never back toward the danger, though: the ones in front run on, the ones behind close up
+      const fl0 = hyp(fx, fy);
+      if (fl0 > 1e-4) {
+        const pr = (chx * fx + chy * fy) / fl0;
+        if (pr < 0) { chx -= (fx / fl0) * pr; chy -= (fy / fl0) * pr; }
+      }
+      tvx += chx; tvy += chy;
+      const al = 1.1 * F + 0.5;
+      tvx += (ax / cn) * al; tvy += (ay / cn) * al;
+    }
+    else if (lone && F < 0.3) {
+      // a sheep on its own frets and drifts back toward the nearest of the others
+      const dx = lone.x - s.x, dy = lone.y - s.y, d = Math.sqrt(ld) || 1;
+      tvx += (dx / d) * 0.45; tvy += (dy / d) * 0.45;
+    }
+    tvx += sx * 3.2; tvy += sy * 3.2;
+    const fl = hyp(fx, fy);
+    if (fl > 1e-4) { tvx += (fx / fl) * 5.0 * F; tvy += (fy / fl) * 5.0 * F; }
+    // steer around solid things ahead
+    for (const c of D.solids) {
+      const dx = s.x - c.x, dy = s.y - c.y, d = hyp(dx, dy);
+      const lim = c.r + SHEEP_R + 2.2;
+      if (d < lim && d > 1e-3) { const f = (lim - d) / lim; tvx += (dx / d) * f * 2.2; tvy += (dy / d) * f * 2.2; }
+    }
+    for (const sg of D.segs) {
+      const [qx, qy] = closestOnSeg(s.x, s.y, sg);
+      const dx = s.x - qx, dy = s.y - qy, d = hyp(dx, dy);
+      const lim = sg.r + SHEEP_R + 1.6;
+      if (d < lim && d > 1e-3) { const f = (lim - d) / lim; tvx += (dx / d) * f * 1.8; tvy += (dy / d) * f * 1.8; }
+    }
+    // a calm sheep keeps back from the cliff edge; a frightened one forgets to
+    if (D.cliff) {
+      const edge = s.y - cliffY(D, s.x);
+      if (edge < 7) tvy += (7 - edge) / 7 * 1.6 * (1 - F * 0.7);
+      // and the last stride before the drop, any sheep balks at, unless a bark has it bolting blind
+      if (edge < 2.4 && s.panic <= 0) tvy += (2.4 - edge) * 3.5;
+      tvy -= gustPush;
+    }
+    // drift toward the gate when the flock is being driven and the gate is near (sheep follow the leaders in)
+    const dg = hyp(D.gatePt.x - s.x, D.gatePt.y - s.y);
+    if (dg < 7 && F > 0.15) { tvx += (D.gateIn.x - s.x) / dg * 1.2 * F; tvy += (D.gateIn.y - s.y) / dg * 1.2 * F; }
+
+    // rams: a short charge at the dog that pressed them
+    if (s.charge > 0) {
+      s.charge -= dt;
+      const dog = s.cdog || D.dogs[0];
+      const dx = dog.x - s.x, dy = dog.y - s.y, d = hyp(dx, dy) || 1e-3;
+      tvx = (dx / d) * 6.5; tvy = (dy / d) * 6.5;
+      if (d < 1.3 && dog.stun <= 0) {
+        dog.stun = 0.9; dog.vx = (dx / d) * 8; dog.vy = (dy / d) * 8; s.charge = 0; s.panic = 0.6;
+        D.fx.push({ kind: "thump", x: dog.x, y: dog.y, age: 0 });
+        audio.baa(0.7, 0.16);
+      }
+    }
+    // (a sheep can always keep up with the ones around it)
+    let maxS = Math.max(0.55 + F * 4.9, going * 1.1);
+    if (s.charge > 0) maxS = 6.5;
+    maxS *= slowAt(D, s.x, s.y, false);
+    const tl = hyp(tvx, tvy);
+    if (tl > maxS) { tvx = (tvx / tl) * maxS; tvy = (tvy / tl) * maxS; }
+    const acc = 1 - Math.exp(-dt * (2.2 + 5 * F));
+    s.vx = lerp(s.vx, tvx, acc); s.vy = lerp(s.vy, tvy, acc);
+    s.x += s.vx * dt; s.y += s.vy * dt;
+    collide(s, SHEEP_R, D, false);
+    if (hyp(s.vx, s.vy) > 0.08) {
+      const want = Math.atan2(s.vy, s.vx);
+      let da = ((want - s.h + Math.PI) % TAU + TAU) % TAU - Math.PI;
+      s.h += da * Math.min(1, dt * 6);
+    }
+    // into the fold?
+    const P = D.pen;
+    if (s.x > P.x + 0.4 && s.x < P.x + P.w - 0.4 && s.y > P.y + 0.4 && s.y < P.y + P.h - 0.4) {
+      s.penned = true; s.panic = 0; s.fear = 0;
+      D.penned++;
+      if (playing) {
+        S.lifetime++;
+        const word = shepherdCount(D.penned);
+        D.words.push({ text: word, x: s.x, y: s.y - 1, age: 0 });
+        game.lastWord = word;
+        audio.fold(D.penned);
+      }
+    }
+    // over the cliff
+    if (D.cliff && s.y < cliffY(D, s.x) - 0.2) {
+      loseSheep(s, "cliff");
+    }
+    // the odd baa
+    s.baa -= dt * (1 + F * 3);
+    if (s.baa <= 0) {
+      s.baa = rr(8, 40);
+      if (playing && onScreen(s.x, s.y) && rand() < 0.5) audio.baa(s.ram ? 0.72 : rr(0.9, 1.25), 0.05 + F * 0.07);
+    }
+  }
+
+  // ---- predators at dusk
+  if (playing) predators(dt, dayFrac);
+
+  // ---- effects
+  for (const w of D.waves) w.age += dt;
+  D.waves = D.waves.filter((w) => w.age < w.life);
+  for (const f of D.fx) f.age += dt;
+  D.fx = D.fx.filter((f) => f.age < 1.2);
+  for (const w of D.words) w.age += dt;
+  D.words = D.words.filter((w) => w.age < 2.2);
+
+  // ---- end of day
+  if (playing) {
+    const remaining = D.sheep.filter((s) => !s.penned && !s.lost).length;
+    if (remaining === 0 && D.sheep.some((s) => s.penned)) {
+      if (!D.allInAt) { D.allInAt = D.t; audio.allIn(); showBanner("All in!"); }
+      if (D.t - D.allInAt > 1.6) endDay(true);
+    } else if (D.t >= D.len) {
+      endDay(false);
+    }
+  }
+}
+
+function loseSheep(s, why) {
+  if (s.lost) return;
+  s.lost = true;
+  D.lost++;
+  D.lostWhy[why] = (D.lostWhy[why] || 0) + 1;
+  D.fx.push({ kind: "puff", x: s.x, y: s.y, age: 0 });
+  if (D.phase === "run") audio.lost();
+}
+
+function doBark(dog) {
+  dog.bark = barkCool();
+  D.waves.push({ kind: "bark", x: dog.x, y: dog.y, reach: barkRange(), age: 0, life: 0.6 });
+  audio.bark();
+  for (const p of D.preds) {
+    if (p.mode === "gone") continue;
+    const d = hyp(p.x - dog.x, p.y - dog.y);
+    if (d < barkRange() * 1.3) scare(p);
+  }
+}
+function doWhistle(dog) {
+  dog.whistle = 14;
+  D.waves.push({ kind: "whistle", x: dog.x, y: dog.y, reach: 6, age: 0, life: 1.0 });
+  audio.whistle();
+  for (const s of D.sheep) if (!s.penned && !s.lost) s.huddle = whistleTime();
+}
+
+// Foxes and wolves come in from the edge at dusk, run down a sheep and carry it off.
+function predators(dt, frac) {
+  const R = D.region;
+  const plan = R === "moor" ? { kind: "fox", n: 2 } : R === "fell" ? { kind: "fox", n: 1 } : R === "coast" ? { kind: "fox", n: 2 }
+    : R === "glen" ? { kind: "wolf", n: 3 } : null;
+  if (plan && frac > 0.58 && D.predSpawned < plan.n) {
+    const due = 0.58 + D.predSpawned * (plan.kind === "wolf" ? 0.012 : 0.09);
+    if (frac >= due) {
+      const edge = Math.floor(rand() * 3);
+      const x = edge === 0 ? 0.5 : edge === 1 ? D.w - 0.5 : rr(5, D.w - 5);
+      const y = edge === 2 ? D.h - 0.5 : rr(D.cliff ? 30 : 5, D.h - 5);
+      D.preds.push({ kind: plan.kind, x, y, vx: 0, vy: 0, h: 0, mode: "hunt", prey: null, hold: 0, scared: 0, step: 0, returns: plan.kind === "wolf" ? 2 : 0 });
+      D.predSpawned++;
+      audio.howl(plan.kind === "fox");
+      if (D.predSpawned === 1) showBanner(plan.kind === "wolf" ? "Wolves on the hill" : "A fox at dusk", 2200);
+    }
+  }
+  for (const p of D.preds) {
+    if (p.mode === "gone") continue;
+    if (p.mode === "wait") { p.wait -= dt; if (p.wait <= 0) { p.mode = "hunt"; p.prey = null; p.x = clamp(p.x, 0.5, D.w - 0.5); } continue; }
+    let tx = p.x, ty = p.y, sp = 0;
+    // a dog nearby makes it bolt
+    for (const dog of D.dogs) if (hyp(dog.x - p.x, dog.y - p.y) < (p.kind === "wolf" ? 3.5 : 5.5)) scare(p);
+    if (p.mode === "flee") {
+      p.scared -= dt;
+      const ex = p.x < D.w / 2 ? -5 : D.w + 5;
+      tx = ex; ty = p.y; sp = 9;
+      if (p.carry) { p.carry.x = p.x; p.carry.y = p.y; }
+      if (p.x < -3 || p.x > D.w + 3) {
+        if (p.carry) { loseSheep(p.carry, p.kind); p.carry = null; p.mode = "gone"; }
+        else if (p.returns > 0) { p.returns--; p.mode = "wait"; p.wait = rr(5, 8); }
+        else p.mode = "gone";
+      }
+    } else if (p.mode === "hunt") {
+      if (!p.prey || p.prey.penned || p.prey.lost || p.prey.carried) {
+        // the nearest sheep that isn't close to a dog
+        let best = null, bd = 1e9;
+        for (const s of D.sheep) {
+          if (s.penned || s.lost || s.carried) continue;
+          let guarded = false;
+          for (const dog of D.dogs) if (hyp(dog.x - s.x, dog.y - s.y) < 5) guarded = true;
+          const d = hyp(s.x - p.x, s.y - p.y) + (guarded ? 40 : 0);
+          if (d < bd) { bd = d; best = s; }
+        }
+        p.prey = best;
+      }
+      if (!p.prey) { p.mode = "flee"; continue; }
+      tx = p.prey.x; ty = p.prey.y; sp = p.kind === "wolf" ? 7.2 : 6.4;
+      if (hyp(tx - p.x, ty - p.y) < 1.1) { p.mode = "take"; p.hold = 0; }
+    } else if (p.mode === "take") {
+      p.hold += dt;
+      tx = p.prey.x; ty = p.prey.y; sp = 2;
+      p.prey.panic = 1;
+      if (p.prey.penned || p.prey.lost) { p.mode = "hunt"; p.prey = null; }
+      else if (p.hold > 1.1) {
+        p.prey.carried = p; p.carry = p.prey; p.mode = "flee"; p.scared = 0; p.returns = 0;
+        audio.lost();
+      }
+    }
+    const dx = tx - p.x, dy = ty - p.y, d = hyp(dx, dy) || 1e-3;
+    const k = 1 - Math.exp(-dt * 6);
+    p.vx = lerp(p.vx, (dx / d) * sp, k); p.vy = lerp(p.vy, (dy / d) * sp, k);
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.mode !== "flee") collide(p, 0.45, D, true);
+    if (hyp(p.vx, p.vy) > 0.3) p.h = Math.atan2(p.vy, p.vx);
+    p.step += hyp(p.vx, p.vy) * dt * 1.8;
+  }
+}
+function scare(p) {
+  if (p.mode === "gone" || p.mode === "wait") return;
+  if (p.mode !== "flee") {
+    p.mode = "flee"; p.scared = 4;
+    if (p.prey) { p.prey = null; }
+    if (p.carry) { p.carry.carried = null; p.carry.panic = 1; p.carry = null; }
+  }
+}
+
+// ------------------------------------------------------------------ navigation: a coarse grid of where a body can go
+const NAV = 1.5; // metres per cell
+function buildNav(day) {
+  const nx = Math.ceil(day.w / NAV), ny = Math.ceil(day.h / NAV);
+  const blocked = new Uint8Array(nx * ny);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const x = (i + 0.5) * NAV, y = (j + 0.5) * NAV;
+    let b = 0;
+    if (day.cliff && y < cliffY(day, x) + 2) b = 1;
+    if (!b) for (const c of day.solids) if (hyp(x - c.x, y - c.y) < c.r + 0.7) { b = 1; break; }
+    if (!b) for (const sg of day.segs) { const [qx, qy] = closestOnSeg(x, y, sg); if (hyp(x - qx, y - qy) < sg.r + 0.6) { b = 1; break; } }
+    blocked[i + j * nx] = b;
+  }
+  return { nx, ny, blocked };
+}
+const cellOf = (nav, x, y) => [clamp(Math.floor(x / NAV), 0, nav.nx - 1), clamp(Math.floor(y / NAV), 0, nav.ny - 1)];
+// distance (in cells, 8-way) from a point to every reachable cell
+function flowFrom(nav, x, y) {
+  const { nx, ny, blocked } = nav;
+  const dist = new Float64Array(nx * ny).fill(1e9); // (64-bit: the queue compares against these exactly)
+  let [ci, cj] = cellOf(nav, x, y);
+  // start from the nearest open cell
+  if (blocked[ci + cj * nx]) {
+    let best = null, bd = 1e9;
+    for (let j = Math.max(0, cj - 4); j <= Math.min(ny - 1, cj + 4); j++) for (let i = Math.max(0, ci - 4); i <= Math.min(nx - 1, ci + 4); i++) {
+      if (!blocked[i + j * nx]) { const d = (i - ci) ** 2 + (j - cj) ** 2; if (d < bd) { bd = d; best = [i, j]; } }
+    }
+    if (best) [ci, cj] = best;
+  }
+  // Dijkstra on a small grid: a sorted bucket queue is plenty
+  const q = [[ci + cj * nx, 0]];
+  dist[ci + cj * nx] = 0;
+  const nb = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]];
+  let head = 0;
+  while (head < q.length) {
+    // pick the smallest of a small window: the queue is nearly sorted by construction
+    const [k, d] = q[head++];
+    if (d > dist[k]) continue;
+    const i = k % nx, j = (k / nx) | 0;
+    for (const [di, dj, c] of nb) {
+      const ii = i + di, jj = j + dj;
+      if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) continue;
+      const kk = ii + jj * nx;
+      if (blocked[kk]) continue;
+      if (di && dj && (blocked[ii + j * nx] || blocked[i + jj * nx])) continue; // no corner cutting
+      const nd = d + c;
+      if (nd < dist[kk]) { dist[kk] = nd; q.push([kk, nd]); }
+    }
+  }
+  return dist;
+}
+function flowAt(dist, nav, x, y) { const [i, j] = cellOf(nav, x, y); return dist[i + j * nav.nx]; }
+// Walk downhill on a distance map from (x, y), one cell at a time (never across a wall's end or
+// through a corner), and return the furthest point along that walk still in plain sight from (x, y):
+// the point to head for. Null if (x, y) is already at the bottom.
+function pathAim(dist, nav, x, y, steps = 60) {
+  let [i, j] = cellOf(nav, x, y);
+  let aim = null, first = null;
+  for (let n = 0; n < steps; n++) {
+    let bi = i, bj = j, bd = dist[i + j * nav.nx];
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+      if (!di && !dj) continue;
+      const ii = i + di, jj = j + dj;
+      if (ii < 0 || jj < 0 || ii >= nav.nx || jj >= nav.ny) continue;
+      if (nav.blocked[ii + jj * nav.nx]) continue;
+      if (di && dj && (nav.blocked[ii + j * nav.nx] || nav.blocked[i + jj * nav.nx])) continue;
+      const d = dist[ii + jj * nav.nx];
+      if (d < bd) { bd = d; bi = ii; bj = jj; }
+    }
+    if (bi === i && bj === j) break;
+    i = bi; j = bj;
+    const px = (i + 0.5) * NAV, py = (j + 0.5) * NAV;
+    if (!first) first = [px, py];
+    if (!clearLine(nav, x, y, px, py)) break;
+    aim = [px, py];
+  }
+  return aim || first;
+}
+function clearLine(nav, x1, y1, x2, y2) {
+  const n = Math.ceil(hyp(x2 - x1, y2 - y1) / (NAV * 0.5));
+  for (let k = 0; k <= n; k++) {
+    const [i, j] = cellOf(nav, lerp(x1, x2, k / n), lerp(y1, y2, k / n));
+    if (nav.blocked[i + j * nav.nx]) return false;
+  }
+  return true;
+}
+// the way to the fold from (x, y), as a unit vector: straight for the gate if nothing's in the way,
+// else toward the furthest point along the ground route that can be seen from here
+// (a grid route alone zigzags on diagonals, and a flock driven along it drifts off line)
+function wayHome(x, y, sx, sy) {
+  const nav = D.nav;
+  let ax = sx ?? D.gateIn.x, ay = sy ?? D.gateIn.y;
+  if (!clearLine(nav, x, y, ax, ay)) {
+    const p = pathAim(D.flow, nav, x, y);
+    if (p) [ax, ay] = p;
+  }
+  const dx = ax - x, dy = ay - y, l = hyp(dx, dy);
+  if (l < 0.01) { const gx = D.gateIn.x - x, gy = D.gateIn.y - y, gl = hyp(gx, gy) || 1; return [gx / gl, gy / gl]; }
+  return [dx / l, dy / l];
+}
+// steer a dog toward (tx, ty) around walls, bogs and rocks
+function routeTo(dog, tx, ty) {
+  const nav = D.nav;
+  tx = clamp(tx, 1.2, D.w - 1.2); ty = clamp(ty, D.cliff ? cliffY(D, tx) + 3 : 1.2, D.h - 1.2);
+  if (clearLine(nav, dog.x, dog.y, tx, ty)) return [tx, ty];
+  dog.plan = dog.plan || { t: 0 };
+  if (dog.plan.t <= 0 || hyp(dog.plan.x - tx, dog.plan.y - ty) > 3) {
+    dog.plan = { t: 0.3, x: tx, y: ty, dist: flowFrom(nav, tx, ty) };
+  }
+  const p = pathAim(dog.plan.dist, nav, dog.x, dog.y, 30);
+  return p || [tx, ty];
+}
+
+// ------------------------------------------------------------------ herding: Meg's mind (and the demo's, and the autopilot's)
+// Classic balance point: get behind the flock, on the far side from the way home, and walk them on.
+// "The way home" follows the ground: through wall gaps and round bogs, not as the crow flies.
+// Strays are fetched first, from the far side, so they run back to the others.
+function herdTarget(dog) {
+  if (dog.plan) dog.plan.t -= 1 / 60;
+  const list = unpennedSheep().filter((s) => !s.carried);
+  if (!list.length) return { x: D.gatePt.x - D.pen.side * 6, y: D.gatePt.y, speed: 2 };
+  const G = flockCentre(list);
+  const N = list.length;
+  // predators first: chase them off
+  for (const p of D.preds) {
+    if (p.mode === "hunt" || p.mode === "take") {
+      const d = hyp(p.x - dog.x, p.y - dog.y);
+      if (dog.ai || d < 30) { const [x, y] = routeTo(dog, p.x, p.y); return { x, y, speed: 99, bark: d < barkRange() }; }
+    }
+  }
+  // Strombom's rule: if any sheep is too far from the group, collect the furthest one; else drive.
+  // "The group" is the main bunch (the densest knot of sheep), so a split flock is gathered onto
+  // the bigger half rather than into the empty ground between the halves.
+  // (how far out a sheep may be before it counts as strayed: a loose grazing flock is about this wide)
+  const fN = 1.7 * Math.sqrt(N) + 5;
+  const knot = (a) => { let c = 0; for (const b of list) if (Math.abs(a.x - b.x) < 8 && Math.abs(a.y - b.y) < 8) c++; return c; };
+  let best = list[0], bn = -1;
+  for (const a of list) { const c = knot(a); if (c > bn) { bn = c; best = a; } }
+  // stick with the bunch already chosen unless another is clearly bigger, or the halves would swap every moment
+  if (dog.main && list.includes(dog.main) && knot(dog.main) >= bn * 0.75) best = dog.main;
+  dog.main = best;
+  const M = flockCentre(list.filter((s) => hyp(s.x - best.x, s.y - best.y) < 9));
+  let far = null, fd = 0;
+  for (const s of list) { const d = hyp(s.x - M.x, s.y - M.y); if (d > fd) { fd = d; far = s; } }
+  const gather = fN * 1.15;
+  // finish what you started: keep fetching the same sheep until it's back with the others
+  const held = dog.fetch && list.includes(dog.fetch) ? dog.fetch : null;
+  if (held) {
+    const hd = hyp(held.x - M.x, held.y - M.y);
+    if (hd > fN * 0.55) { far = held; fd = Math.max(hd, gather + 0.01); }
+    else dog.fetch = null;
+  } else dog.fetch = null;
+  if (fd > gather && !dog.fetch) {
+    // of the strays, start with the handiest: the nearest to the dog that's well out from the others
+    let pick = far, pd = 1e9;
+    for (const s of list) {
+      if (hyp(s.x - M.x, s.y - M.y) < gather) continue;
+      const d = hyp(s.x - dog.x, s.y - dog.y);
+      if (d < pd) { pd = d; pick = s; }
+    }
+    dog.fetch = far = pick;
+  }
+  // work the back of that stray's bunch (the side away from the others), not whichever edge is handiest,
+  // or she'd walk into the bunch and push it the wrong way
+  if (dog.fetch) {
+    let bk = dog.fetch, bd = hyp(bk.x - M.x, bk.y - M.y);
+    for (const s of list) {
+      if (hyp(s.x - dog.fetch.x, s.y - dog.fetch.y) > 8) continue;
+      const d = hyp(s.x - M.x, s.y - M.y);
+      if (d > bd) { bd = d; bk = s; }
+    }
+    dog.fetch = far = bk; fd = Math.max(bd, fd);
+  }
+  // bring them to the mouth of the gate first, square on, then in: driven straight at the fold
+  // from off to one side, a flock just flattens itself against the wall
+  const gcx = (D.gatePt.x + D.gateIn.x) / 2, gcy = (D.gatePt.y + D.gateIn.y) / 2;
+  let gnx = D.gatePt.x - D.gateIn.x, gny = D.gatePt.y - D.gateIn.y; const gnl = hyp(gnx, gny) || 1; gnx /= gnl; gny /= gnl;
+  const along = (G.x - gcx) * gnx + (G.y - gcy) * gny, lat = Math.abs((G.x - gcx) * gny - (G.y - gcy) * gnx);
+  const stage = { x: gcx + gnx * 8, y: gcy + gny * 8 };
+  const inMouth = along > 0.3 && lat < along * 0.45 + 1.2 + D.pen.gate * 0.25;
+  let home = inMouth ? wayHome(G.x, G.y) : wayHome(G.x, G.y, stage.x, stage.y);
+  const toGate = flowAt(D.flow, D.nav, G.x, G.y) * NAV;
+  let tx, ty, mode, rear = 0, drv = home;
+  if (dog.ai && fd <= gather) {
+    // Meg: hold the flank on the far side from Fly, a little ahead, so the flock can't spill sideways
+    const fly = D.dogs[0];
+    const nx = -home[1], ny = home[0];
+    const side = (fly.x - G.x) * nx + (fly.y - G.y) * ny > 0 ? -1 : 1;
+    const r = G.spread + 6;
+    tx = G.x + nx * side * r; ty = G.y + ny * side * r; mode = "flank";
+  } else if (fd > gather) {
+    // collect: get behind the furthest sheep, as seen from the middle of the flock
+    // (the way back to the others follows the ground too: round the end of a wall, not into it)
+    let bx = M.x, by = M.y;
+    if (!clearLine(D.nav, far.x, far.y, M.x, M.y)) {
+      if (!dog.mf || dog.mf.t <= 0 || hyp(dog.mf.x - M.x, dog.mf.y - M.y) > 4) dog.mf = { t: 1, x: M.x, y: M.y, dist: flowFrom(D.nav, M.x, M.y) };
+      const p = pathAim(dog.mf.dist, D.nav, far.x, far.y, 40);
+      if (p) [bx, by] = p;
+    }
+    if (dog.mf) dog.mf.t -= 1 / 60;
+    const ax = far.x - bx, ay = far.y - by, al = hyp(ax, ay) || 1;
+    tx = far.x + (ax / al) * 2.6; ty = far.y + (ay / al) * 2.6;
+    mode = "collect";
+  } else {
+    // drive: behind the flock, opposite the way home
+    // stand just off the back of the rearmost sheep, close enough that they feel it
+    // (the back of the main body: a lone sheep hanging off one side doesn't count)
+    // and steer: if the flock is drifting off line, push from a little round to the other side
+    let vx = 0, vy = 0;
+    for (const s of list) { vx += s.vx; vy += s.vy; }
+    vx /= N; vy /= N;
+    if (hyp(vx, vy) > 0.4) {
+      const a = clamp(Math.atan2(home[0] * vy - home[1] * vx, home[0] * vx + home[1] * vy), -0.7, 0.7) * -0.7;
+      drv = [home[0] * Math.cos(a) - home[1] * Math.sin(a), home[0] * Math.sin(a) + home[1] * Math.cos(a)];
+    }
+    const back = list.map((s) => -((s.x - G.x) * drv[0] + (s.y - G.y) * drv[1])).sort((a, b) => a - b);
+    rear = Math.max(0, back[Math.floor((back.length - 1) * 0.85)]);
+    const behind = rear + (toGate < 14 ? 2.2 : 2.6);
+    tx = G.x - drv[0] * behind; ty = G.y - drv[1] * behind; mode = "drive";
+  }
+  // a spot out past the wall or in a bog is no use: swing round the sheep until there's room to stand
+  // (so a sheep pinned in a corner gets worked out along the wall instead of pressed into it)
+  {
+    const tgtF = tgtFocus(mode, G, far);
+    const okAt = (x, y) => x > 1.4 && x < D.w - 1.4 && y < D.h - 1.4 && y > (D.cliff ? cliffY(D, x) + 3 : 1.4) &&
+      !D.nav.blocked[cellOf(D.nav, x, y)[0] + cellOf(D.nav, x, y)[1] * D.nav.nx];
+    if (!okAt(tx, ty)) {
+      const r0 = hyp(tx - tgtF.x, ty - tgtF.y), a0 = Math.atan2(ty - tgtF.y, tx - tgtF.x);
+      search: for (let k = 1; k <= 6; k++) for (const sg of [1, -1]) {
+        const aa = a0 + sg * k * 0.22, x = tgtF.x + Math.cos(aa) * r0, y = tgtF.y + Math.sin(aa) * r0;
+        if (okAt(x, y)) { tx = x; ty = y; break search; }
+      }
+    }
+  }
+  // don't cut through sheep to get there: go round them.
+  // Driving, the obstacle is the whole flock; collecting, it's whichever bunch lies across the path.
+  // (wide enough that the flock doesn't feel her going by: a proper flank)
+  const berth = eyeBase() + 0.75 * 4.2 + 0.6;
+  let ob = null;
+  if (mode !== "collect") ob = { x: G.x, y: G.y, r: G.spread + berth };
+  else if (hyp(tx - dog.x, ty - dog.y) > 3 &&
+           (dog.x - far.x) * (far.x - M.x) + (dog.y - far.y) * (far.y - M.y) < 0) {
+    // only if we're not already out behind the stray
+    let bs = null, bd = 1e9;
+    for (const s of list) {
+      const [qx, qy] = closestOnSeg(s.x, s.y, { x1: dog.x, y1: dog.y, x2: tx, y2: ty });
+      if (hyp(qx - s.x, qy - s.y) < 3.2) { const d = hyp(s.x - dog.x, s.y - dog.y); if (d < bd) { bd = d; bs = s; } }
+    }
+    if (bs) {
+      const bunch = list.filter((s) => hyp(s.x - bs.x, s.y - bs.y) < 7);
+      const L = flockCentre(bunch);
+      ob = { x: L.x, y: L.y, r: L.spread + berth };
+    }
+  }
+  if (ob) {
+    const dcx = dog.x - ob.x, dcy = dog.y - ob.y, dd = hyp(dcx, dcy);
+    const a0 = Math.atan2(dcy, dcx), a1 = Math.atan2(ty - ob.y, tx - ob.x);
+    const da = ((a1 - a0 + Math.PI) % TAU + TAU) % TAU - Math.PI;
+    // already on the right side (within about 50 degrees of the spot): walk straight in
+    // (only once she's near, and in the open: from across the hill or the far side of a wall,
+    // the ground route decides the way, not the flock)
+    if (dd < ob.r + 14 && Math.abs(da) > (mode === "drive" ? 1.4 : 0.9) && clearLine(D.nav, dog.x, dog.y, tx, ty) && (dd < ob.r || segCircle(dog.x, dog.y, tx, ty, ob.x, ob.y, Math.min(ob.r, hyp(tx - ob.x, ty - ob.y) - 0.5)))) {
+      const a = a0 + Math.sign(da) * Math.min(Math.abs(da), 0.8);
+      const rr2 = Math.max(ob.r + 3, dd);
+      const [x, y] = routeTo(dog, ob.x + Math.cos(a) * rr2, ob.y + Math.sin(a) * rr2);
+      return { x, y, speed: approachSpeed(dog, list, 99), mode: mode + "/round", tx, ty };
+    }
+  }
+  // on the drive, once in place, keep walking on toward home at a steady pace (slower into the gate):
+  // the flock gives ground ahead of the dog, and the spot behind them moves on with it
+  // (in place = on the line behind them, and not hanging back: closer in than the spot is fine)
+  const dAlong = -((dog.x - G.x) * drv[0] + (dog.y - G.y) * drv[1]);
+  const dLat = Math.abs((dog.x - G.x) * drv[1] - (dog.y - G.y) * drv[0]);
+  const lag = dAlong - hyp(tx - G.x, ty - G.y);
+  // (and outside the flock: a dog stood in the middle of them is splitting them, not driving)
+  dog.pushing = mode === "drive" && dAlong > rear + (dog.pushing ? -1 : 0.5) &&
+    (dLat < 2.5 && lag < 2.5 || dog.pushing && dLat < 3.6 && lag < 4);
+  if (dog.pushing) {
+    let nd = 1e9;
+    for (const s of list) nd = Math.min(nd, hyp(s.x - dog.x, s.y - dog.y));
+    const pace = nd < 2.4 ? 1 : toGate < 14 ? 2 : 3.3;
+    // aim along the line from the spot behind them toward home, a few metres in
+    const ahead = Math.max(rear + 1.6, dAlong - 3);
+    const [x, y] = routeTo(dog, G.x - drv[0] * ahead, G.y - drv[1] * ahead);
+    return { x, y, speed: pace, mode, tx, ty };
+  }
+  // fetching, once in behind the stray: walk it on toward the others at a steady pace
+  if (mode === "collect" && hyp(tx - dog.x, ty - dog.y) < 2.2 && clearLine(D.nav, dog.x, dog.y, far.x, far.y)) {
+    // (aim past the stray on its line home to the others, so it goes there and not just away)
+    const nd = hyp(far.x - dog.x, far.y - dog.y);
+    const ul = hyp(far.x - tx, far.y - ty) || 1, ux = (far.x - tx) / ul, uy = (far.y - ty) / ul;
+    const [x, y] = routeTo(dog, far.x + ux * 3, far.y + uy * 3);
+    return { x, y, speed: nd < 2.2 ? 0.8 : 3.2, mode, tx, ty };
+  }
+  const [x, y] = routeTo(dog, tx, ty);
+  return { x, y, speed: approachSpeed(dog, list, d2speed(dog, tx, ty)), mode, tx, ty };
+}
+// what a dog's spot is measured from: the stray she's fetching, or the flock she's driving
+function tgtFocus(mode, G, far) { return mode === "collect" && far ? far : G; }
+// run while far from the sheep; walk up steady once close, so they move off together
+function approachSpeed(dog, list, want) {
+  let nd = 1e9;
+  for (const s of list) { const d = hyp(s.x - dog.x, s.y - dog.y); if (d < nd) nd = d; }
+  if (nd < 6) return Math.min(want, 2.6);
+  if (nd < 12) return Math.min(want, 4.2);
+  return want;
+}
+function d2speed(dog, tx, ty) {
+  const d = hyp(tx - dog.x, ty - dog.y);
+  return d > 10 ? 99 : 1.4 + d * 0.35;
+}
+function segCircle(x1, y1, x2, y2, cx, cy, r) {
+  const [qx, qy] = closestOnSeg(cx, cy, { x1, y1, x2, y2 });
+  return hyp(qx - cx, qy - cy) < r;
+}
+
+// ------------------------------------------------------------------ camera
+const cam = { s: 8, ox: 0, oy: 0, x: 0, y: 0 };
+let VW = 800, VH = 600, DPR = 1;
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  VW = canvas.clientWidth; VH = canvas.clientHeight;
+  canvas.width = Math.round(VW * DPR); canvas.height = Math.round(VH * DPR);
+}
+window.addEventListener("resize", () => { resize(); if (D) ground = paintGround(D); });
+function updateCam(dt) {
+  if (!D) return;
+  const topPad = 80, botPad = 70;
+  const fit = Math.min(VW / (D.w + 4), (VH - topPad * 0.6 - botPad * 0.4) / (D.h + 4));
+  // never let a sheep shrink below a readable size; scroll instead
+  const minS = Math.min(VW, VH) < 500 ? 7.5 : 6;
+  cam.s = Math.max(fit, minS);
+  const worldW = D.w * cam.s, worldH = D.h * cam.s;
+  const dog = D.dogs[0];
+  let tx = dog.x, ty = dog.y;
+  if (D.phase !== "run") { tx = D.w / 2; ty = D.h / 2; }
+  // follow the dog with a little look-ahead, clamped to the field
+  tx += dog.vx * 0.35; ty += dog.vy * 0.35;
+  const k = dt > 0 ? 1 - Math.exp(-dt * 4) : 1;
+  cam.x = lerp(cam.x, tx, k); cam.y = lerp(cam.y, ty, k);
+  if (worldW <= VW) cam.ox = (VW - worldW) / 2;
+  else cam.ox = clamp(VW / 2 - cam.x * cam.s, VW - worldW, 0);
+  if (worldH <= VH - topPad * 0.6) cam.oy = topPad * 0.6 + (VH - topPad * 0.6 - botPad * 0.4 - worldH) / 2;
+  else cam.oy = clamp(VH / 2 - cam.y * cam.s, VH - worldH, 0);
+}
+const onScreen = (x, y) => {
+  const sx = x * cam.s + cam.ox, sy = y * cam.s + cam.oy;
+  return sx > -20 && sx < VW + 20 && sy > -20 && sy < VH + 20;
+};
+
+// ------------------------------------------------------------------ painting the ground (once per field)
+let ground = null;
+function paintGround(day) {
+  const P = 12; // pixels per metre on the ground canvas
+  const c = document.createElement("canvas");
+  c.width = Math.ceil(day.w * P); c.height = Math.ceil(day.h * P);
+  const g = c.getContext("2d");
+  const R = REGIONS[day.region];
+  const prev = rand; rand = mulberry32(day.seed + 99);
+  g.fillStyle = R.grass[0];
+  g.fillRect(0, 0, c.width, c.height);
+  // big soft mottling: the lie of the land
+  for (let i = 0; i < 220; i++) {
+    const x = rr(0, c.width), y = rr(0, c.height), r = rr(30, 140);
+    const grd = g.createRadialGradient(x, y, 0, x, y, r);
+    const col = R.grass[1 + Math.floor(rand() * 2)];
+    grd.addColorStop(0, col + "aa"); grd.addColorStop(1, col + "00");
+    g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+  }
+  // contour hatching, like an old OS map: faint parallel lines that bend with the hill
+  g.strokeStyle = "rgba(40, 60, 30, 0.08)"; g.lineWidth = 1.2;
+  for (let k = 0; k < 14; k++) {
+    g.beginPath();
+    const base = (k / 14) * c.height * 1.3 - c.height * 0.15;
+    for (let x = 0; x <= c.width; x += 20) {
+      const y = base + Math.sin(x * 0.004 + k * 0.7 + day.seed) * 40 + Math.sin(x * 0.011 + k) * 14;
+      if (x === 0) g.moveTo(x, y); else g.lineTo(x, y);
+    }
+    g.stroke();
+  }
+  // grass tufts
+  for (let i = 0; i < c.width * c.height / 900; i++) {
+    const x = rr(0, c.width), y = rr(0, c.height);
+    g.strokeStyle = rand() < 0.5 ? "rgba(40, 70, 25, 0.28)" : "rgba(180, 205, 120, 0.25)";
+    g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + rr(-2, 2), y - rr(3, 6)); g.moveTo(x + 2, y); g.lineTo(x + 2 + rr(-2, 2), y - rr(2, 5)); g.stroke();
+  }
+  if (day.region === "pasture") {
+    for (let i = 0; i < 500; i++) { g.fillStyle = rand() < 0.7 ? "rgba(255,255,240,0.75)" : "rgba(250,215,80,0.8)"; g.beginPath(); g.arc(rr(0, c.width), rr(0, c.height), rr(1, 1.8), 0, TAU); g.fill(); }
+  }
+  // heather and snow
+  for (const z of day.zones) {
+    if (z.kind === "water") continue;
+    const x = z.x * P, y = z.y * P, r = z.r * P;
+    if (z.kind === "heather") {
+      const grd = g.createRadialGradient(x, y, r * 0.2, x, y, r);
+      grd.addColorStop(0, "rgba(120, 70, 110, 0.75)"); grd.addColorStop(0.75, "rgba(120, 75, 110, 0.55)"); grd.addColorStop(1, "rgba(120, 80, 110, 0)");
+      g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+      for (let k = 0; k < r * 1.4; k++) { const a = rr(0, TAU), d = Math.sqrt(rand()) * r * 0.85; g.fillStyle = rand() < 0.5 ? "rgba(170,100,160,0.8)" : "rgba(95,60,80,0.7)"; g.fillRect(x + Math.cos(a) * d, y + Math.sin(a) * d, 2, 2); }
+    } else {
+      const grd = g.createRadialGradient(x, y, r * 0.2, x, y, r);
+      grd.addColorStop(0, "rgba(244, 247, 250, 0.95)"); grd.addColorStop(0.7, "rgba(236, 241, 246, 0.85)"); grd.addColorStop(1, "rgba(236, 241, 246, 0)");
+      g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+    }
+  }
+  // the beck
+  if (day.water.length) {
+    g.lineCap = "round"; g.lineJoin = "round";
+    const path = (w, col) => {
+      g.strokeStyle = col; g.lineWidth = w; g.beginPath();
+      day.water.forEach((p, i) => (i ? g.lineTo(p.x * P, p.y * P) : g.moveTo(p.x * P, p.y * P)));
+      g.stroke();
+    };
+    path(3.6 * P, "#5d7a44");
+    path(2.7 * P, "#3f6f86");
+    path(1.6 * P, "#5a8fa6");
+    for (const p of day.water) if (p.ford) { g.fillStyle = "rgba(196, 180, 140, 0.9)"; g.beginPath(); g.arc(p.x * P, p.y * P, 1.6 * P, 0, TAU); g.fill(); }
+    for (const p of day.water) if (p.ford && rand() < 0.6) { g.fillStyle = "rgba(150,140,120,0.9)"; g.beginPath(); g.arc(p.x * P + rr(-8, 8), p.y * P + rr(-8, 8), rr(2, 4), 0, TAU); g.fill(); }
+  }
+  // sea and cliff
+  if (day.cliff) {
+    g.fillStyle = "#3e6d86";
+    g.beginPath(); g.moveTo(0, 0);
+    for (let x = 0; x <= day.w; x += 0.5) g.lineTo(x * P, (cliffY(day, x) - 2.2) * P);
+    g.lineTo(c.width, 0); g.closePath(); g.fill();
+    // swell lines
+    g.strokeStyle = "rgba(220, 235, 240, 0.25)"; g.lineWidth = 2;
+    for (let k = 0; k < 4; k++) { g.beginPath(); for (let x = 0; x <= day.w; x += 0.5) { const y = (cliffY(day, x) - 3.5 - k * 1.3) * P + Math.sin(x * 0.4 + k) * 3; x ? g.lineTo(x * P, y) : g.moveTo(x * P, y); } g.stroke(); }
+    // the rock face
+    g.fillStyle = "#857a6a";
+    g.beginPath();
+    for (let x = 0; x <= day.w; x += 0.5) g.lineTo(x * P, cliffY(day, x) * P);
+    for (let x = day.w; x >= 0; x -= 0.5) g.lineTo(x * P, (cliffY(day, x) - 2.2) * P);
+    g.closePath(); g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 3; g.beginPath();
+    for (let x = 0; x <= day.w; x += 0.5) { const y = (cliffY(day, x) - 2.2) * P; x ? g.lineTo(x * P, y) : g.moveTo(x * P, y); }
+    g.stroke();
+    // a raddle-blue warning line of thrift along the edge
+    g.strokeStyle = "rgba(230, 150, 175, 0.85)"; g.lineWidth = 2; g.setLineDash([3, 6]); g.beginPath();
+    for (let x = 0; x <= day.w; x += 0.5) { const y = (cliffY(day, x) + 0.4) * P; x ? g.lineTo(x * P, y) : g.moveTo(x * P, y); }
+    g.stroke(); g.setLineDash([]);
+  }
+  // solids on the ground: bog pools, rocks
+  for (const s of day.solids) {
+    const x = s.x * P, y = s.y * P, r = s.r * P;
+    if (s.kind === "bog") {
+      g.fillStyle = "#4b5a3a"; g.beginPath(); g.arc(x, y, r + 5, 0, TAU); g.fill();
+      g.fillStyle = "#35505c"; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+      g.fillStyle = "rgba(255,255,255,0.18)"; g.beginPath(); g.ellipse(x - r * 0.3, y - r * 0.3, r * 0.4, r * 0.18, -0.5, 0, TAU); g.fill();
+    } else if (s.kind === "rock") {
+      g.fillStyle = "rgba(0,0,0,0.25)"; g.beginPath(); g.ellipse(x + 4, y + 5, r, r * 0.8, 0, 0, TAU); g.fill();
+      g.fillStyle = "#9b9688"; g.beginPath();
+      for (let k = 0; k < 9; k++) { const a = (k / 9) * TAU, rad = r * rr(0.82, 1.05); k ? g.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad) : g.moveTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad); }
+      g.closePath(); g.fill();
+      g.fillStyle = "rgba(255,255,255,0.18)"; g.beginPath(); g.arc(x - r * 0.25, y - r * 0.3, r * 0.45, 0, TAU); g.fill();
+      g.fillStyle = "rgba(120,140,90,0.5)"; g.beginPath(); g.arc(x + r * 0.3, y + r * 0.2, r * 0.25, 0, TAU); g.fill();
+    }
+  }
+  // dry-stone walls: stones laid along the line
+  for (const s of day.walls) {
+    const len = hyp(s.x2 - s.x1, s.y2 - s.y1), n = Math.ceil(len / 0.55);
+    g.fillStyle = "rgba(0,0,0,0.25)"; g.lineCap = "round"; g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 1.4 * P;
+    g.beginPath(); g.moveTo(s.x1 * P + 4, s.y1 * P + 5); g.lineTo(s.x2 * P + 4, s.y2 * P + 5); g.stroke();
+    for (let k = 0; k <= n; k++) {
+      const t = k / n, x = lerp(s.x1, s.x2, t) * P, y = lerp(s.y1, s.y2, t) * P;
+      for (let j = 0; j < 2; j++) {
+        const sh = 140 + Math.floor(rr(-25, 25));
+        g.fillStyle = `rgb(${sh},${sh - 4},${sh - 14})`;
+        g.beginPath(); g.ellipse(x + rr(-3, 3), y + rr(-4, 4), rr(3.5, 5.5), rr(2.6, 4), rr(0, 3), 0, TAU); g.fill();
+      }
+    }
+  }
+  // the fold: wooden hurdles
+  const pen = day.pen;
+  g.fillStyle = "rgba(160, 140, 90, 0.25)";
+  g.fillRect(pen.x * P, pen.y * P, pen.w * P, pen.h * P);
+  for (const s of day.segs) {
+    if (s.kind !== "hurdle") continue;
+    const len = hyp(s.x2 - s.x1, s.y2 - s.y1);
+    g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 5; g.beginPath(); g.moveTo(s.x1 * P + 3, s.y1 * P + 4); g.lineTo(s.x2 * P + 3, s.y2 * P + 4); g.stroke();
+    g.strokeStyle = "#8a6a43"; g.lineWidth = 4; g.beginPath(); g.moveTo(s.x1 * P, s.y1 * P); g.lineTo(s.x2 * P, s.y2 * P); g.stroke();
+    g.strokeStyle = "#b8925e"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(s.x1 * P, s.y1 * P - 1); g.lineTo(s.x2 * P, s.y2 * P - 1); g.stroke();
+    const posts = Math.ceil(len / 1.8);
+    for (let k = 0; k <= posts; k++) {
+      const t = k / posts; g.fillStyle = "#5d4630";
+      g.beginPath(); g.arc(lerp(s.x1, s.x2, t) * P, lerp(s.y1, s.y2, t) * P, 3.2, 0, TAU); g.fill();
+    }
+  }
+  // the gate: trodden earth in the mouth, and two white-topped posts with a raddle-blue rag on each
+  {
+    const gcx = (day.gatePt.x + day.gateIn.x) / 2, gcy = (day.gatePt.y + day.gateIn.y) / 2;
+    const out = Math.sign(day.gatePt.x - day.gateIn.x) || 1;
+    const grd = g.createRadialGradient(gcx * P, gcy * P, 0, gcx * P, gcy * P, (pen.gate + 3) * P);
+    grd.addColorStop(0, "rgba(120, 96, 62, 0.45)"); grd.addColorStop(1, "rgba(120, 96, 62, 0)");
+    g.fillStyle = grd;
+    g.beginPath(); g.arc(gcx * P, gcy * P, (pen.gate + 3) * P, -Math.PI / 2, Math.PI / 2, out < 0); g.fill();
+    for (const sy of [-1, 1]) {
+      const x = gcx * P, y = (gcy + sy * pen.gate / 2) * P;
+      g.fillStyle = "rgba(0,0,0,0.3)"; g.beginPath(); g.arc(x + 2, y + 3, 5.5, 0, TAU); g.fill();
+      g.fillStyle = "#4a3828"; g.beginPath(); g.arc(x, y, 5.5, 0, TAU); g.fill();
+      g.fillStyle = "#f2efe4"; g.beginPath(); g.arc(x, y, 3.4, 0, TAU); g.fill();
+      g.fillStyle = "#2f57a0"; g.beginPath(); g.moveTo(x, y - 2); g.lineTo(x + out * 11, y - 5 + sy); g.lineTo(x + out * 9, y + 3); g.closePath(); g.fill();
+    }
+  }
+  // the field's own fence (not on the cliff side)
+  g.strokeStyle = "#6e5638"; g.lineWidth = 3;
+  g.beginPath();
+  if (!day.cliff) { g.moveTo(1, 1); g.lineTo(c.width - 1, 1); }
+  g.moveTo(1, day.cliff ? cliffY(day, 0) * P : 1); g.lineTo(1, c.height - 1); g.lineTo(c.width - 1, c.height - 1); g.lineTo(c.width - 1, day.cliff ? cliffY(day, day.w) * P : 1);
+  g.stroke();
+  rand = prev;
+  return { canvas: c, P };
+}
+
+// ------------------------------------------------------------------ drawing the living things
+function drawSheep(g, s, sc) {
+  const x = s.x * sc + cam.ox, y = s.y * sc + cam.oy;
+  const r = SHEEP_R * sc * (s.ram ? 1.18 : 1);
+  if (x < -30 || y < -30 || x > VW + 30 || y > VH + 30) return;
+  g.save(); g.translate(x, y); g.rotate(s.h);
+  // shadow
+  g.fillStyle = "rgba(20, 30, 15, 0.28)";
+  g.beginPath(); g.ellipse(r * 0.18, r * 0.28, r * 1.35, r * 0.95, 0, 0, TAU); g.fill();
+  // legs (only show when moving)
+  const mv = hyp(s.vx, s.vy);
+  if (mv > 0.2) {
+    g.fillStyle = "#2b2622";
+    const sw = Math.sin(s.step * 3) * r * 0.35;
+    for (const [lx, ly, ph] of [[0.6, -0.55, 1], [0.6, 0.55, -1], [-0.6, -0.55, -1], [-0.6, 0.55, 1]]) {
+      g.beginPath(); g.ellipse(r * lx + sw * ph, r * ly, r * 0.18, r * 0.12, 0, 0, TAU); g.fill();
+    }
+  }
+  // fleece: a cluster of soft lumps
+  const wool = s.ram ? "#e9e2d2" : "#f3f0e6";
+  g.fillStyle = "#cfc8b6";
+  g.beginPath(); g.ellipse(0, 0, r * 1.18, r * 0.92, 0, 0, TAU); g.fill();
+  g.fillStyle = wool;
+  for (const [lx, ly, lr] of [[-0.5, -0.35, 0.55], [-0.5, 0.35, 0.55], [0.15, -0.42, 0.55], [0.15, 0.42, 0.55], [0.1, 0, 0.6], [-0.75, 0, 0.45]]) {
+    g.beginPath(); g.arc(r * lx, r * ly, r * lr, 0, TAU); g.fill();
+  }
+  // raddle mark: the farm's blue on every back
+  g.fillStyle = "rgba(47, 87, 160, 0.8)";
+  g.beginPath(); g.ellipse(-r * 0.25, 0, r * 0.28, r * 0.2, 0, 0, TAU); g.fill();
+  // head
+  g.fillStyle = "#2a2522";
+  g.beginPath(); g.ellipse(r * 1.12, 0, r * 0.42, r * 0.32, 0, 0, TAU); g.fill();
+  g.fillStyle = "#3a332e";
+  g.beginPath(); g.ellipse(r * 0.95, -r * 0.33, r * 0.22, r * 0.1, -0.5, 0, TAU); g.ellipse(r * 0.95, r * 0.33, r * 0.22, r * 0.1, 0.5, 0, TAU); g.fill();
+  if (s.ram) {
+    g.strokeStyle = "#c9b38a"; g.lineWidth = Math.max(1.5, r * 0.18);
+    g.beginPath(); g.arc(r * 0.95, -r * 0.3, r * 0.3, Math.PI * 0.2, Math.PI * 1.5); g.stroke();
+    g.beginPath(); g.arc(r * 0.95, r * 0.3, r * 0.3, -Math.PI * 1.5, -Math.PI * 0.2); g.stroke();
+  }
+  g.restore();
+  // a frightened sheep shows it
+  if (s.fear > 0.55 && !s.penned) {
+    g.fillStyle = `rgba(255,255,255,${(s.fear - 0.55) * 1.4})`;
+    g.font = `700 ${Math.max(9, r * 1.2)}px "Libre Franklin", sans-serif`;
+    g.fillText("!", x - r * 0.2, y - r * 1.4);
+  }
+}
+
+function drawDog(g, d, sc) {
+  const x = d.x * sc + cam.ox, y = d.y * sc + cam.oy;
+  const r = DOG_R * sc;
+  g.save(); g.translate(x, y); g.rotate(d.h);
+  g.fillStyle = "rgba(20, 30, 15, 0.3)";
+  g.beginPath(); g.ellipse(r * 0.2, r * 0.3, r * 1.9, r * 0.9, 0, 0, TAU); g.fill();
+  const gait = Math.sin(d.step * 3.2);
+  const stretch = 1 + clamp(d.run / 10, 0, 0.25) * (0.5 + 0.5 * gait);
+  // legs
+  g.fillStyle = "#1b1917";
+  for (const [lx, ly, ph] of [[0.9, -0.5, 1], [0.9, 0.5, -1], [-0.9, -0.5, -1], [-0.9, 0.5, 1]]) {
+    g.beginPath(); g.ellipse(r * lx * stretch + gait * ph * r * 0.3, r * ly, r * 0.22, r * 0.14, 0, 0, TAU); g.fill();
+  }
+  // tail: a white tip swinging
+  const tw = Math.sin(d.tail * 2) * 0.5;
+  g.strokeStyle = "#1b1917"; g.lineWidth = r * 0.32; g.lineCap = "round";
+  g.beginPath(); g.moveTo(-r * 1.2, 0); g.quadraticCurveTo(-r * 1.8, tw * r, -r * 2.2, tw * r * 1.6); g.stroke();
+  g.fillStyle = "#f4f2ea"; g.beginPath(); g.arc(-r * 2.2, tw * r * 1.6, r * 0.2, 0, TAU); g.fill();
+  // body: black saddle, white ruff
+  g.fillStyle = d.name === "meg" ? "#6b4a2f" : "#1d1b19";
+  g.beginPath(); g.ellipse(-r * 0.2, 0, r * 1.25 * stretch, r * 0.62, 0, 0, TAU); g.fill();
+  g.fillStyle = "#f4f2ea";
+  g.beginPath(); g.ellipse(r * 0.75, 0, r * 0.45, r * 0.62, 0, 0, TAU); g.fill();
+  // head
+  g.fillStyle = d.name === "meg" ? "#6b4a2f" : "#1d1b19";
+  g.beginPath(); g.ellipse(r * 1.3, 0, r * 0.5, r * 0.42, 0, 0, TAU); g.fill();
+  g.fillStyle = "#f4f2ea"; g.beginPath(); g.ellipse(r * 1.62, 0, r * 0.26, r * 0.14, 0, 0, TAU); g.fill();
+  g.fillStyle = d.name === "meg" ? "#4e3420" : "#111";
+  g.beginPath(); g.ellipse(r * 1.12, -r * 0.42, r * 0.22, r * 0.12, -0.6, 0, TAU); g.ellipse(r * 1.12, r * 0.42, r * 0.22, r * 0.12, 0.6, 0, TAU); g.fill();
+  g.restore();
+  if (d.stun > 0) {
+    g.fillStyle = "#fff"; g.font = `700 ${Math.max(11, r * 1.4)}px sans-serif`;
+    g.fillText("✶", x - r * 0.4, y - r * 1.6);
+  }
+}
+
+function drawPred(g, p, sc) {
+  if (p.mode === "gone" || p.mode === "wait") return;
+  const x = p.x * sc + cam.ox, y = p.y * sc + cam.oy;
+  const wolf = p.kind === "wolf";
+  const r = (wolf ? 0.62 : 0.45) * sc;
+  g.save(); g.translate(x, y); g.rotate(p.h);
+  g.fillStyle = "rgba(20, 30, 15, 0.3)"; g.beginPath(); g.ellipse(r * 0.2, r * 0.3, r * 2, r * 0.9, 0, 0, TAU); g.fill();
+  const col = wolf ? "#6e6a66" : "#c0652b";
+  const gait = Math.sin(p.step * 3);
+  g.fillStyle = "#2a2522";
+  for (const [lx, ly, ph] of [[0.9, -0.45, 1], [0.9, 0.45, -1], [-0.9, -0.45, -1], [-0.9, 0.45, 1]]) { g.beginPath(); g.ellipse(r * lx + gait * ph * r * 0.3, r * ly, r * 0.2, r * 0.12, 0, 0, TAU); g.fill(); }
+  g.strokeStyle = col; g.lineWidth = r * (wolf ? 0.45 : 0.55); g.lineCap = "round";
+  g.beginPath(); g.moveTo(-r * 1.1, 0); g.lineTo(-r * 2.3, Math.sin(p.step * 2) * r * 0.4); g.stroke();
+  if (!wolf) { g.fillStyle = "#f4efe6"; g.beginPath(); g.arc(-r * 2.35, Math.sin(p.step * 2) * r * 0.4, r * 0.22, 0, TAU); g.fill(); }
+  g.fillStyle = col; g.beginPath(); g.ellipse(-r * 0.1, 0, r * 1.25, r * 0.55, 0, 0, TAU); g.fill();
+  g.beginPath(); g.moveTo(r * 1.9, 0); g.lineTo(r * 0.9, -r * 0.5); g.lineTo(r * 0.9, r * 0.5); g.closePath(); g.fill();
+  g.fillStyle = wolf ? "#3f3c3a" : "#3a2418";
+  g.beginPath(); g.moveTo(r * 1.0, -r * 0.45); g.lineTo(r * 0.7, -r * 0.75); g.lineTo(r * 0.75, -r * 0.3); g.fill();
+  g.beginPath(); g.moveTo(r * 1.0, r * 0.45); g.lineTo(r * 0.7, r * 0.75); g.lineTo(r * 0.75, r * 0.3); g.fill();
+  g.restore();
+}
+
+function drawTree(g, t, sc) {
+  const x = t.x * sc + cam.ox, y = t.y * sc + cam.oy, r = t.r * sc;
+  g.fillStyle = "rgba(20, 35, 15, 0.3)";
+  g.beginPath(); g.ellipse(x + r * 0.35, y + r * 0.45, r * 1.05, r * 0.9, 0, 0, TAU); g.fill();
+  if (t.pine) {
+    for (let k = 0; k < 3; k++) {
+      g.fillStyle = ["#2f4a3a", "#365642", "#3e624b"][k];
+      g.beginPath();
+      for (let i = 0; i < 9; i++) { const a = (i / 9) * TAU, rad = r * (1 - k * 0.28) * (i % 2 ? 0.75 : 1); i ? g.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad) : g.moveTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad); }
+      g.closePath(); g.fill();
+    }
+    g.fillStyle = "rgba(255,255,255,0.65)"; g.beginPath(); g.arc(x - r * 0.25, y - r * 0.25, r * 0.25, 0, TAU); g.fill();
+    return;
+  }
+  const lean = t.wind ? -r * 0.25 : 0;
+  g.fillStyle = "rgba(48, 78, 38, 0.92)";
+  g.beginPath(); g.arc(x, y + lean, r, 0, TAU); g.fill();
+  g.fillStyle = "rgba(78, 112, 55, 0.9)";
+  for (const [lx, ly, lr] of [[-0.3, -0.25, 0.6], [0.3, -0.1, 0.55], [0, 0.3, 0.55]]) { g.beginPath(); g.arc(x + r * lx, y + lean + r * ly, r * lr, 0, TAU); g.fill(); }
+  g.fillStyle = "rgba(140, 170, 95, 0.55)";
+  g.beginPath(); g.arc(x - r * 0.3, y + lean - r * 0.35, r * 0.3, 0, TAU); g.fill();
+}
+
+function render(dt) {
+  const g = ctx;
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.fillStyle = "#24321f";
+  g.fillRect(0, 0, VW, VH);
+  if (!D || !ground) return;
+  const sc = cam.s;
+  g.imageSmoothingEnabled = true;
+  g.drawImage(ground.canvas, cam.ox, cam.oy, D.w * sc, D.h * sc);
+  // the fold's own count, chalked on its gate post
+  // bark rings and whistle notes under everything alive
+  for (const w of D.waves) {
+    const f = w.age / w.life;
+    const x = w.x * sc + cam.ox, y = w.y * sc + cam.oy;
+    if (w.kind === "bark") {
+      g.strokeStyle = `rgba(255, 252, 235, ${0.75 * (1 - f)})`; g.lineWidth = 3;
+      g.beginPath(); g.arc(x, y, w.reach * sc * (0.25 + 0.75 * f), 0, TAU); g.stroke();
+    } else {
+      g.fillStyle = `rgba(255,255,255,${1 - f})`; g.font = `${16 + f * 8}px serif`;
+      g.fillText("♪", x + f * 20, y - 14 - f * 26); g.fillText("♫", x - 14 - f * 10, y - 8 - f * 34);
+    }
+  }
+  for (const s of D.sheep) if (!s.lost) drawSheep(g, s, sc);
+  for (const p of D.preds) drawPred(g, p, sc);
+  for (let i = D.dogs.length - 1; i >= 0; i--) drawDog(g, D.dogs[i], sc);
+  for (const t of D.trees) drawTree(g, t, sc);
+  // effects
+  for (const f of D.fx) {
+    const x = f.x * sc + cam.ox, y = f.y * sc + cam.oy, k = f.age / 1.2;
+    if (f.kind === "puff") {
+      for (let i = 0; i < 6; i++) { const a = i * 1.05; g.fillStyle = `rgba(245,242,232,${0.8 * (1 - k)})`; g.beginPath(); g.arc(x + Math.cos(a) * k * 20, y + Math.sin(a) * k * 20, 4 + k * 4, 0, TAU); g.fill(); }
+    } else if (f.kind === "thump") {
+      g.strokeStyle = `rgba(255,230,180,${1 - k})`; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 6 + k * 18, 0, TAU); g.stroke();
+    }
+  }
+  // gusts: streaks of wind toward the sea
+  if (D.sea && D.gust.on > 0) {
+    const a = Math.sin(Math.min(1, D.gust.on / 2.6) * Math.PI) * 0.55;
+    g.strokeStyle = `rgba(255,255,255,${a})`; g.lineWidth = 1.5;
+    const tt = performance.now() / 1000;
+    for (let i = 0; i < 26; i++) {
+      const x = ((i * 97.3) % D.w) * sc + cam.ox + Math.sin(i) * 20;
+      const y = ((((i * 53.1) % D.h) - tt * 30) % D.h + D.h) % D.h * sc + cam.oy;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6, y - 28); g.stroke();
+    }
+  }
+  // counting words rising from the fold
+  for (const w of D.words) {
+    const k = w.age / 2.2;
+    const x = w.x * sc + cam.ox, y = w.y * sc + cam.oy - k * 40;
+    g.font = `italic ${Math.round(clamp(sc * 2.1, 14, 22))}px "IM Fell English", Georgia, serif`;
+    g.fillStyle = `rgba(255, 255, 248, ${1 - k})`;
+    g.strokeStyle = `rgba(20, 30, 20, ${0.6 * (1 - k)})`; g.lineWidth = 3;
+    const tw = g.measureText(w.text).width;
+    g.strokeText(w.text, x - tw / 2, y); g.fillText(w.text, x - tw / 2, y);
+  }
+  // dusk and dark, with the dogs' lantern glow
+  const frac = D.phase === "ready" ? 0 : D.t / D.len;
+  const warm = clamp((frac - 0.55) / 0.25, 0, 1) * (1 - clamp((frac - 0.85) / 0.15, 0, 1));
+  if (warm > 0) { g.fillStyle = `rgba(255, 140, 60, ${0.14 * warm})`; g.fillRect(0, 0, VW, VH); }
+  const dark = clamp((frac - 0.72) / 0.28, 0, 1) * 0.62;
+  if (dark > 0) {
+    if (!shade) shade = document.createElement("canvas");
+    if (shade.width !== canvas.width || shade.height !== canvas.height) { shade.width = canvas.width; shade.height = canvas.height; }
+    const s = shade.getContext("2d");
+    s.setTransform(DPR, 0, 0, DPR, 0, 0);
+    s.globalCompositeOperation = "source-over";
+    s.clearRect(0, 0, VW, VH);
+    s.fillStyle = `rgba(14, 22, 44, ${dark})`;
+    s.fillRect(0, 0, VW, VH);
+    s.globalCompositeOperation = "destination-out";
+    for (const d of D.dogs) {
+      const x = d.x * sc + cam.ox, y = d.y * sc + cam.oy, rad = (7 + 3 * S.up.lantern) * sc;
+      const grd = s.createRadialGradient(x, y, 0, x, y, rad);
+      grd.addColorStop(0, "rgba(0,0,0,0.85)"); grd.addColorStop(1, "rgba(0,0,0,0)");
+      s.fillStyle = grd; s.beginPath(); s.arc(x, y, rad, 0, TAU); s.fill();
+    }
+    const P = D.pen;
+    const px = (P.x + P.w / 2) * sc + cam.ox, py = (P.y + P.h / 2) * sc + cam.oy, prad = (Math.max(P.w, P.h) * 0.8) * sc;
+    const grd = s.createRadialGradient(px, py, 0, px, py, prad);
+    grd.addColorStop(0, "rgba(0,0,0,0.6)"); grd.addColorStop(1, "rgba(0,0,0,0)");
+    s.fillStyle = grd; s.beginPath(); s.arc(px, py, prad, 0, TAU); s.fill();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(shade, 0, 0);
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  // strays off screen: little marks at the edge pointing to them
+  if (D.phase === "run") {
+    for (const s of D.sheep) {
+      if (s.penned || s.lost) continue;
+      const x = s.x * sc + cam.ox, y = s.y * sc + cam.oy;
+      if (x >= 0 && x <= VW && y >= 0 && y <= VH) continue;
+      const ex = clamp(x, 14, VW - 14), ey = clamp(y, 90, VH - 90);
+      g.fillStyle = "rgba(250, 250, 240, 0.9)";
+      g.beginPath(); g.arc(ex, ey, 5, 0, TAU); g.fill();
+      g.strokeStyle = "rgba(47, 87, 160, 0.9)"; g.lineWidth = 2; g.stroke();
+    }
+  }
+}
+let shade = null;
+
+// ------------------------------------------------------------------ HUD
+const $ = (id) => document.getElementById(id);
+function drawDial() {
+  const c = $("dial"), g = c.getContext("2d");
+  g.clearRect(0, 0, c.width, c.height);
+  const frac = D ? clamp(D.t / D.len, 0, 1) : 0;
+  const cx = c.width / 2, cy = c.height - 8, r = c.height - 26;
+  g.lineWidth = 6; g.lineCap = "round";
+  g.strokeStyle = "rgba(255,255,255,0.28)"; g.beginPath(); g.arc(cx, cy, r, Math.PI, 0); g.stroke();
+  const grd = g.createLinearGradient(cx - r, 0, cx + r, 0);
+  grd.addColorStop(0, "#fff4c9"); grd.addColorStop(0.6, "#ffd36b"); grd.addColorStop(0.85, "#f08a4b"); grd.addColorStop(1, "#4a5d9c");
+  g.strokeStyle = grd; g.beginPath(); g.arc(cx, cy, r, Math.PI, Math.PI + Math.PI * frac); g.stroke();
+  const a = Math.PI + Math.PI * frac;
+  const sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * r;
+  g.fillStyle = frac > 0.85 ? "#dfe6ff" : "#ffd36b";
+  g.beginPath(); g.arc(sx, sy, 11, 0, TAU); g.fill();
+  if (frac > 0.85) { g.fillStyle = "rgba(20,30,40,0.6)"; g.beginPath(); g.arc(sx + 5, sy - 3, 9, 0, TAU); g.fill(); }
+  g.fillStyle = "rgba(255,255,255,0.9)"; g.font = "600 20px 'Libre Franklin', sans-serif"; g.textAlign = "center";
+  const left = D ? Math.max(0, Math.ceil(D.len - D.t)) : 0;
+  g.fillText(left > 0 ? `${left}s to dark` : "dark", cx, cy - 6);
+}
+function updateHud() {
+  if (!D) return;
+  const total = D.sheep.length - D.lost;
+  $("hudPen").textContent = D.penned;
+  $("hudOf").textContent = ` / ${total} in the fold`;
+  $("hudWord").textContent = game.lastWord || "";
+  const dog = D.dogs[0];
+  $("mStam").style.width = `${dog.stam * 100}%`;
+  $("mBark").style.width = `${(1 - dog.bark / barkCool()) * 100}%`;
+  $("mWhistleRow").hidden = S.up.whistle === 0;
+  $("padWhistle").hidden = S.up.whistle === 0;
+  $("mWhistle").style.width = `${(1 - dog.whistle / 14) * 100}%`;
+  $("padBark").disabled = dog.bark > 0;
+  $("padWhistle").disabled = dog.whistle > 0;
+  drawDial();
+}
+let bannerTimer = 0;
+function showBanner(text, ms = 1500) {
+  const b = $("banner");
+  b.textContent = text; b.style.opacity = "1";
+  clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(() => (b.style.opacity = "0"), ms);
+}
+
+// ------------------------------------------------------------------ the game's own flow
+const game = { mode: "title", autopilot: false, lastWord: "", tab: "dog", speed: 1, results: null };
+
+function startDemo() {
+  D = buildField("pasture", 7, 18, { demo: true, noMeg: true });
+  D.phase = "demo";
+  D.t = D.len * 0.2;
+  ground = paintGround(D);
+  cam.x = D.w / 2; cam.y = D.h / 2;
+}
+
+function startDay() {
+  const seed = (S.day * 7919 + REGION_ORDER.indexOf(S.region) * 104729) >>> 0;
+  D = buildField(S.region, seed, S.flock);
+  ground = paintGround(D);
+  cam.x = D.dogs[0].x; cam.y = D.dogs[0].y;
+  game.mode = "play";
+  game.lastWord = "";
+  $("sheet").hidden = true;
+  $("hud").hidden = false;
+  $("hudField").textContent = REGIONS[S.region].name;
+  $("hudDay").textContent = `Day ${S.day}  ·  ${D.sheep.length} sheep on the hill`;
+  D.phase = "run";
+  showBanner("Away to me!");
+  audio.wind(S.region === "coast" || S.region === "glen" ? 0.06 : 0.035);
+}
+
+function endDay(allIn) {
+  if (D.phase !== "run") return;
+  D.phase = "done";
+  const R = REGIONS[D.region];
+  const penned = D.penned;
+  const out = D.sheep.filter((s) => !s.penned && !s.lost).length;
+  // a night out on the hill: some don't come back
+  let night = 0;
+  for (const s of D.sheep) if (!s.penned && !s.lost && rand() < R.night) night++;
+  const price = woolPrice(D.region);
+  const wool = penned * price;
+  const bonus = allIn ? wool * 0.25 + Math.max(0, D.len - D.t) * 0.25 * R.mult : 0;
+  // lambing overnight (ewes in the fold, up to the land you have)
+  const flockAfter = S.flock - D.lost - night;
+  let lambs = 0;
+  const ewes = D.sheep.filter((s) => s.penned && !s.ram).length;
+  for (let i = 0; i < ewes; i++) if (rand() < lambChance()) lambs++;
+  lambs = Math.max(0, Math.min(lambs, cap() - flockAfter));
+  const res = { region: D.region, day: S.day, penned, out, lost: D.lost, lostWhy: { ...D.lostWhy }, night, wool, bonus, lambs, allIn,
+    total: wool + bonus, flockBefore: S.flock, time: D.t };
+  S.money += res.total;
+  S.flock = Math.max(1, flockAfter + lambs);
+  S.bestDay = Math.max(S.bestDay, penned);
+  S.history = (S.history || []).concat([{ d: S.day, r: D.region, p: penned, m: Math.round(res.total) }]).slice(-30);
+  const winNow = !S.won && D.region === "glen" && penned >= GOAL;
+  if (winNow) S.won = true;
+  S.day++;
+  writeSave();
+  game.results = res;
+  game.mode = "ledger";
+  setTimeout(() => {
+    $("hud").hidden = true;
+    showLedger(winNow ? "won" : "day");
+  }, 400);
+}
+
+function pauseGame() {
+  game.mode = "pause";
+  $("hud").hidden = true;
+  showLedger("pause");
+}
+
+// ------------------------------------------------------------------ the ledger (all the between-days pages)
+function rank() {
+  const l = S.lifetime;
+  if (S.won) return "Master of the Muster";
+  if (l >= 5000) return "Fell Master";
+  if (l >= 1500) return "Head Shepherd";
+  if (l >= 400) return "Shepherd";
+  if (l >= 100) return "Hand";
+  return "Pup";
+}
+// tally marks as a shepherd scores them: four strokes and a bar across
+function tallyMarks(n) {
+  const gate = (k) => {
+    let p = "";
+    for (let i = 0; i < Math.min(k, 4); i++) p += `<line x1="${4 + i * 6}" y1="3" x2="${3 + i * 6}" y2="25"/>`;
+    if (k === 5) p += `<line x1="0" y1="20" x2="25" y2="7"/>`;
+    return `<svg width="30" height="28" viewBox="-2 0 30 28" aria-hidden="true"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">${p}</g></svg>`;
+  };
+  const shown = Math.min(n, 150);
+  let out = "";
+  for (let i = 0; i < Math.floor(shown / 5); i++) out += gate(5);
+  if (shown % 5) out += gate(shown % 5);
+  return out + (n > shown ? " …" : "");
+}
+
+function showLedger(page) {
+  const L = $("ledger");
+  $("sheet").hidden = false;
+  let html = "";
+  if (page === "title") {
+    const hasSave = S.day > 1 || S.money > 0;
+    html = `
+      <div class="stack">
+        <h1>Muster</h1>
+        <p class="lead">A border collie, a fell, and a flock to bring in before dark.</p>
+        <div class="howto">
+          <div><b>Walk up, don't rush in</b>Sheep run from the dog in proportion to how fast it comes. Charge them and they scatter; walk up steady and they move off together.</div>
+          <div><b>Get behind them</b>Go round the flock, never through it, and push from the side away from the fold. The gate is the gap in the hurdles.</div>
+          <div><b>Bark, whistle</b>A bark sends them hard away from you and drives off foxes. A whistle, once learned, bunches them up.</div>
+          <div><b>Wool buys the farm</b>Every sheep folded is a fleece. Buy pace and wind for the dog, ewes and land for the farm, and leases on harder fells that pay more.</div>
+        </div>
+        <p class="note">Mouse: the dog runs to the pointer. Hold Shift or the right button to walk steady. Click or Space barks, Q whistles. On a phone, drag with a finger and use the buttons. Keys work too: WASD or arrows.</p>
+        <div class="row">
+          <button class="btn big" id="bPlay">${hasSave ? "Back to the farm" : "Begin"}</button>
+          ${hasSave ? `<button class="btn ghost" id="bNew">Start a new farm</button>` : ""}
+        </div>
+        ${hasSave ? `<p class="note">Day ${S.day} · ${S.flock} sheep · ${fmt(S.money)} in the tin · ${rank()}</p>` : ""}
+        <p class="note" id="newConfirm" hidden>This clears the farm. <button class="btn ghost" id="bNewYes">Clear it and start over</button></p>
+      </div>`;
+  } else if (page === "away") {
+    html = `<div class="stack"><h2>While you were away</h2><p class="lead">${game.awayText}</p><div class="row"><button class="btn big" id="bFarm">To the farm</button></div></div>`;
+  } else if (page === "day" || page === "won") {
+    const r = game.results;
+    const R = REGIONS[r.region];
+    const lostLine = r.lost ? `<span>Lost on the hill ${r.lostWhy.fox ? `(fox ${r.lostWhy.fox})` : ""}${r.lostWhy.wolf ? `(wolves ${r.lostWhy.wolf})` : ""}${r.lostWhy.cliff ? `(over the edge ${r.lostWhy.cliff})` : ""}</span><span class="neg">−${r.lost}</span>` : "";
+    html = `
+      <div class="cols">
+        <div class="stack">
+          <h2>${page === "won" ? "Master of the Muster" : r.allIn ? "All in" : "Dark"}</h2>
+          <p class="lead">${page === "won" ? `${r.penned} sheep folded on the High Glen in a single day. The valley talks about it for years. The farm is yours to keep working.` :
+            r.allIn ? `Day ${r.day} on the ${R.name}: every sheep folded, with ${Math.round(Math.max(0, dayLength(r.region) - r.time))} s of light to spare.` :
+            `Day ${r.day} on the ${R.name}: night came with ${r.out} still out on the hill.`}</p>
+          <div class="tally-marks" aria-label="${r.penned} folded">${tallyMarks(r.penned)}</div>
+          <p class="muted"><i>${shepherdCount(r.penned)}</i></p>
+        </div>
+        <div class="stack">
+          <div class="account">
+            <span>Folded at ${fmt(woolPrice(r.region))} a fleece</span><span>${r.penned}</span>
+            ${lostLine}
+            ${r.night ? `<span>Didn't come back from the night</span><span class="neg">−${r.night}</span>` : ""}
+            <span>Lambs overnight</span><span>+${r.lambs}</span>
+            <span>Wool</span><span>${fmt(r.wool)}</span>
+            ${r.bonus ? `<span>All in early</span><span>${fmt(r.bonus)}</span>` : ""}
+            <span class="total">Earned today</span><span class="total">${fmt(r.total)}</span>
+            <span>In the tin</span><span>${fmt(S.money)}</span>
+            <span>Flock</span><span>${S.flock} of ${cap()}</span>
+          </div>
+          <div class="row"><button class="btn big" id="bFarm">To the farm</button></div>
+        </div>
+      </div>`;
+  } else if (page === "farm") {
+    html = farmPage();
+  } else if (page === "pause") {
+    html = `<div class="stack"><h2>Resting</h2><p class="lead">The sheep wait. They're good at it.</p>
+      <div class="row"><button class="btn big" id="bResume">Back to work</button><button class="btn ghost" id="bGiveUp">Call it a day now</button></div>
+      <p class="note">Calling it a day ends it as if night had fallen: you're paid for what's in the fold.</p></div>`;
+  }
+  L.innerHTML = html;
+  wireLedger(page);
+  const first = L.querySelector(".btn");
+  if (first) first.focus({ preventScroll: true });
+}
+
+function farmPage() {
+  const groups = { dog: "The dog", farm: "The farm", fields: "Fields" };
+  const tabs = Object.entries(groups).map(([k, v]) => `<button class="tab" role="tab" aria-selected="${game.tab === k}" data-tab="${k}">${v}</button>`).join("");
+  let body = "";
+  if (game.tab === "fields") {
+    body = `<div class="entries">${REGION_ORDER.map((k, i) => {
+      const R = REGIONS[k];
+      const owned = !!S.leases[k];
+      const prevOwned = i === 0 || S.leases[REGION_ORDER[i - 1]];
+      const danger = R.night > 0 ? `<span class="chip danger">losses</span>` : "";
+      return `<div class="field-pick">
+        <input type="radio" name="region" value="${k}" id="r_${k}" ${S.region === k ? "checked" : ""} ${owned ? "" : "disabled"} aria-label="Work ${R.name} tomorrow">
+        <label for="r_${k}"><span class="name">${R.name}</span> <span class="muted">×${R.mult} wool</span>${danger}<br><span class="what">${R.note}${owned || prevOwned ? "" : ` Lease the ${REGIONS[REGION_ORDER[i - 1]].name} first.`}</span></label>
+        ${owned ? `<span class="muted">${S.region === k ? "working it" : "leased"}</span>` :
+          `<button class="btn" data-lease="${k}" ${S.money >= R.lease && prevOwned ? "" : "disabled"}>${fmt(R.lease)}</button>`}
+      </div>`;
+    }).join("")}</div>`;
+  } else {
+    body = `<div class="entries">${Object.entries(UPGRADES).filter(([, u]) => u.group === game.tab).map(([k, u]) => {
+      const lvl = S.up[k];
+      const maxed = lvl >= u.max;
+      const cost = upCost(k, k === "ewes" ? S.ewesBought : lvl);
+      let can = !maxed && S.money >= cost;
+      let why = "";
+      if (k === "ewes" && S.flock + 3 > cap()) { can = false; why = "needs more grazing"; }
+      const pips = u.max < 20 ? `<span class="pips">${"●".repeat(lvl)}${"○".repeat(u.max - lvl)}</span>` : "";
+      const now = k === "ewes" ? `${S.flock} of ${cap()} on the land` : u.what(lvl);
+      const next = maxed || k === "ewes" ? "" : ` → ${u.what(lvl + 1)}`;
+      return `<div class="entry">
+        <div><span class="name">${u.name}</span>${pips}<div class="what">${now}${next}</div></div>
+        <button class="btn" data-buy="${k}" ${can ? "" : "disabled"}>${maxed ? "done" : why || fmt(cost)}</button>
+      </div>`;
+    }).join("")}</div>`;
+  }
+  const R = REGIONS[S.region];
+  return `
+    <div class="cols">
+      <div class="stack">
+        <h2>The farm</h2>
+        <p class="purse">${fmt(S.money)} <small>in the tin</small></p>
+        <div class="account">
+          <span>Day</span><span>${S.day}</span>
+          <span>Flock</span><span>${S.flock} of ${cap()}</span>
+          <span>Best day</span><span>${S.bestDay} folded</span>
+          <span>Folded, all told</span><span>${S.lifetime.toLocaleString("en-GB")}</span>
+          <span class="total">Standing</span><span class="total">${rank()}</span>
+        </div>
+        <p class="note">${S.won ? "You've done the High Glen muster. Keep going for the love of it." : `The goal: fold ${GOAL} sheep in one day on the High Glen.`}</p>
+        <div class="row"><button class="btn big" id="bDay">Day ${S.day} on the ${R.name}</button></div>
+        <p class="note">${S.flock} sheep, fleece at ${fmt(woolPrice(S.region))}, ${Math.round(dayLength(S.region))} s of light.</p>
+      </div>
+      <div class="stack">
+        <div class="tabs" role="tablist">${tabs}</div>
+        ${body}
+      </div>
+    </div>`;
+}
+
+function wireLedger(page) {
+  const L = $("ledger");
+  const on = (id, fn) => { const el = L.querySelector("#" + id); if (el) el.addEventListener("click", () => { audio.unlock(); fn(); }); };
+  on("bPlay", () => { if (S.day === 1 && S.money === 0) startDay(); else showLedger("farm"); });
+  on("bNew", () => { L.querySelector("#newConfirm").hidden = false; });
+  on("bNewYes", () => { S = freshSave(); writeSave(); showLedger("farm"); });
+  on("bFarm", () => { startDemoIfNeeded(); showLedger("farm"); });
+  on("bDay", () => startDay());
+  on("bResume", () => { game.mode = "play"; $("sheet").hidden = true; $("hud").hidden = false; });
+  on("bGiveUp", () => { game.mode = "play"; endDay(false); });
+  L.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { game.tab = b.dataset.tab; showLedger("farm"); }));
+  L.querySelectorAll("[data-buy]").forEach((b) => b.addEventListener("click", () => buy(b.dataset.buy)));
+  L.querySelectorAll("[data-lease]").forEach((b) => b.addEventListener("click", () => {
+    const k = b.dataset.lease, R = REGIONS[k];
+    if (S.money >= R.lease) { S.money -= R.lease; S.leases[k] = true; S.region = k; writeSave(); showLedger("farm"); }
+  }));
+  L.querySelectorAll("input[name=region]").forEach((r) => r.addEventListener("change", () => { S.region = r.value; writeSave(); showLedger("farm"); }));
+}
+function buy(k) {
+  const u = UPGRADES[k];
+  const lvl = S.up[k];
+  const cost = upCost(k, k === "ewes" ? S.ewesBought : lvl);
+  if (S.money < cost) return;
+  if (k === "ewes") {
+    if (S.flock + 3 > cap()) return;
+    S.flock += 3; S.ewesBought++;
+  } else {
+    if (lvl >= u.max) return;
+    S.up[k]++;
+  }
+  S.money -= cost;
+  writeSave();
+  audio.fold(3);
+  showLedger("farm");
+  const again = $("ledger").querySelector(`[data-buy="${k}"]`);
+  if (again && !again.disabled) again.focus({ preventScroll: true });
+}
+function startDemoIfNeeded() { if (!D || D.phase !== "demo") startDemo(); }
+
+// ------------------------------------------------------------------ main loop
+let last = performance.now(), acc = 0;
+const FIXED = 1 / 60;
+function frame(now) {
+  let dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (game.mode === "play" || (D && D.phase === "demo")) {
+    acc += dt * game.speed;
+    let n = 0;
+    while (acc >= FIXED && n < 8 * game.speed) { step(FIXED); acc -= FIXED; n++; }
+    if (D && D.phase === "demo") for (let i = 0; i < n; i++) demoTick();
+  }
+  updateCam(dt);
+  render(dt);
+  if (game.mode === "play") updateHud();
+  requestAnimationFrame(frame);
+}
+// behind the title, the flock is brought in over and over by itself
+function demoTick() {
+  D.demoT = (D.demoT || 0) + 1 / 60;
+  const left = D.sheep.filter((s) => !s.penned).length;
+  if (left === 0 || D.demoT > 240) startDemo();
+}
+
+// ------------------------------------------------------------------ boot
+function boot(data) {
+  loadSave();
+  if (data && data.save) S = Object.assign(freshSave(), data.save);
+  audio.setMuted(S.muted);
+  resize();
+  startDemo();
+  // wool grown while away: the idle part of a hill farm
+  const away = (Date.now() - (S.lastSeen || Date.now())) / 60000;
+  if (away > 2 && (S.day > 1)) {
+    const mins = Math.min(away, 8 * 60);
+    const best = REGION_ORDER.filter((k) => S.leases[k]).reduce((m, k) => Math.max(m, REGIONS[k].mult), 1);
+    const grown = Math.round(S.flock * 0.03 * mins * best * (1 + 0.2 * S.up.shed));
+    if (grown > 0) {
+      S.money += grown;
+      const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+      game.awayText = `You were gone ${h ? `${h} h ` : ""}${m} min. The flock grazed and the fleeces grew: ${fmt(grown)} of wool sold at the mart.`;
+      writeSave();
+      showLedger("away");
+    } else showLedger("title");
+  } else showLedger("title");
+  requestAnimationFrame(frame);
+}
+window.claude?.hot?.snapshot?.(() => ({ save: S }));
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+window.addEventListener("pagehide", writeSave);
+
+// a handle for testing
+window.__muster = {
+  get S() { return S; }, get D() { return D; }, game,
+  startDay, endDay, step, herdTarget, flockCentre, wayHome, setRegion(k) { S.region = k; S.leases[k] = true; },
+};
+</script>
+
+</body></html>

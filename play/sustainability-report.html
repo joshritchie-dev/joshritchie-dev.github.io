@@ -1,0 +1,1706 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Sustainability Report</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Caveat:wght@700&family=Courier+Prime:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Nunito:wght@800&display=swap" rel="stylesheet">
+<style>
+/* Layout: a walnut desk holding two documents — the glossy public report (left) and the manila confidential file (right). Single look by design. */
+:root {
+  --desk: #211a15; --desk2: #2c231c; --desk3: #3a2f26; --desk-fg: #f1e9dc; --desk-mute: #b9ab94; --desk-dim: #8a7c67;
+  --manila: #ecdfbd; --manila2: #e2d2a8; --manila3: #d6c491; --ink: #2a241d; --ink2: #5a4f41; --ink3: #85775f;
+  --stamp: #b0261c; --pen: #1f4e8c; --ok: #2c6e33; --warn: #a3590f; --paper: #fbf8f1;
+  --f-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --f-news: "Fraunces", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--desk); color: var(--desk-fg); font: 15px/1.45 var(--f-ui);
+  background-image: repeating-linear-gradient(92deg, rgba(255,255,255,.012) 0 2px, transparent 2px 9px), repeating-linear-gradient(88deg, rgba(0,0,0,.08) 0 1px, transparent 1px 23px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 28px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 2px solid #f0c060; outline-offset: 2px; }
+#app { max-width: 1340px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+/* header */
+.top { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 8px 4px 10px; border-bottom: 1px solid var(--desk3); }
+.co { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
+.co-mark { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #1b3a26; color: #cfe7c6; font: 800 20px/1 var(--f-news); border: 2px solid #4f7a55; flex: none; }
+.co-tx { display: flex; flex-direction: column; min-width: 0; }
+.co-tx b { font: 700 21px/1.1 var(--f-news); letter-spacing: .2px; }
+.co-tx small { color: var(--desk-mute); font-size: 12px; }
+.hs { display: flex; flex-direction: column; line-height: 1.15; min-width: 64px; }
+.hs small { font: 500 10.5px/1.3 var(--f-mono); color: var(--desk-mute); text-transform: uppercase; letter-spacing: .8px; }
+.hs b { font: 600 18px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; }
+.hs b.bad { color: #ff8a73; }
+.mini { display: block; width: 84px; height: 4px; background: var(--desk3); border-radius: 2px; margin-top: 3px; overflow: hidden; }
+.mini i { display: block; height: 100%; background: #e8c46a; }
+.hbtns { display: flex; gap: 6px; }
+.hb { background: transparent; border: 1px solid var(--desk3); color: var(--desk-mute); border-radius: 4px; padding: 6px 10px; font: 500 12.5px/1 var(--f-mono); }
+.hb:hover { color: var(--desk-fg); border-color: var(--desk-mute); }
+
+/* desk */
+.desk { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.pub { display: flex; flex-direction: column; gap: 10px; min-width: 0; position: sticky; top: 10px; }
+.lbl { display: flex; align-items: baseline; gap: 10px; }
+.lbl b { font: 700 13px/1 var(--f-mono); text-transform: uppercase; letter-spacing: 1.2px; color: var(--desk-fg); }
+.lbl span { font-size: 12.5px; color: var(--desk-dim); }
+.pages { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.shelf { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; min-height: 20px; }
+.shelf .sh-l { width: 100%; font: 500 11px/1 var(--f-mono); color: var(--desk-dim); text-transform: uppercase; letter-spacing: 1px; }
+.thumb { width: 58px; flex: none; cursor: pointer; background: none; border: 0; padding: 0; text-align: center; }
+.thumb .page { box-shadow: 0 3px 8px rgba(0,0,0,.5); }
+.thumb small { display: block; font: 500 10.5px/1.4 var(--f-mono); color: var(--desk-mute); margin-top: 3px; }
+.thumb.sc small { color: #ff8a73; }
+
+/* ---------- the report page (container-scaled) ---------- */
+.page { --pa:#2f8f4e; --pb:#d9f2d0; --pc:#0f3d22; --pd:#f4fbef; --pf:"Nunito", sans-serif; --pw:800;
+  container-type: inline-size; aspect-ratio: 1 / 1.414; max-width: 100%; background: var(--pd); color: var(--pc); position: relative; overflow: hidden; border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 14px 30px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4); }
+.page.pf-hand { --pw: 700; }
+.cv-top { position: absolute; left: 0; right: 0; top: 0; padding: 6cqw 7cqw 0; display: flex; justify-content: space-between; align-items: flex-start; z-index: 2; }
+.cv-co { font: var(--pw) 4.4cqw/1.1 var(--pf); letter-spacing: .02em; max-width: 60%; }
+.cv-yr { font: 600 3.1cqw/1.2 var(--f-ui); text-transform: uppercase; letter-spacing: .14em; text-align: right; opacity: .8; }
+.cv-art { position: absolute; left: 0; right: 0; top: 17%; height: 52%; }
+.cv-art svg { width: 100%; height: 100%; display: block; }
+.cv-art .spin { animation: spin 6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.cv-title { position: absolute; left: 7cqw; right: 7cqw; top: 71%; font: var(--pw) 9.6cqw/1.02 var(--pf); letter-spacing: -.01em; text-wrap: balance; color: var(--pc); }
+.pf-hand .cv-title { font-size: 12cqw; }
+.pf-mono .cv-title { font-size: 8.4cqw; letter-spacing: 0; }
+.cv-foot { position: absolute; left: 7cqw; right: 7cqw; bottom: 4.5cqw; display: flex; justify-content: space-between; font: 500 2.5cqw/1.2 var(--f-ui); opacity: .7; }
+.cv-band { position: absolute; left: 0; right: 0; bottom: 0; height: 1.6cqw; background: var(--pa); }
+.sp { position: absolute; inset: 0; padding: 6cqw 7cqw 4.5cqw; display: flex; flex-direction: column; gap: 2.2cqw; }
+.sp-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: .5cqw solid var(--pa); padding-bottom: 1.6cqw; }
+.sp-h b { font: var(--pw) 4.6cqw/1 var(--pf); }
+.sp-h span { font: 600 2.7cqw/1 var(--f-ui); text-transform: uppercase; letter-spacing: .12em; opacity: .7; }
+.sp-stat { display: flex; align-items: flex-end; gap: 3cqw; }
+.sp-stat b { font: var(--pw) 15cqw/.9 var(--pf); color: var(--pa); letter-spacing: -.03em; }
+.sp-stat b.nz { font-size: 14cqw; }
+.sp-stat span { font: 500 3.1cqw/1.25 var(--f-ui); padding-bottom: 1.4cqw; max-width: 46%; }
+.sp-chart { background: var(--pb); border-radius: 1.4cqw; padding: 2cqw 2cqw 1cqw; }
+.sp-chart svg { width: 100%; display: block; }
+.sp-chart .cap { font: 600 2.6cqw/1.2 var(--f-ui); opacity: .75; margin-bottom: .6cqw; }
+.sp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; }
+.sp-cols h4 { margin: 0 0 1cqw; font: 700 2.8cqw/1.2 var(--f-ui); text-transform: uppercase; letter-spacing: .1em; color: var(--pa); }
+.sp-cols ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .6cqw; font: 500 2.5cqw/1.2 var(--f-ui); }
+.sp-cols li::before { content: "✓ "; color: var(--pa); font-weight: 700; }
+.sp-cols li.x::before { content: "✗ "; color: #b0261c; }
+.sp-fn { margin-top: auto; flex-shrink: 0; font: 400 1.8cqw/1.25 var(--f-ui); opacity: .78; border-top: .3cqw solid currentColor; padding-top: 1cqw; display: flex; flex-direction: column; gap: .1cqw; }
+.sp-fn i { font-style: normal; }
+.page.mini-pg .cv-foot, .page.mini-pg .cv-yr { display: none; }
+
+/* ---------- the confidential file ---------- */
+.file { display: flex; flex-direction: column; min-width: 0; }
+.ftab { align-self: flex-start; background: var(--manila3); color: var(--ink); border-radius: 8px 8px 0 0; padding: 7px 16px 5px; display: flex; gap: 10px; align-items: baseline; margin-left: 14px; }
+.ftab b { font: 700 13px/1 var(--f-mono); text-transform: uppercase; letter-spacing: 2px; color: var(--stamp); }
+.ftab span { font: 500 11.5px/1 var(--f-mono); color: var(--ink2); }
+.num, .tabs, .pane { background: var(--manila); color: var(--ink); }
+.num { border-radius: 4px 4px 0 0; padding: 14px 16px 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; border-bottom: 1px dashed var(--manila3); box-shadow: 0 10px 28px rgba(0,0,0,.4); }
+.n-main { min-width: 0; }
+.n-k { font: 600 11px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: 1px; color: var(--ink2); }
+.n-big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.n-big b { font: 600 34px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.n-big b.ok { color: var(--ok); } .n-big b.bad { color: var(--stamp); }
+.n-big span { font: 500 13.5px/1.2 var(--f-mono); color: var(--ink2); }
+.n-bar { position: relative; height: 10px; background: var(--manila3); border-radius: 2px; margin: 6px 0 2px; }
+.n-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ok); border-radius: 2px; }
+.n-bar i.bad { background: var(--stamp); }
+.n-bar u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+.n-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; margin-top: 6px; font-size: 13px; }
+.n-rows div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--manila3); padding: 2px 0; min-width: 0; }
+.n-rows span { color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.n-rows b { font: 600 13px/1.3 var(--f-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.n-rows b.bad { color: var(--stamp); } .n-rows b.ok { color: var(--ok); }
+.n-side { display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-width: 150px; }
+.esgb { border: 2px solid var(--ink); border-radius: 4px; padding: 5px 8px; text-align: center; background: var(--paper); }
+.esgb small { display: block; font: 600 10px/1.2 var(--f-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--ink2); }
+.esgb b { font: 700 26px/1.1 var(--f-news); }
+.esgb span { display: block; font: 500 11px/1.2 var(--f-mono); color: var(--ink2); }
+.pubbtn { background: var(--ink); color: var(--manila); border: 0; border-radius: 4px; padding: 11px 12px; font: 700 14px/1.1 var(--f-mono); letter-spacing: .5px; }
+.pubbtn:hover:not(:disabled) { background: #000; }
+.pubbtn:disabled { background: var(--ink3); color: var(--manila2); }
+.n-why { grid-column: 1 / -1; font-size: 12.5px; color: var(--stamp); margin: 0; }
+.tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--manila3); padding: 0 8px; }
+.tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 10px 8px; font: 600 12.5px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .6px; color: var(--ink2); white-space: nowrap; }
+.tabs button.on { color: var(--ink); border-bottom-color: var(--stamp); }
+.tabs button small { color: var(--ink3); margin-left: 3px; }
+.pane { padding: 14px 16px 18px; border-radius: 0 0 4px 4px; display: flex; flex-direction: column; gap: 11px; box-shadow: 0 14px 28px rgba(0,0,0,.4); min-height: 360px; }
+.pane > * { flex-shrink: 0; }
+.ph { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ph h2 { margin: 0; font: 700 20px/1.15 var(--f-news); text-wrap: balance; }
+.ph span { font: 500 12px/1.3 var(--f-mono); color: var(--ink2); text-align: right; }
+.note { margin: 0; font-size: 13.5px; color: var(--ink2); max-width: 64ch; }
+.sec { font: 700 11.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: 1.2px; color: var(--ink2); border-top: 1px solid var(--manila3); padding-top: 9px; display: flex; justify-content: space-between; gap: 8px; }
+.sec small { font: 500 11.5px/1.2 var(--f-ui); text-transform: none; letter-spacing: 0; color: var(--ink3); }
+.row { background: var(--paper); border: 1px solid var(--manila3); border-radius: 4px; padding: 9px 11px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.row.on { border-color: var(--ink2); box-shadow: inset 3px 0 0 var(--ink2); }
+.row.off { opacity: .55; }
+.row h3 { margin: 0; font: 600 14.5px/1.25 var(--f-ui); }
+.row h3 small { display: block; font: 400 12px/1.3 var(--f-ui); color: var(--ink2); margin-top: 1px; }
+.row p { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--ink2); }
+.row .ctl { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.tags { grid-column: 1 / -1; display: flex; gap: 5px; flex-wrap: wrap; }
+.tag { font: 500 11px/1 var(--f-mono); padding: 3px 5px; border-radius: 2px; background: var(--manila2); color: var(--ink2); white-space: nowrap; }
+.tag.g { background: #d4e6c8; color: var(--ok); } .tag.r { background: #f1d0c4; color: var(--stamp); } .tag.b { background: #d3dff0; color: var(--pen); } .tag.y { background: #f3e2b0; color: var(--warn); }
+.btn { background: var(--ink); color: var(--manila); border: 0; border-radius: 3px; padding: 7px 10px; font: 600 12.5px/1 var(--f-mono); white-space: nowrap; }
+.btn:hover:not(:disabled) { background: #000; }
+.btn:disabled { background: var(--manila3); color: var(--ink3); }
+.btn.alt { background: transparent; color: var(--ink); border: 1px solid var(--ink3); }
+.btn.alt:hover:not(:disabled) { border-color: var(--ink); background: var(--manila2); }
+.btn.red { background: var(--stamp); color: #fff; }
+.sw { width: 40px; height: 22px; border-radius: 11px; border: 1px solid var(--ink3); background: var(--manila2); position: relative; padding: 0; flex: none; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink3); transition: left .15s; }
+.sw.on { background: var(--ink); border-color: var(--ink); }
+.sw.on::after { left: 20px; background: var(--manila); }
+.fnb { border: 1px dashed var(--ink3); background: transparent; border-radius: 3px; padding: 4px 7px; font: 600 11.5px/1 var(--f-mono); color: var(--ink2); }
+.fnb.on { border-style: solid; background: var(--ink2); color: var(--manila); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink2); }
+.dots i.on { background: var(--ink2); }
+.off-row { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+.off-row input[type=range] { flex: 1; accent-color: var(--ink); min-width: 0; }
+.off-row input[type=number] { width: 64px; font: 600 13px/1 var(--f-mono); padding: 4px 6px; border: 1px solid var(--ink3); border-radius: 3px; background: var(--paper); color: var(--ink); }
+.off-row b { font: 600 13px/1 var(--f-mono); min-width: 70px; text-align: right; }
+.chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; }
+.chips button { background: var(--paper); border: 1px solid var(--manila3); border-radius: 3px; padding: 6px 8px; font: 500 12.5px/1.15 var(--f-ui); color: var(--ink); text-align: left; }
+.chips button small { font: 500 11px/1 var(--f-mono); color: var(--ink3); margin-left: 4px; }
+.chips button.on { background: var(--ink); color: var(--manila); border-color: var(--ink); }
+.chips button.on small { color: var(--manila2); }
+.chips button:disabled { opacity: .45; }
+.esg-l { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; font-size: 13px; }
+.esg-l span { color: var(--ink2); } .esg-l b { font: 600 13px/1.3 var(--f-mono); text-align: right; }
+.esg-l .t { border-top: 1px solid var(--ink3); padding-top: 3px; color: var(--ink); font-weight: 600; }
+.risk { display: grid; grid-template-columns: minmax(0, 1fr) 56px 64px auto; gap: 6px 10px; align-items: center; font-size: 13px; }
+.risk .h { font: 600 10.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .7px; color: var(--ink3); }
+.risk .nm { min-width: 0; }
+.risk .e { font: 600 13px/1 var(--f-mono); }
+.ebar { height: 6px; background: var(--manila3); border-radius: 2px; overflow: hidden; }
+.ebar i { display: block; height: 100%; background: var(--stamp); }
+.dec-l { display: flex; flex-direction: column; gap: 5px; }
+.dec { background: var(--paper); border-radius: 3px; padding: 6px 9px; font-size: 13px; }
+.dec b { display: block; font: 600 13.5px/1.2 var(--f-news); }
+.dec.no { opacity: .55; }
+.srch { width: 100%; font: inherit; padding: 7px 9px; border: 1px solid var(--ink3); border-radius: 3px; background: var(--paper); color: var(--ink); }
+.ach { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.ach div { background: var(--paper); border-radius: 3px; padding: 6px 8px; font-size: 12px; color: var(--ink3); min-width: 0; }
+.ach div b { display: block; font: 600 12.5px/1.2 var(--f-ui); }
+.ach div.got { color: var(--ink2); } .ach div.got b { color: var(--ok); }
+.logl { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.logl div { display: grid; grid-template-columns: 40px 1fr; gap: 8px; border-bottom: 1px dotted var(--manila3); padding-bottom: 3px; }
+.logl span { font: 600 11.5px/1.5 var(--f-mono); color: var(--ink3); }
+
+/* jargon */
+mark.jg { background: transparent; color: inherit; border-bottom: 1px dotted currentColor; cursor: help; padding: 0; }
+#jtip { position: fixed; z-index: 90; max-width: 270px; background: #17120e; color: var(--desk-fg); border: 1px solid #6a5a45; border-radius: 4px; padding: 8px 10px; font-size: 13px; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+#jtip b { display: block; font: 700 14px/1.2 var(--f-news); color: #f0d9a8; margin-bottom: 2px; }
+
+/* overlays */
+.ov { position: fixed; inset: 0; z-index: 50; background: rgba(12, 9, 6, .74); display: flex; align-items: center; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.mo { background: var(--manila); color: var(--ink); border-radius: 4px; width: min(600px, 100%); max-height: 100%; overflow-y: auto; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 24px 70px rgba(0,0,0,.7); position: relative; }
+.mo.wide { width: min(760px, 100%); }
+.mo .kicker { font: 600 11.5px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: 1.2px; color: var(--ink2); }
+.mo h2 { margin: 0; font: 800 28px/1.08 var(--f-news); text-wrap: balance; }
+.mo p { margin: 0; }
+.mo .from { font: 500 12.5px/1.3 var(--f-mono); color: var(--ink2); }
+.mo ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.mo .btn { padding: 10px 14px; font-size: 13.5px; }
+.choice { display: flex; justify-content: space-between; gap: 10px; align-items: center; width: 100%; text-align: left; background: var(--paper); border: 1px solid var(--manila3); border-radius: 4px; padding: 10px 12px; font-size: 14px; }
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice:disabled { opacity: .5; }
+.choice small { font: 500 12px/1.3 var(--f-mono); color: var(--ink2); max-width: 46%; text-align: right; }
+.stamp { position: absolute; right: 18px; top: 14px; transform: rotate(-8deg); border: 3px solid var(--stamp); color: var(--stamp); font: 800 18px/1 var(--f-mono); letter-spacing: 2px; padding: 5px 10px; border-radius: 3px; opacity: .85; text-transform: uppercase; }
+.res { background: var(--paper); border-left: 3px solid var(--ink3); padding: 9px 12px; border-radius: 2px; }
+.res.good { border-left-color: var(--ok); } .res.bad { border-left-color: var(--stamp); }
+.clip { background: var(--paper); border-radius: 2px; padding: 12px 14px; box-shadow: 0 2px 6px rgba(0,0,0,.18); position: relative; animation: drop .35s ease-out both; }
+.clip .who { font: 500 11.5px/1.3 var(--f-mono); color: var(--ink2); text-transform: uppercase; letter-spacing: .6px; }
+.clip .hl { font: 800 20px/1.12 var(--f-news); margin: 4px 0 2px; }
+.clip.none .hl { font-weight: 600; font-size: 16px; color: var(--ink2); }
+.clip.found { border-top: 4px double var(--ink); }
+.clip.kept { border-top: 3px solid var(--ok); }
+.clip .meta { font: 500 12px/1.3 var(--f-mono); color: var(--ink3); }
+.clip .resp { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.clip .done { margin-top: 6px; font-size: 13px; color: var(--ink2); }
+@keyframes drop { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.stats div { background: var(--paper); border-radius: 3px; padding: 7px 9px; font-size: 12px; color: var(--ink2); min-width: 0; }
+.stats b { display: block; font: 600 17px/1.25 var(--f-mono); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bd { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 13.5px; }
+.bd b { font: 600 13.5px/1.3 var(--f-mono); text-align: right; }
+.bd .pos { color: var(--ok); } .bd .neg { color: var(--stamp); }
+.bigrate { display: flex; align-items: center; gap: 14px; }
+.bigrate b { font: 800 46px/1 var(--f-news); }
+.histbox { background: #1d1712; border-radius: 4px; padding: 10px 12px 6px; }
+.histc { width: 100%; display: block; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font: 500 12px/1.3 var(--f-mono); color: #d7c8ad; margin-top: 4px; }
+.legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 5px; }
+.memo { background: var(--paper); padding: 14px 16px; border-radius: 2px; font-size: 14.5px; display: flex; flex-direction: column; gap: 8px; }
+.memo .mh { font: 500 12px/1.5 var(--f-mono); color: var(--ink2); border-bottom: 1px solid var(--manila3); padding-bottom: 6px; }
+.covers { display: flex; gap: 8px; flex-wrap: wrap; }
+.covers .thumb { width: 64px; }
+.covers .thumb small { color: var(--ink2); }
+
+#toasts { position: fixed; z-index: 70; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 6px; align-items: flex-end; pointer-events: none; }
+.toast { background: #17120e; color: var(--desk-fg); border: 1px solid #5a4a38; border-left: 3px solid #e8c46a; border-radius: 4px; padding: 8px 12px; font-size: 13.5px; max-width: 340px; box-shadow: 0 6px 20px rgba(0,0,0,.5); animation: tin .25s ease-out; }
+.toast.tip { border-left-color: #7fc48d; }
+.toast b { color: #f0d9a8; }
+@keyframes tin { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 980px) {
+  .desk { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+  .ftab { align-self: flex-start; }
+  .pub, .file { display: contents; }
+  .ftab { order: 1; margin-bottom: -12px; }
+  .num { order: 2; }
+  .lbl { order: 3; margin-top: 4px; }
+  .pages { order: 4; }
+  .tabs { order: 5; border-radius: 4px 4px 0 0; margin-bottom: -12px; min-width: 0; max-width: 100%; }
+  .num, .pane, .pages, .shelf { min-width: 0; max-width: 100%; }
+  .pane { order: 6; min-height: 0; }
+  .shelf { order: 7; }
+}
+@media (max-width: 560px) {
+  body { font-size: 14px; }
+  .top { gap: 8px 14px; }
+  .co { flex: 1 1 100%; }
+  .hs { min-width: 0; }
+  .hs b { font-size: 15px; }
+  .num { grid-template-columns: minmax(0, 1fr); }
+  .n-side { flex-direction: row; min-width: 0; }
+  .n-side > * { flex: 1; }
+  .n-rows { grid-template-columns: 1fr; }
+  .n-big b { font-size: 28px; }
+  .pages { gap: 8px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mo { padding: 16px 14px; }
+  .mo h2 { font-size: 23px; }
+  .risk { grid-template-columns: minmax(0, 1fr) 44px auto; }
+  .risk .ch { display: none; }
+  .ach { grid-template-columns: 1fr; }
+  .stamp { font-size: 13px; right: 10px; top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .cv-art .spin, .clip, .toast { animation: none; } }
+</style>
+<div id="app">
+  <header class="top">
+    <div class="co"><span class="co-mark" aria-hidden="true">H</span><div class="co-tx"><b id="coName">Halverson Petroleum</b><small>Office of the Chief Sustainability Officer</small></div></div>
+    <div class="hs"><small>Report year</small><b id="hYear">2026</b></div>
+    <div class="hs"><small>Board confidence</small><b id="hBoard">60</b><span class="mini" aria-hidden="true"><i id="hBoardBar"></i></span></div>
+    <div class="hs"><small>Stock (HAL)</small><b id="hStock">$40.00</b></div>
+    <div class="hs"><small>Last ESG rating</small><b id="hRating">B</b></div>
+    <div class="hbtns"><button type="button" class="hb" id="bHelp">How to play</button><button type="button" class="hb" id="bMenu">Menu</button></div>
+  </header>
+  <main class="desk">
+    <section class="pub" aria-label="The public report">
+      <div class="lbl"><b>The report</b><span>What the world sees</span></div>
+      <div class="pages" id="pages"></div>
+      <div class="shelf" id="shelf"></div>
+    </section>
+    <section class="file" aria-label="Internal file">
+      <div class="ftab"><b>Confidential</b><span>Internal use only</span></div>
+      <div class="num" id="num"></div>
+      <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+      <div class="pane" id="pane"></div>
+    </section>
+  </main>
+</div>
+<div id="ovWrap"></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="jtip" hidden></div>
+<script>
+"use strict";
+// =====================================================================
+// SUSTAINABILITY REPORT — CONTENT
+// You are Chief Sustainability Officer of Halverson Petroleum.
+// The CEO pledged Net Zero by 2040 at Davos. Make it true. On paper.
+// Money is in $ millions; emissions in megatonnes CO2e (Mt).
+// JARGON: [phrase, plain-English translation, optional regex source]
+// =====================================================================
+const JARGON = [
+  ['net zero', 'Zero, after subtracting everything we would rather not count.', 'net[- ]zero'],
+  ['carbon neutral', 'We bought a coupon.', 'carbon[- ]neutral(?:ity)?'],
+  ['Scope 1', 'The emissions from our own smokestacks. Hard to hide.', 'Scope 1(?![\\d.])'],
+  ['Scope 2', 'Emissions from the electricity we buy. Fixable with paperwork.', 'Scope 2(?![\\d.])'],
+  ['Scope 3', 'The 85% that happens when customers burn our product. Not our department.', 'Scope 3(?![\\d.])'],
+  ['offset', 'Paying someone else to pretend for us.', 'offsets?|offsetting'],
+  ['avoided deforestation', 'Credits for not cutting down a forest nobody was going to cut down.'],
+  ['additionality', 'Whether the good thing would have happened anyway. It would have.'],
+  ['permanence', 'How long the trees last before they burn.'],
+  ['nature-based solutions', 'Trees, with a press release.', 'nature-based solutions?'],
+  ['carbon intensity', 'Emissions per barrel. It can fall while emissions rise.', 'carbon intensity|intensity-based'],
+  ['absolute emissions', 'The actual number. We don\'t use it.'],
+  ['operational control', 'Only counting what we run, not what we own.'],
+  ['equity share', 'Counting what we own. We stopped.'],
+  ['base year recalculation', 'Picking our worst year as the starting line.', 'base[- ]year recalculation|restated baseline'],
+  ['methodology update', 'We changed the math until it agreed with us.', 'methodology updates?'],
+  ['engineering estimates', 'Guessing, in a hard hat.', 'engineering estimates?'],
+  ['fugitive emissions', 'Methane leaks, named as if they escaped on their own.', 'fugitive (?:emissions|methane)'],
+  ['routine flaring', 'Burning gas because selling it is a hassle.'],
+  ['renewable energy certificates', 'A receipt saying someone else used green power.', 'renewable energy certificates?|RECs'],
+  ['power purchase agreement', 'Actually buying clean electricity. Expensive.', 'power purchase agreements?|PPAs?'],
+  ['carbon capture', 'A very expensive straw.', 'carbon capture(?: and storage)?|CCS'],
+  ['transition fuel', 'Gas, forever.', 'transition fuels?'],
+  ['bridge fuel', 'A bridge to more gas.', 'bridge fuels?'],
+  ['blue hydrogen', 'Hydrogen made from gas, painted blue.'],
+  ['low-carbon', 'Slightly less carbon than the worst option.'],
+  ['energy transition', 'The future, at whatever pace suits us.'],
+  ['just transition', 'A transition with a working group.'],
+  ['Paris-aligned', 'We have read the Paris Agreement.', 'Paris[- ]aligned'],
+  ['1.5°C pathway', 'A line on a chart we plan to cross.', '1\\.5\\s?°C(?: pathway)?'],
+  ['science-based', 'A consultant used a calculator.'],
+  ['ambition', 'A target with no consequences.', 'ambitions?'],
+  ['aspirational', 'Not a promise. Read the footnote.', 'aspirational(?:ly)?'],
+  ['pathway', 'A road with no map.', 'pathways?'],
+  ['journey', 'Progress, but slow and scenic.', 'journeys?'],
+  ['progress, not perfection', 'We did nothing, gracefully.'],
+  ['materiality', 'Whether it affects money. If not, it isn\'t material.'],
+  ['double materiality', 'Considering the planet too, under protest.'],
+  ['stakeholder', 'Anyone who might sue.', 'stakeholders?'],
+  ['license to operate', 'The reason we pretend.'],
+  ['ESG', 'Environmental, Social, Governance: a grade for paperwork.', 'ESG(?! rating)'],
+  ['ESG rating', 'A grade for the quality of the brochure.', 'ESG ratings?'],
+  ['disclosure', 'Telling you, in 300 pages, so you won\'t read it.', 'disclosures?'],
+  ['limited assurance', 'An auditor glanced at it.'],
+  ['reasonable assurance', 'An auditor read it. We avoid this.'],
+  ['third-party verified', 'Someone we paid agrees with us.', 'third-party verifi(?:ed|cation)'],
+  ['high-quality credits', 'Credits we bought, described.', 'high-quality (?:carbon )?credits'],
+  ['voluntary carbon market', 'A market where nobody has to buy anything real.'],
+  ['co-benefits', 'Good news unrelated to carbon.'],
+  ['insetting', 'Offsetting inside our own supply chain, where nobody can check.'],
+  ['avoided emissions', 'Emissions we didn\'t cause, claimed as savings.'],
+  ['green bond', 'Debt, but green.', 'green bonds?'],
+  ['transition plan', 'A PDF.', 'transition plans?'],
+  ['climate risk', 'The risk to our profits, not to the climate.', 'climate risks?'],
+  ['stranded assets', 'Oil we might not be able to sell. Our deepest fear.'],
+  ['energy security', 'Why we need more drilling.'],
+  ['all of the above', 'Every kind of energy, mostly oil.', 'all[- ]of[- ]the[- ]above'],
+  ['responsibly produced', 'Produced.', 'responsibly (?:produced|sourced)'],
+  ['nature positive', 'We planted a hedge.', 'nature[- ]positive'],
+  ['biodiversity net gain', 'We moved the frogs.'],
+  ['regenerative', 'A buzzword that grows back.'],
+  ['circular economy', 'Recycling, rebranded.'],
+  ['climate-positive', 'Net zero, plus adjectives.', 'climate[- ]positive'],
+  ['carbon negative', 'An even bigger coupon.'],
+  ['greenwashing', 'This. What you\'re doing.', 'greenwash(?:ing|ed)?'],
+  ['greenhushing', 'Saying nothing, so nobody can check.'],
+  ['decarbonize', 'Promise to remove carbon, later.', 'decarboni[sz](?:e|ed|ing|ation)'],
+  ['interim target', 'A target close enough to be inconvenient.', 'interim targets?'],
+  ['shareholder resolution', 'A vote we will recommend against.', 'shareholder resolutions?'],
+  ['fiduciary duty', 'Why we legally cannot be good.'],
+  ['proxy season', 'When investors pretend to care, briefly.'],
+  ['thought leadership', 'A panel at Davos.'],
+  ['Davos', 'Where the CEO pledged net zero. Then flew home.'],
+  ['COP', 'A climate conference with excellent private-jet parking.', 'COP(?:\\d+)?'],
+  ['world-class', 'Exists.'],
+  ['industry-leading', 'Better than the other oil companies.'],
+  ['best practice', 'What everyone else got away with.', 'best practices?'],
+  ['stakeholder engagement', 'A meeting.'],
+  ['community engagement', 'A barbecue.'],
+  ['robust', 'Untested.', 'robust(?:ly)?'],
+  ['holistic', 'We didn\'t measure it.', 'holistic(?:ally)?'],
+  ['sustainable', 'Able to continue. Like drilling.', 'sustainabl[ey]'],
+  ['sustainability', 'The department on the basement level.'],
+  ['eco-friendly', 'Has a leaf on it.', 'eco[- ]friendly'],
+  ['clean energy', 'Energy, photographed outdoors.'],
+  ['natural gas', 'Methane, marketed.'],
+  ['offset registry', 'A spreadsheet of trees.', 'offset registr(?:y|ies)'],
+  ['verified carbon unit', 'A certificate for a tree you will never meet.', 'verified carbon units?'],
+  ['restatement', 'Admitting our old numbers were wrong. The new ones are too.', 'restat(?:e|ed|ement|ing)'],
+  ['divestment', 'Selling the dirty part to someone with fewer cameras.', 'divest(?:ed|ing|ment|iture)?'],
+  ['private equity', 'An owner with no reporting requirements.'],
+  ['reporting boundary', 'The line where our responsibility conveniently ends.', 'reporting boundar(?:y|ies)'],
+  ['TCFD-aligned', 'We used the right headings.', 'TCFD[- ]aligned'],
+  ['carbon budget', 'How much is left. We are spending it.'],
+  ['hard-to-abate', 'Every sector, according to that sector.'],
+  ['purpose-driven', 'We have a purpose. It is oil.', 'purpose[- ]driven'],
+  ['headwinds', 'Reasons it isn\'t our fault.'],
+  ['synergies', 'Layoffs.', 'synerg(?:y|ies|istic)'],
+  ['leverage', 'Use, with more syllables.', 'leverag(?:e|ed|ing)'],
+  ['key performance indicator', 'A number we can make go up.', 'key performance indicators?|KPIs?'],
+  ['stewardship', 'Owning something, nobly.'],
+  ['legacy assets', 'The oil fields. All of them.', 'legacy assets?'],
+  ['transparency', 'A 300-page PDF with no search function.']
+];
+
+// ---------------------------------------------------------------------
+// THE COMPANY
+// Baseline 2025: Scope 1 = 40 Mt, Scope 2 = 10 Mt (total 50 Mt operational)
+// Scope 3 (customers burning the product) ≈ 340 Mt — not in the pledge.
+// =====================================================================
+const START_YEAR = 2026, END_YEAR = 2040, BASE_S1 = 40, BASE_S2 = 10, BASE_S3 = 340;
+const GROWTH = 0.03;            // board's production plan, per year
+const BUDGET0 = 160, BUDGET_G = 0.045;
+
+// Real projects (permanent, real reductions). levels: [cost, effect]
+const PROJECTS = [
+  { id:'methane', name:'Fix methane leaks', brand:'Fugitive Emissions Management Program', levels:[[120, 0.10], [160, 0.17], [220, 0.22]], scope:1,
+    desc:'Find and fix the leaking valves. Cuts real Scope 1 emissions. Embarrassingly cost-effective.' },
+  { id:'flaring', name:'End routine flaring', brand:'Gas Utilization Initiative', levels:[[180, 0.08], [260, 0.13]], scope:1,
+    desc:'Stop burning the gas we can\'t be bothered to sell. Cuts real Scope 1.' },
+  { id:'ppa', name:'Clean power contracts', brand:'Renewable Power Purchase Agreements', levels:[[140, 0.5], [200, 1.0]], scope:2,
+    desc:'Actually buy wind and solar power for our operations. Cuts real Scope 2 to zero at level 2.' },
+  { id:'electrify', name:'Electrify offshore platforms', brand:'Platform Electrification Program', levels:[[450, 0.15]], scope:1,
+    desc:'Run the rigs on grid power instead of gas turbines. Cuts real Scope 1 by 15%. Very expensive.' },
+  { id:'ccs', name:'Build a carbon capture plant', brand:'Halverson Carbon Capture and Storage Hub', levels:[[600, 4]], scope:0,
+    desc:'A real plant that buries 4 Mt a year. The most expensive straw in the world.' },
+  { id:'solar', name:'Solar panels on HQ', brand:'Rooftop Clean Energy Showcase', levels:[[2, 0.001]], scope:0,
+    desc:'Removes 0.001 Mt a year. Unlocks a cover photo. The photo is the point.' },
+  { id:'ccsstudy', name:'Announce a CCS hub', brand:'Carbon Capture Hub Feasibility Study', levels:[[25, 0]], scope:0,
+    desc:'A press release and a feasibility study. Captures nothing. Unlocks "Count future capture."' },
+  { id:'biofuel', name:'Blend biofuels', brand:'Lower-Carbon Fuels Program', levels:[[260, 0]], scope:3,
+    desc:'Mix a little biofuel into the product. Needed to honor a Scope 3 pledge. Does nothing for Scopes 1 and 2.' },
+  { id:'frogs', name:'Biodiversity program', brand:'Biodiversity Net Gain Initiative', levels:[[40, 0]], scope:0,
+    desc:'Relocate some frogs and photograph them. Needed to honor a nature pledge.' }
+];
+
+// Accounting choices. Permanent until switched off. exp = journalist exposure.
+const TRICKS = [
+  { id:'boundary', name:'Operational control boundary', brand:'Reporting Boundary Update', exp:2.5, cost:0,
+    desc:'Report only operations we run, not joint ventures we own. Reported emissions −15%.',
+    expose:'Halverson quietly dropped its joint ventures from its emissions report' },
+  { id:'rebase', name:'Move the baseline to 2019', brand:'Base Year Recalculation', exp:2, cost:5,
+    desc:'Measure progress from our worst year (60 Mt, not 50). Every target gets easier until 2040.',
+    expose:'Halverson moved its starting line to its dirtiest year' },
+  { id:'recs', name:'Buy unbundled certificates', brand:'Renewable Energy Certificates', exp:3.5, cost:0, costPerMt:1.5,
+    desc:'Paper certificates make Scope 2 disappear from the report. Real power stays the same. $1.5M per Mt of Scope 2.',
+    expose:'Halverson\'s "renewable" power is a stack of certificates' },
+  { id:'estimate', name:'Estimate methane instead of measuring it', brand:'Methodology Update: Engineering Estimates', exp:6, cost:0,
+    desc:'Model leaks with engineering estimates instead of sensors. Reported Scope 1 −20%. Satellites disagree.',
+    expose:'Satellites show Halverson\'s methane leaks are far bigger than reported' },
+  { id:'intensity', name:'Switch to an intensity target', brand:'Carbon Intensity Pathway', exp:4, cost:0,
+    desc:'Redefine the target per barrel. As production grows, the target grows with it.',
+    expose:'Halverson swapped its net zero target for one that lets emissions grow' },
+  { id:'future', name:'Count future carbon capture', brand:'Avoided Emissions Accounting', exp:7, cost:0, needs:'ccsstudy',
+    desc:'Credit ourselves now for capture the CCS hub might do later. Reported emissions −10%.',
+    expose:'Halverson is counting carbon capture that doesn\'t exist' }
+];
+
+// Fields we can sell to private equity. prod = share of production, em = share of emissions.
+const FIELDS = [
+  { id:'tar', name:'Tar Sands Ridge', prod:0.08, em:0.18, cash:400, exp:3 },
+  { id:'cbm', name:'Coal Bed Methane Basin', prod:0.06, em:0.10, cash:250, exp:3 },
+  { id:'gulf', name:'Gulf Platform 7', prod:0.05, em:0.08, cash:150, exp:3 }
+];
+
+// Offsets, bought fresh each year. price $M per Mt; exp per Mt.
+const OFFSETS = [
+  { id:'forest', name:'Avoided deforestation credits', brand:'Forest Protection Credits (REDD-style)', price:4, exp:0.25, max:80,
+    desc:'Credits for protecting forest that wasn\'t threatened. Cheapest per tonne. Weakest additionality.',
+    expose:'Halverson\'s forest offsets protect trees nobody planned to cut' },
+  { id:'stove', name:'Clean cookstove credits', brand:'Community Cookstove Program', price:7, exp:0.14, max:60,
+    desc:'Credits for efficient stoves in villages. Often counted three times. Real co-benefits.',
+    expose:'Halverson\'s cookstove credits were over-counted, again' },
+  { id:'trees', name:'Tree planting credits', brand:'Nature-Based Solutions Portfolio', price:14, exp:0.07, max:60,
+    desc:'New forests. Good photos. Permanence depends on the next wildfire.',
+    expose:'The forest Halverson paid for has burned down' },
+  { id:'dac', name:'Direct air capture credits', brand:'Engineered Carbon Removal', price:380, exp:0, max:5,
+    desc:'Machines pull CO2 out of the air. Real and permanent. Costs a fortune.',
+    expose:'' }
+];
+
+// Pledges: ESG now, consequences at the check year
+const PLEDGES = [
+  { id:'trees', name:'One Billion Trees by 2032', esg:6, check:2032, need:'Buy at least 12 Mt of tree planting credits in total by 2032.',
+    fail:'Halverson\'s "billion trees" turned out to be about 90 million' },
+  { id:'flaring', name:'Zero Routine Flaring by 2030', esg:5, check:2030, need:'Complete "End routine flaring" level 2 by 2030.',
+    fail:'Halverson is still flaring, five years after promising to stop' },
+  { id:'methane', name:'Near-Zero Methane by 2031', esg:5, check:2031, need:'Fix methane leaks to level 2 by 2031, and don\'t be estimating methane when it\'s checked.',
+    fail:'Halverson\'s "near-zero methane" is visible from space' },
+  { id:'scope3', name:'Scope 3 Ambition: −30% product intensity by 2035', esg:8, check:2035, need:'Build "Blend biofuels" by 2035.',
+    fail:'Halverson\'s Scope 3 ambition was, it turns out, aspirational' },
+  { id:'nature', name:'Nature Positive by 2030', esg:4, check:2030, need:'Build the "Biodiversity program" by 2030.',
+    fail:'Halverson\'s "nature positive" plan was one hedge' },
+  { id:'offices', name:'100% Renewable Offices', esg:3, check:0, upkeep:4, need:'Costs $4M a year. Nobody ever checks.',
+    fail:'' }
+];
+
+// Report design — what the ESG raters actually read
+const COVERS = [
+  { id:'leaf', name:'Dewdrop on a leaf', esg:3 },
+  { id:'turbine', name:'Wind turbines at sunset', esg:4, exp:1, expose:'Halverson\'s report is full of wind turbines it doesn\'t own' },
+  { id:'child', name:'Child holding a sapling', esg:5 },
+  { id:'bear', name:'Polar bear on an ice floe', esg:2 },
+  { id:'solar', name:'Our rooftop solar panels', esg:4, needs:'solar' },
+  { id:'globe', name:'Hands holding the Earth', esg:3 },
+  { id:'rig', name:'An oil rig (honest)', esg:-2 }
+];
+const FONTS = [
+  { id:'rounded', name:'Friendly rounded sans', css:'"Nunito", "Trebuchet MS", sans-serif', w:800, esg:2 },
+  { id:'serif', name:'Serious serif', css:'"Fraunces", Georgia, serif', w:700, esg:1 },
+  { id:'hand', name:'Handwritten (authentic)', css:'"Caveat", "Comic Sans MS", cursive', w:700, esg:3 },
+  { id:'bold', name:'Confident heavy sans', css:'"Archivo Black", Impact, sans-serif', w:400, esg:0 },
+  { id:'mono', name:'Typewriter (honest)', css:'"Courier Prime", "Courier New", monospace', w:700, esg:-1 }
+];
+const PALETTES = [
+  { id:'green', name:'Leaf green', esg:3, a:'#2f8f4e', b:'#d9f2d0', c:'#0f3d22', d:'#f4fbef' },
+  { id:'blue', name:'Ocean blue', esg:2, a:'#1f78b4', b:'#d5ecf7', c:'#0b3350', d:'#f2f9fc' },
+  { id:'sunrise', name:'Hopeful sunrise', esg:2, a:'#e8742a', b:'#fde3c8', c:'#5a2a0c', d:'#fff8f0' },
+  { id:'earth', name:'Earth tones', esg:2, a:'#8a6a3b', b:'#efe5d2', c:'#3b2a12', d:'#faf6ee' },
+  { id:'black', name:'Petroleum black', esg:-1, a:'#222222', b:'#d9d9d9', c:'#000000', d:'#f4f4f4' }
+];
+const CHARTS = [
+  { id:'bars', name:'Honest bars from zero', esg:0 },
+  { id:'trunc', name:'Truncated y-axis', esg:3, exp:1.5, expose:'Halverson\'s emissions chart starts at 41' },
+  { id:'intensity', name:'Emissions per barrel', esg:3 },
+  { id:'pie', name:'3D pie chart', esg:1 },
+  { id:'leaf', name:'Chart shaped like a leaf', esg:2 }
+];
+const TITLES = [
+  { id:'journey', t:'Our Journey to Net Zero', esg:2 },
+  { id:'better', t:'Energy for a Better Tomorrow', esg:1 },
+  { id:'progress', t:'Progress, Not Perfection', esg:1 },
+  { id:'purpose', t:'Purpose-Driven Energy', esg:2 },
+  { id:'nature', t:'Nature Positive, Naturally', esg:3, needs:'nature' },
+  { id:'committed', t:'Committed to Our Commitments', esg:1 },
+  { id:'beyond', t:'Beyond Barrels', esg:3, unlock:1 },
+  { id:'honest', t:'We Sell Oil', esg:-4 }
+];
+const PAGES = [
+  { n:40, cost:2, esg:0 }, { n:80, cost:6, esg:5 }, { n:150, cost:14, esg:9 }, { n:300, cost:30, esg:12 }
+];
+const NAMES = [
+  { id:'petroleum', n:'Halverson Petroleum', esg:0, cost:0 },
+  { id:'energy', n:'Halverson Energy', esg:2, cost:20 },
+  { id:'halv', n:'HALV Energies', esg:3, cost:45 },
+  { id:'life', n:'Halverson: Energy for Life', esg:4, cost:70 }
+];
+const LEGAL = [
+  { id:'assurance', name:'Limited assurance', brand:'Third-Party Verification (Limited Assurance)', cost:20, desc:'An auditor glances at the report. Scandal chance −20%, ESG +3. $20M a year.' },
+  { id:'lawyers', name:'Litigation team on retainer', brand:'Stakeholder Risk Counsel', cost:25, desc:'Scandals hurt 25% less with the board. $25M a year.' },
+  { id:'paper', name:'Buy a newspaper', brand:'Strategic Media Investment', cost:900, once:1, desc:'One fewer investigation every year, forever. One-time $900M.' }
+];
+const FOOTNOTE_COST = 3;
+
+const RATINGS = [[85, 'AAA'], [75, 'AA'], [65, 'A'], [55, 'BBB'], [45, 'BB'], [35, 'B'], [0, 'CCC']];
+const JOURNALISTS = [
+  ['Dana Okoye', 'The Ledger'], ['Marcus Feld', 'Global Herald'], ['Priya Ramaswamy', 'Bloomfield News'], ['Tom Ashby', 'The Daily Record'],
+  ['Inés Carvalho', 'ClimateDesk'], ['Ruth Abernathy', 'Financial Courier'], ['Kenji Mori', 'Earthwatch Weekly'], ['a 19-year-old with a satellite API key', 'TikTok']
+];
+const NOTHING_FOUND = [
+  'They spend three weeks on it and get lost in footnote {n}.',
+  'Their editor kills the story. Too many acronyms.',
+  'They find nothing. They write about a competitor instead.',
+  'They file a 4,000-word piece. It runs on a Friday in August.',
+  'Our press office sends them 300 pages. They give up on page 41.'
+];
+const RESPONSES = [
+  { id:'stand', label:'"We stand by our methodology."', t:'Full fallout. The practice continues, and journalists now know where to look.', fall:1.0 },
+  { id:'review', label:'"We have commissioned an independent review."', t:'Costs $30M. Fallout cut 40%. The practice continues.', fall:0.6, cost:30 },
+  { id:'restate', label:'Restate the figures', t:'Drop the practice and restate this year\'s numbers. Fallout cut 60%, but you may miss the target.', fall:0.4 }
+];
+
+// ---------------------------------------------------------------------
+// ANNUAL EVENTS (one per year from 2027). fx keys:
+// budget, board, esg (this year), stock (pct), exp {id:mult} (this year), inv (+investigations this year),
+// growth (production growth add, permanent), unlockTitle, cover, free project etc.
+// =====================================================================
+const EVENTS = [
+  { id:'satellite', title:'A satellite startup is mapping methane', from:'Investor Relations',
+    body:'A startup has launched satellites that photograph methane plumes from orbit. Their first map of the basin is due before our report.',
+    choices:[
+      { label:'Question their methodology', fx:{ exp:{ estimate:2 } }, t:'Our engineers issue a 12-page rebuttal. If we\'re still estimating methane, it will be twice as easy to catch this year.' },
+      { label:'Quietly fix the worst leaks', fx:{ freeLevel:'methane' }, t:'A free first level of methane repair, paid for out of the maintenance budget. Nobody needs to know.' }] },
+  { id:'resolution', title:'A climate shareholder resolution', from:'Corporate Secretary',
+    body:'Pension funds have filed a shareholder resolution asking for a Paris-aligned transition plan. Proxy season is in three weeks.',
+    choices:[
+      { label:'Recommend voting against', fx:{ board:6, esg:-4 }, t:'The resolution gets 31%. The board is delighted. ESG raters are not.' },
+      { label:'Support the resolution', fx:{ board:-8, esg:7 }, t:'The resolution passes. The board asks who approved this.' }] },
+  { id:'cop', title:'Invitation to COP', from:'Office of the CEO',
+    body:'The CEO has been invited to speak on a COP panel about the energy transition. The panel is called "Oil and Gas: Part of the Solution."',
+    choices:[
+      { label:'Send the CEO (private jet)', fx:{ esg:3, inv:1 }, t:'A great panel. Journalists photograph the jet. One extra investigation this year.' },
+      { label:'Send a delegation by train', fx:{ esg:1, budget:-2 }, t:'The delegation arrives late but on message.' },
+      { label:'Decline', fx:{}, t:'We focus on stakeholder engagement closer to home.' }] },
+  { id:'glue', title:'An activist has glued herself to the lobby', from:'Facilities',
+    body:'A climate activist has glued her hand to the reception desk. She has been there since 6 AM and is livestreaming.',
+    choices:[
+      { label:'Issue a statement welcoming dialogue', fx:{ esg:1 }, t:'"We welcome dialogue with all stakeholders." She reads it aloud on the livestream. It does numbers.' },
+      { label:'Call security', fx:{ esg:-3, inv:1 }, t:'The footage goes everywhere. One extra investigation this year.' }] },
+  { id:'intern', title:'An intern forwarded the wrong spreadsheet', from:'IT Security',
+    body:'An intern emailed "emissions_REAL_final_v7.xlsx" to a journalist instead of the press release.',
+    choices:[
+      { label:'Claim it\'s an old draft', fx:{ inv:1 }, t:'It is not an old draft. One extra investigation this year.' },
+      { label:'Pay for an NDA ($15M)', fx:{ budget:-15 }, t:'The journalist signs. The intern is promoted, to keep them close.' }] },
+  { id:'agency', title:'An agency pitches a new slogan', from:'Brand Team',
+    body:'A design agency proposes rebranding the report around the slogan "Beyond Barrels." They have a mood board with 41 leaves on it.',
+    choices:[
+      { label:'Buy the slogan ($8M)', fx:{ budget:-8, unlockTitle:'beyond' }, t:'"Beyond Barrels" is now available as a report title. We still sell barrels.' },
+      { label:'Keep our current branding', fx:{}, t:'The agency leaves the mood board behind. Someone frames it.' }] },
+  { id:'spike', title:'Oil prices spike', from:'Treasury',
+    body:'A supply shock pushes oil to $120. Profits are enormous. The board is in a generous mood.',
+    choices:[
+      { label:'Ask for a bigger sustainability budget', fx:{ budget:60, board:-2 }, t:'+$60M this year. The CFO grumbles.' },
+      { label:'Let it flow to the buyback', fx:{ board:6, stock:0.05 }, t:'The stock jumps. The board remembers who was a team player.' }] },
+  { id:'crash', title:'Oil prices crash', from:'Treasury',
+    body:'Prices collapse to $45. Treasury is cutting every discretionary budget by 20%, starting with sustainability.',
+    choices:[
+      { label:'Accept the cut', fx:{ budgetPct:-0.2 }, t:'Our budget shrinks 20% this year.' },
+      { label:'Argue sustainability is core strategy', fx:{ budgetPct:-0.1, board:-5 }, t:'The cut is halved. The board notes our "passion."' }] },
+  { id:'wildfire', title:'Wildfire near the Texas refinery', from:'Operations',
+    body:'A record wildfire forces an evacuation near our refinery. Analysts ask whether climate risk is affecting operations.',
+    choices:[
+      { label:'"Climate risk is material to our business."', fx:{ esg:3, board:-3 }, t:'An honest answer. The raters approve. The board does not enjoy irony.' },
+      { label:'"It was a weather event."', fx:{ board:2 }, t:'The analysts write "weather event" down without comment.' }] },
+  { id:'burned', title:'A forest we bought burned down', from:'Offsets Desk',
+    body:'One of the forests in our tree planting portfolio has burned. The offset registry says the credits are "still valid in principle."',
+    cond:S => S.offsets.trees > 0,
+    choices:[
+      { label:'Replace the credits ($20M)', fx:{ budget:-20 }, t:'We buy replacement credits from a forest further from anything flammable.' },
+      { label:'Rely on the registry\'s buffer pool', fx:{ exp:{ trees:2.5 } }, t:'Technically fine. Tree credits are much easier to catch this year.' }] },
+  { id:'registry', title:'Offset registry under investigation', from:'Offsets Desk',
+    body:'A major investigation finds most avoided deforestation credits on the voluntary carbon market are "largely worthless."',
+    cond:S => S.offsets.forest > 0,
+    choices:[
+      { label:'Switch to other credits this year', fx:{ dropForest:1 }, t:'Our forest credits are cancelled for this year. Rebuy something else before publishing.' },
+      { label:'"Our credits are high-quality credits."', fx:{ exp:{ forest:2 } }, t:'Forest credits are twice as easy to catch this year.' }] },
+  { id:'rule', title:'A mandatory climate disclosure rule', from:'Government Affairs',
+    body:'Regulators propose mandatory, audited emissions disclosure. It would end "engineering estimates" for methane.',
+    choices:[
+      { label:'Lobby against it ($40M)', fx:{ budget:-40 }, t:'The rule is delayed for "further stakeholder engagement."' },
+      { label:'Comply early', fx:{ forceOff:'estimate', esg:5 }, t:'Methane estimates are switched off for good. ESG raters love early compliance.' }] },
+  { id:'growth', title:'An activist investor wants more oil', from:'Board of Directors',
+    body:'A hedge fund with 6% of the stock wants faster production growth: "The energy transition will take decades. We should be paid for every one of them."',
+    choices:[
+      { label:'Agree: +2% growth a year', fx:{ growth:0.02, board:8 }, t:'Production growth rises to 5% a year. More oil, more emissions, happier board.' },
+      { label:'Defend the current plan', fx:{ board:-6 }, t:'The fund calls our strategy "timid." The stock dips.' }] },
+  { id:'award', title:'"Most Sustainable Oil Company" award', from:'Brand Team',
+    body:'An industry magazine offers us its Most Sustainable Oil Company award. There is a $5M "entry fee."',
+    choices:[
+      { label:'Enter ($5M)', fx:{ budget:-5, esg:3 }, t:'We win. We were the only entrant.' },
+      { label:'Decline', fx:{}, t:'A competitor wins. Their acceptance speech mentions leaves.' }] },
+  { id:'documentary', title:'A documentary crew wants access', from:'Communications',
+    body:'An award-winning documentary crew wants to film "a year inside a company trying to change." They promise to be fair.',
+    choices:[
+      { label:'Grant access', fx:{ esg:4, inv:1 }, t:'Great footage. They also film a meeting about methane estimates. One extra investigation this year.' },
+      { label:'Decline politely', fx:{}, t:'They make a documentary about us anyway, from outside the fence.' }] },
+  { id:'hydrogen', title:'Blue hydrogen partnership', from:'New Energies',
+    body:'A partner offers a stake in a blue hydrogen project. It runs on natural gas, but the hydrogen is blue.',
+    choices:[
+      { label:'Join ($30M)', fx:{ budget:-30, esg:4 }, t:'Our new hydrogen brochure is very blue.' },
+      { label:'Pass', fx:{}, t:'We remain a responsibly produced oil company.' }] },
+  { id:'institute', title:'A university wants a climate institute', from:'Philanthropy',
+    body:'A university offers to name its new climate institute after Halverson for $25M. Several professors have threatened to resign.',
+    choices:[
+      { label:'Fund the Halverson Climate Institute', fx:{ budget:-25, esg:3, board:2 }, t:'Two professors resign. The institute\'s first paper is about carbon capture.' },
+      { label:'Decline', fx:{}, t:'The professors stay. They will write about us anyway.' }] },
+  { id:'pension', title:'A pension fund threatens to divest', from:'Investor Relations',
+    body:'A large public pension fund says it will sell its shares unless our ESG rating reaches A this year.',
+    choices:[
+      { label:'Promise an A', fx:{ needA:1 }, t:'If we publish at A or better this year, the board gains 8. Below A, it loses 8.' },
+      { label:'Let them go', fx:{ stock:-0.03 }, t:'The fund sells. The stock dips 3%.' }] },
+  { id:'townhall', title:'A question at the employee town hall', from:'Human Resources',
+    body:'An engineer asks the CEO, on camera: "Are we actually reducing emissions, or just the report?" 4,000 employees are watching.',
+    choices:[
+      { label:'"We are on a journey."', fx:{ esg:1 }, t:'Applause, mostly from the communications team.' },
+      { label:'Fund the engineer\'s methane proposal', fx:{ freeLevel:'methane', budget:-40 }, t:'A level of methane repair, for $40M. The engineer is promoted. Then poached by a competitor.' }] },
+  { id:'carbontax', title:'A carbon tax is proposed', from:'Government Affairs',
+    body:'Lawmakers propose a carbon tax of $40 a tonne. It would apply to reported emissions.',
+    choices:[
+      { label:'Lobby against it ($30M)', fx:{ budget:-30, board:4 }, t:'The tax is "reconsidered." The board is relieved.' },
+      { label:'Support it publicly', fx:{ esg:5, board:-6 }, t:'The tax dies in committee anyway. We get credit for supporting it. The board is nervous.' }] },
+  { id:'celebrity', title:'A celebrity wants to be our spokesperson', from:'Brand Team',
+    body:'A famous actor offers to front our "Energy for Life" campaign. He owns three private jets.',
+    choices:[
+      { label:'Hire him ($12M)', fx:{ budget:-12, esg:2, inv:1 }, t:'The ads are beloved. Someone tracks his jets. One extra investigation this year.' },
+      { label:'Pass', fx:{}, t:'He signs with an airline instead.' }] },
+  { id:'greenhush', title:'Legal suggests saying less', from:'General Counsel',
+    body:'Legal suggests greenhushing: publish a shorter report with fewer claims, so there is less to check.',
+    choices:[
+      { label:'Try greenhushing this year', fx:{ inv:-1, esg:-5 }, t:'One fewer investigation this year. ESG raters dock us for less disclosure.' },
+      { label:'Keep disclosing', fx:{}, t:'Transparency remains our brand promise, in the sense of volume.' }] },
+  { id:'hurricane', title:'A hurricane hits Gulf Platform 7', from:'Operations',
+    body:'A hurricane shuts Gulf Platform 7 for a month. Repairs are expensive, and the platform leaked during the storm.',
+    cond:S => !S.divested.gulf,
+    choices:[
+      { label:'Repair it ($30M)', fx:{ budget:-30 }, t:'Repairs are done. The leak is described as "minor and contained."' },
+      { label:'Sell it as-is to private equity', fx:{ divest:'gulf', cashMul:0.5 }, t:'Gulf Platform 7 is sold for half price. Its emissions leave our books.' }] },
+  { id:'methanealert', title:'Methane alert near our basin', from:'Operations',
+    body:'A government sensor network flagged a large methane release near the Coal Bed Methane Basin.',
+    cond:S => !S.divested.cbm,
+    choices:[
+      { label:'Fix it ($35M)', fx:{ budget:-35, esg:2 }, t:'Fixed. The sensor network sends a thank-you email, which is a first.' },
+      { label:'"Our engineering estimates show no anomaly."', fx:{ exp:{ estimate:1.5 }, board:2 }, t:'Methane estimates are 50% easier to catch this year.' }] }
+];
+
+const TIPS = {
+  welcome: 'Each year you publish one report. The confidential file holds the real emissions; the report shows the number the world sees. Get the reported number under the target without getting caught.',
+  over: 'You are over budget. Drop something or sell something before you can publish.',
+  exposure: 'Exposure is how much there is to find. Each year journalists investigate a few of your choices, starting with the juiciest. Footnotes halve the chance a finding becomes a scandal.',
+  pledge: 'Pledges raise your ESG rating now. Each one has a check year when journalists see whether you did it.'
+};
+
+const ACHIEVEMENTS = [
+  { id:'first', name:'Inaugural Report', d:'Publish your first report.' },
+  { id:'aaa', name:'AAA', d:'Get an AAA ESG rating.' },
+  { id:'clean', name:'Nothing to See Here', d:'Survive a year with 3+ investigations and no scandal.' },
+  { id:'scandal', name:'Above the Fold', d:'Have your first scandal.' },
+  { id:'restate', name:'Restatement', d:'Restate your figures after a scandal.' },
+  { id:'footnotes', name:'See Footnote 14', d:'Have 5 footnotes in one report.' },
+  { id:'divest3', name:'Asset-Light', d:'Sell all three dirty fields.' },
+  { id:'real', name:'Actually Did Something', d:'Cut real operational emissions 40% below the unabated path.' },
+  { id:'junk', name:'Forest Bather', d:'Buy 50 Mt of avoided deforestation credits in one year.' },
+  { id:'dac', name:'Expensive Straw', d:'Buy direct air capture credits.' },
+  { id:'paper', name:'Media Mogul', d:'Buy a newspaper.' },
+  { id:'rebrand', name:'Energy for Life', d:'Rename the company three times.' },
+  { id:'honest', name:'We Sell Oil', d:'Publish a report titled "We Sell Oil."' },
+  { id:'decoder', name:'Fluent in ESG', d:'Decode 80 jargon phrases.' },
+  { id:'netzero', name:'Net Zero*', d:'Report net zero in 2040.' },
+  { id:'realzero', name:'Net Zero (No Asterisk)', d:'Reach net zero in 2040 with no scandals in the last three years.' }
+];
+
+// One line from the CEO's letter and one analyst note per year (shown with the board verdict)
+const CEO_LINES = [
+  'Natural gas is a transition fuel, a bridge fuel, and frankly a beautiful fuel.',
+  'We remain committed to a just transition, and to an energy security strategy that is all of the above.',
+  'Our low-carbon portfolio grew 4% this year. Our high-carbon portfolio grew too, but less beautifully.',
+  'We are proud to be TCFD-aligned and to take climate risk seriously as a matter of stewardship.',
+  'Our science-based approach recognizes that we operate in a hard-to-abate sector, like every sector.',
+  'Through a double materiality assessment, we confirmed that the planet is material, in principle.',
+  'Every barrel we produce is responsibly produced, and many are now carbon neutral through verified carbon units.',
+  'We will decarbonize our legacy assets on a timeline consistent with their profitability.',
+  'Our interim targets keep us honest. Our footnotes keep us accurate.',
+  'We see a circular economy, a regenerative future, and a climate-positive brand.',
+  'Thought leadership is in our DNA. This year our executives spoke on eleven panels.',
+  'Our world-class team delivered industry-leading disclosure: 300 pages, all of them green.',
+  'We continue to leverage synergies across our eco-friendly operations.',
+  'Community engagement remains central. We hosted four barbecues near our refineries.',
+  'Our license to operate depends on trust, and on a holistic view of what trust means.'
+];
+const ANALYST_LINES = [
+  'Analyst note: "The carbon budget for 1.5°C is nearly spent. Halverson\'s is not."',
+  'Analyst note: "Management cites headwinds. We cite the share buyback."',
+  'Analyst note: "Stranded assets risk remains limited as long as nobody strands them."',
+  'Analyst note: "Their green bond funds a car park with solar canopies. Solid key performance indicator."',
+  'Analyst note: "The equity share figures are no longer published. Neither is the materiality matrix."',
+  'Analyst note: "Insetting claims are up 40%. We can\'t check them, which is the point of insetting."',
+  'Analyst note: "We\'d welcome reasonable assurance. Management prefers best practice, i.e. limited assurance."',
+  'Analyst note: "Carbon negative by 2060 is a bold claim from a company that is carbon positive today."',
+  'Analyst note: "The greenwashing allegations are priced in."',
+  'Analyst note: "The 1.5°C pathway slide is now on page 212."',
+  'Analyst note: "Strong quarter. Still no Scope 3 target, still no problem for us."',
+  'Analyst note: "The new interim target is ambitious, aspirational, and unenforceable. Buy."',
+  'Analyst note: "Management calls this a methodology update. We call it a methodology update."',
+  'Analyst note: "Upgrade to Overweight on legacy assets that refuse to retire."',
+  'Analyst note: "They have decarbonized the brochure."'
+];
+// =====================================================================
+// SUSTAINABILITY REPORT — ENGINE (no DOM; runs headless for tests)
+// =====================================================================
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const fmtM = v => { const a = Math.abs(v), s = v < 0 ? '−$' : '$'; return a >= 1000 ? s + (a / 1000).toFixed(a >= 10000 ? 1 : 2) + 'B' : s + Math.round(a) + 'M'; };
+const fmtMt = v => (Math.abs(v) < 10 ? v.toFixed(1) : Math.round(v).toString()) + ' Mt';
+const byId = (L, id) => L.find(x => x.id === id);
+
+// ---------------------------------------------------------------------
+// JARGON
+// ---------------------------------------------------------------------
+const J = (() => {
+  const e = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const items = JARGON.map(([p, m, re], i) => ({ i, p, src:re || e(p), test:new RegExp('^(?:' + (re || e(p)) + ')$', 'i') }));
+  const sorted = items.slice().sort((a, b) => b.src.length - a.src.length);
+  const all = new RegExp('(?<![\\w-])(?:' + sorted.map(x => x.src).join('|') + ')(?![\\w-])', 'gi');
+  const which = str => { for (const it of sorted) if (it.test.test(str)) return it.i; return -1; };
+  return { all, which };
+})();
+function findJargon(text) { const out = []; J.all.lastIndex = 0; let m; while ((m = J.all.exec(text))) { const i = J.which(m[0]); if (i >= 0) out.push(i); } return out; }
+function hear(text) { if (!S) return; for (const i of findJargon(text)) if (!S.heard[i]) { S.heard[i] = 1; S.newHeard = (S.newHeard || 0) + 1; } }
+
+// ---------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------
+let S = null;
+function newGame() {
+  S = {
+    v:1, year:START_YEAR, phase:'brief', cash:BUDGET0, board:60, stock:40, esgLast:38, ratingLast:'B',
+    g:1 + GROWTH, growthAdd:0, proj:{}, tricks:{}, locked:{}, divested:{}, fn:{}, burned:{},
+    offsets:{ forest:0, stove:0, trees:0, dac:0 }, treesCum:0,
+    pledges:{}, pledgeDone:{}, titles:{},
+    design:{ cover:'rig', font:'mono', palette:'black', chart:'bars', title:'honest', pages:0, name:'petroleum' },
+    names:{ petroleum:1 }, legal:{}, contro:0,
+    yr:{ esg:0, inv:0, stock:0, exp:{}, needA:0, restate:{} },
+    event:null, evDone:{}, press:null, history:[], archive:[], log:[], heard:{}, ach:{}, tips:{}, pending:[], over:null,
+    scandalsLast:0, scandalYears:[], stats:{ scandals:0, investigations:0, offsetsBought:0, spentReal:0, restates:0 }
+  };
+  S.event = null; // no event in the first year; the CEO's memo instead
+  return S;
+}
+const lvl = id => S.proj[id] || 0;
+function projEff(id) { const p = byId(PROJECTS, id), l = lvl(id); return l ? p.levels[l - 1][1] : 0; }
+const on = id => !!S.tricks[id];
+function divEm() { let m = 1; for (const f of FIELDS) if (S.divested[f.id]) m *= 1 - f.em; return m; }
+function divProd() { let m = 1; for (const f of FIELDS) if (S.divested[f.id]) m *= 1 - f.prod; return m; }
+const yearsIn = () => S.year - 2025;
+
+// ---------------------------------------------------------------------
+// THE NUMBERS
+// ---------------------------------------------------------------------
+function compute() {
+  const g = S.g, dE = divEm(), dP = divProd();
+  const un1 = BASE_S1 * g * dE, un2 = BASE_S2 * g * dE;
+  let s1 = un1 * (1 - projEff('methane')) * (1 - projEff('flaring')) * (1 - projEff('electrify'));
+  s1 = Math.max(0, s1 - (lvl('ccs') ? 4 : 0) - (lvl('solar') ? 0.001 : 0));
+  const s2 = un2 * (1 - projEff('ppa'));
+  const real = s1 + s2, unabated = un1 + un2, cred = clamp(1 - real / unabated, 0, 1);
+  let world = real; for (const f of FIELDS) if (S.divested[f.id]) world += (BASE_S1 + BASE_S2) * g * f.em * 1.1;
+  const s3 = BASE_S3 * g * dP;
+  // what the report says
+  const r1 = s1 * (on('estimate') ? 0.8 : 1);
+  const r2 = on('recs') ? 0 : s2;
+  let rep = (r1 + r2) * (on('boundary') ? 0.85 : 1) * (on('future') ? 0.9 : 1);
+  if (S.yr.restate.addBack) rep += S.yr.restate.addBack;
+  let off = 0; for (const o of OFFSETS) off += S.offsets[o.id] || 0;
+  const net = rep - off;
+  const prod = g * dP;
+  const base = on('rebase') ? 60 : 50;
+  const target = Math.max(0, base * (1 - yearsIn() / 15) * (on('intensity') ? prod : 1));
+  // annual costs
+  const cost = annualCosts(s2);
+  return { s1, s2, s3, real, unabated, cred, world, rep, off, net, prod, base, target, met:net <= target + 1e-9, cost, annual:cost.total, avail:S.cash - cost.total };
+}
+function annualCosts(s2) {
+  const c = { offsets:0, recs:0, pages:PAGES[S.design.pages].cost, legal:0, footnotes:0, pledges:0 };
+  for (const o of OFFSETS) c.offsets += (S.offsets[o.id] || 0) * o.price;
+  if (on('recs')) c.recs = Math.round(s2 * 1.5 * 10) / 10;
+  for (const l of LEGAL) if (!l.once && S.legal[l.id]) c.legal += l.cost;
+  c.footnotes = skeletons().filter(k => S.fn[k.id]).length * FOOTNOTE_COST;
+  for (const p of PLEDGES) if (S.pledges[p.id] && p.upkeep) c.pledges += p.upkeep;
+  c.total = c.offsets + c.recs + c.pages + c.legal + c.footnotes + c.pledges;
+  return c;
+}
+// Everything a journalist could find this year
+function skeletons() {
+  const out = [], m = id => (S.burned[id] || 1) * (S.yr.exp[id] || 1);
+  for (const t of TRICKS) {
+    if (!on(t.id)) continue;
+    let e = t.exp;
+    if (t.id === 'recs' && lvl('ppa') >= 2) e = 0;
+    else if (t.id === 'recs' && lvl('ppa') === 1) e *= 0.5;
+    if (t.id === 'estimate') e *= 1 - 0.3 * lvl('methane');
+    if (t.id === 'future' && lvl('ccs')) e = 3;
+    if (e > 0) out.push({ id:t.id, kind:'trick', name:t.name, e:e * m(t.id), expose:t.expose });
+  }
+  for (const f of FIELDS) if (S.divested[f.id]) out.push({ id:'div_' + f.id, kind:'divest', name:'Sold ' + f.name, e:f.exp * m('div_' + f.id), expose:`Halverson sold ${f.name} instead of cleaning it up. The emissions are still there` });
+  for (const o of OFFSETS) { const mt = S.offsets[o.id] || 0; if (mt > 0 && o.exp > 0) out.push({ id:o.id, kind:'offset', name:o.name, e:mt * o.exp * m(o.id), expose:o.expose }); }
+  const cv = byId(COVERS, S.design.cover); if (cv.exp) out.push({ id:'cover', kind:'design', name:'Cover: ' + cv.name, e:cv.exp * m('cover'), expose:cv.expose });
+  const ch = byId(CHARTS, S.design.chart); if (ch.exp) out.push({ id:'chart', kind:'design', name:'Chart: ' + ch.name, e:ch.exp * m('chart'), expose:ch.expose });
+  return out;
+}
+function scandalChance(k, cred) {
+  if (cred === undefined) cred = compute().cred;
+  return clamp(k.e / 10, 0, 0.9) * (S.fn[k.id] ? 0.5 : 1) * (S.legal.assurance ? 0.8 : 1) * (1 - 0.5 * cred);
+}
+function activePledges() { return PLEDGES.filter(p => S.pledges[p.id]); }
+function esgParts(R, scandalsNow) {
+  R = R || compute();
+  const p = [];
+  p.push(['Base score', 22]);
+  p.push([`${PAGES[S.design.pages].n}-page report`, PAGES[S.design.pages].esg]);
+  let pl = 0; for (const x of activePledges()) pl += x.esg + (S.pledgeDone[x.id] ? 2 : 0);
+  p.push(['Pledges', pl]);
+  const d = S.design;
+  p.push(['Cover photo', byId(COVERS, d.cover).esg]); p.push(['Typeface', byId(FONTS, d.font).esg]); p.push(['Colors', byId(PALETTES, d.palette).esg]);
+  p.push(['Chart style', byId(CHARTS, d.chart).esg]); p.push(['Title', byId(TITLES, d.title).esg]); p.push(['Company name', byId(NAMES, d.name).esg]);
+  p.push([R.met ? 'Target met' : 'Target missed', R.met ? 10 : -8]);
+  p.push(['Real reductions', Math.round(14 * R.cred)]);
+  if (S.legal.assurance) p.push(['Limited assurance', 3]);
+  if (S.yr.esg) p.push(['This year\'s events', S.yr.esg]);
+  const c = S.contro + (scandalsNow || 0);
+  if (c) p.push(['Controversies', -Math.round(c)]);
+  return p;
+}
+function esgScore(R, scandalsNow) { return clamp(Math.round(esgParts(R, scandalsNow).reduce((s, x) => s + x[1], 0)), 0, 100); }
+const rating = v => RATINGS.find(r => v >= r[0])[1];
+const ratingIdx = r => RATINGS.findIndex(x => x[1] === r);
+function invCount(esgPreview) {
+  let n = 1 + (esgPreview >= 70 ? 1 : 0) + (activePledges().length >= 3 ? 1 : 0) + (S.scandalsLast > 0 ? 1 : 0) + S.yr.inv - (S.legal.paper ? 1 : 0);
+  if (S.year === START_YEAR) n = Math.min(n, 1);
+  return clamp(n, 0, 4);
+}
+function footnotes() {
+  // the fine print that ends up on the report
+  const f = [];
+  if (on('boundary')) f.push('Operational control basis. Excludes joint ventures.');
+  if (on('rebase')) f.push('Progress measured against a restated baseline (2019).');
+  if (on('recs')) f.push('Scope 2 reported on a market basis using renewable energy certificates.');
+  if (on('estimate')) f.push('Methane quantified using engineering estimates.');
+  if (on('intensity')) f.push('Target expressed as carbon intensity (per barrel).');
+  if (on('future')) f.push('Includes avoided emissions from planned carbon capture.');
+  for (const fl of FIELDS) if (S.divested[fl.id]) f.push(`Excludes ${fl.name} following divestment.`);
+  const off = OFFSETS.filter(o => S.offsets[o.id] > 0);
+  if (off.length) f.push('Net of ' + off.map(o => o.name.toLowerCase()).join(', ') + '.');
+  if (S.design.chart === 'trunc') f.push('Chart axis does not start at zero.');
+  if (S.design.cover === 'turbine') f.push('Cover image for illustration purposes only.');
+  f.push('Scope 3 emissions are reported separately in the appendix.');
+  return f;
+}
+
+// ---------------------------------------------------------------------
+// PLAYER ACTIONS (during the 'build' phase)
+// ---------------------------------------------------------------------
+const building = () => S && S.phase === 'build' && !S.over;
+function buyProject(id) {
+  const p = byId(PROJECTS, id); if (!p || !building()) return false;
+  const l = lvl(id); if (l >= p.levels.length) return false;
+  const c = p.levels[l][0]; if (S.cash < c) return false;
+  S.cash -= c; S.proj[id] = l + 1; S.stats.spentReal += c;
+  log(`Approved: ${p.brand}${p.levels.length > 1 ? ' (level ' + (l + 1) + ')' : ''}.`);
+  checkAch(); return true;
+}
+function toggleTrick(id) {
+  const t = byId(TRICKS, id); if (!t || !building() || S.locked[id]) return false;
+  if (!on(id)) { if (t.needs && !lvl(t.needs)) return false; if (S.cash < t.cost) return false; S.cash -= t.cost; S.tricks[id] = 1; }
+  else { S.tricks[id] = 0; }
+  return true;
+}
+function divest(id, cashMul = 1) {
+  const f = byId(FIELDS, id); if (!f || S.divested[id] || S.over) return false;
+  S.divested[id] = S.year; S.cash += Math.round(f.cash * cashMul); S.board = clamp(S.board - 6, 0, 100);
+  log(`Divested ${f.name} to a private equity firm for ${fmtM(f.cash * cashMul)}.`);
+  if (FIELDS.every(x => S.divested[x.id])) award('divest3');
+  return true;
+}
+function setOffset(id, mt) { const o = byId(OFFSETS, id); if (!o || !building()) return false; S.offsets[id] = clamp(Math.round(mt * 2) / 2, 0, o.max); return true; }
+function toggleFootnote(id) { if (!building()) return false; if (!skeletons().some(k => k.id === id) && !S.fn[id]) return false; S.fn[id] = S.fn[id] ? 0 : 1; return true; }
+function setDesign(k, v) {
+  if (!building()) return false;
+  const L = { cover:COVERS, font:FONTS, palette:PALETTES, chart:CHARTS, title:TITLES }[k];
+  if (L) { const x = byId(L, v); if (!x) return false; if (x.needs && !(lvl(x.needs) || S.pledges[x.needs])) return false; if (x.unlock && !S.titles[x.id]) return false; S.design[k] = v; return true; }
+  if (k === 'pages') { const i = +v; if (!PAGES[i]) return false; S.design.pages = i; return true; }
+  if (k === 'name') { const n = byId(NAMES, v); if (!n) return false; if (!S.names[v]) { if (S.cash < n.cost) return false; S.cash -= n.cost; S.names[v] = 1; if (Object.keys(S.names).length >= 4) award('rebrand'); log(`Halverson Petroleum is now "${n.n}."`); } S.design.name = v; return true; }
+  return false;
+}
+function makePledge(id) {
+  const p = byId(PLEDGES, id); if (!p || !building() || S.pledges[id] || S.pledgeDone[id] === -1) return false;
+  if (p.check && S.year >= p.check) return false;
+  S.pledges[id] = S.year; log(`New pledge: ${p.name}.`); tip('pledge'); return true;
+}
+function withdrawPledge(id) {
+  if (!building() || !S.pledges[id] || S.pledgeDone[id]) return false;
+  delete S.pledges[id]; S.pledgeDone[id] = -1; S.yr.esg -= 6; S.yr.inv += 1;
+  log(`Pledge "${byId(PLEDGES, id).name}" quietly retired. Journalists noticed.`); return true;
+}
+function toggleLegal(id) {
+  const l = byId(LEGAL, id); if (!l || !building()) return false;
+  if (l.once) { if (S.legal[id] || S.cash < l.cost) return false; S.cash -= l.cost; S.legal[id] = 1; award('paper'); log('Halverson acquires a newspaper. Its editorial page now has views on carbon capture.'); return true; }
+  S.legal[id] = S.legal[id] ? 0 : 1; return true;
+}
+function pledgeMet(p, R) {
+  if (p.id === 'trees') return S.treesCum + (S.offsets.trees || 0) >= 12;
+  if (p.id === 'flaring') return lvl('flaring') >= 2;
+  if (p.id === 'methane') return lvl('methane') >= 2 && !on('estimate');
+  if (p.id === 'scope3') return lvl('biofuel') >= 1;
+  if (p.id === 'nature') return lvl('frogs') >= 1;
+  return true;
+}
+
+// ---------------------------------------------------------------------
+// ANNUAL CYCLE
+// brief (event) → build → publish → press (scandal responses) → finalize → brief…
+// ---------------------------------------------------------------------
+function answerEvent(ci) {
+  if (S.phase !== 'brief') return null;
+  if (!S.event) { S.phase = 'build'; return { t:'' }; }
+  const e = byId(EVENTS, S.event), c = e && e.choices[ci]; if (!c) return null;
+  const fx = c.fx;
+  if (fx.budget) S.cash += fx.budget;
+  if (fx.budgetPct) S.cash += Math.round(budgetBase() * fx.budgetPct);
+  if (fx.board) S.board = clamp(S.board + fx.board, 0, 100);
+  if (fx.esg) S.yr.esg += fx.esg;
+  if (fx.stock) S.yr.stock += fx.stock;
+  if (fx.inv) S.yr.inv += fx.inv;
+  if (fx.exp) for (const k in fx.exp) S.yr.exp[k] = (S.yr.exp[k] || 1) * fx.exp[k];
+  if (fx.growth) S.growthAdd += fx.growth;
+  if (fx.unlockTitle) S.titles[fx.unlockTitle] = 1;
+  if (fx.freeLevel) { const p = byId(PROJECTS, fx.freeLevel); if (lvl(p.id) < p.levels.length) S.proj[p.id] = lvl(p.id) + 1; }
+  if (fx.forceOff) { S.tricks[fx.forceOff] = 0; S.locked[fx.forceOff] = 1; }
+  if (fx.divest) divest(fx.divest, fx.cashMul || 1);
+  if (fx.needA) S.yr.needA = 1;
+  if (fx.dropForest) S.offsets.forest = 0;
+  S.evDone[e.id] = S.year; S.phase = 'build';
+  log(`${e.title}: ${c.t}`);
+  if (S.board <= 0) gameOver('fired');
+  return { t:c.t };
+}
+const budgetBase = () => Math.round(BUDGET0 * Math.pow(1 + BUDGET_G, S.year - START_YEAR));
+
+function publish() {
+  if (!building()) return { err:'Not ready' };
+  const R = compute();
+  if (R.avail < -1e-6) { tip('over'); return { err:`Over budget by ${fmtM(-R.avail)}` }; }
+  S.cash -= R.annual;
+  S.treesCum += S.offsets.trees || 0;
+  S.stats.offsetsBought += R.off;
+  if ((S.offsets.forest || 0) >= 50) award('junk');
+  if ((S.offsets.dac || 0) > 0) award('dac');
+  if (skeletons().filter(k => S.fn[k.id]).length >= 5) award('footnotes');
+  if (S.design.title === 'honest') award('honest');
+  // investigations
+  const esgPrev = esgScore(R), n = invCount(esgPrev), items = [];
+  // pledge checks come first and are automatic
+  for (const p of PLEDGES) if (S.pledges[p.id] && p.check === S.year && !S.pledgeDone[p.id]) {
+    if (pledgeMet(p, R)) { S.pledgeDone[p.id] = 1; items.push({ kind:'pledge', id:'pl_' + p.id, name:p.name, found:false, kept:true, who:pick(JOURNALISTS) }); }
+    else items.push({ kind:'pledge', id:'pl_' + p.id, pid:p.id, name:p.name, found:true, headline:p.fail, who:pick(JOURNALISTS), resp:null });
+  }
+  const pool = skeletons().filter(k => k.e > 0);
+  const who = JOURNALISTS.slice();
+  for (let i = 0; i < n; i++) {
+    const w = who.splice(Math.floor(Math.random() * who.length), 1)[0] || pick(JOURNALISTS);
+    if (!pool.length) { items.push({ kind:'none', found:false, who:w, note:pick(NOTHING_FOUND).replace('{n}', 3 + Math.floor(Math.random() * 30)) }); continue; }
+    let tot = 0; for (const k of pool) tot += Math.pow(k.e, 1.2);
+    let r = Math.random() * tot, k = pool[pool.length - 1];
+    for (const x of pool) { r -= Math.pow(x.e, 1.2); if (r <= 0) { k = x; break; } }
+    pool.splice(pool.indexOf(k), 1);
+    const p = scandalChance(k, R.cred), hit = Math.random() < p;
+    items.push({ kind:k.kind, id:k.id, name:k.name, p, found:hit, headline:k.expose, who:w, resp:null, fn:!!S.fn[k.id], note:hit ? '' : pick(NOTHING_FOUND).replace('{n}', 3 + Math.floor(Math.random() * 30)) });
+  }
+  S.stats.investigations += n;
+  S.press = { R0:R, esgPrev, n, items };
+  S.phase = 'press';
+  award('first');
+  return { ok:true };
+}
+function pendingScandals() { return S.press ? S.press.items.filter(x => x.found && !x.resp) : []; }
+function respond(idx, rid) {
+  if (S.phase !== 'press') return false;
+  const it = S.press.items[idx], r = byId(RESPONSES, rid); if (!it || !it.found || it.resp || !r) return false;
+  if (r.cost && S.cash < r.cost) return false;
+  if (r.cost) S.cash -= r.cost;
+  it.resp = rid; it.fall = r.fall * (S.legal.lawyers ? 0.75 : 1);
+  S.stats.scandals++; award('scandal');
+  if (rid === 'stand' && it.kind !== 'pledge') S.burned[it.id] = (S.burned[it.id] || 1) * 1.3;
+  if (rid === 'restate') {
+    S.stats.restates++; award('restate');
+    if (it.kind === 'trick') { S.tricks[it.id] = 0; }
+    else if (it.kind === 'offset') { S.offsets[it.id] = 0; }
+    else if (it.kind === 'divest') { const f = byId(FIELDS, it.id.slice(4)); S.yr.restate.addBack = (S.yr.restate.addBack || 0) + (BASE_S1 + BASE_S2) * S.g * f.em; }
+    else if (it.kind === 'design') { if (it.id === 'cover') S.design.cover = 'leaf'; if (it.id === 'chart') S.design.chart = 'bars'; }
+    else if (it.kind === 'pledge') { delete S.pledges[it.pid]; S.pledgeDone[it.pid] = -1; }
+  } else if (it.kind === 'pledge') { S.pledgeDone[it.pid] = -1; delete S.pledges[it.pid]; }
+  log(`${it.who[1]}: "${it.headline}." Response: ${r.label}`);
+  return true;
+}
+function finalize() {
+  if (S.phase !== 'press' || pendingScandals().length) return null;
+  const R = compute();                     // after any restatements
+  const items = S.press.items, sc = items.filter(x => x.found);
+  const fallSum = sc.reduce((s, x) => s + (x.fall || 1), 0);
+  const esg = esgScore(R, 12 * fallSum), rt = rating(esg);
+  const oilD = rnd(-0.07, 0.09);
+  let dStock = oilD * 0.5 + 0.0015 * (esg - 55) + (R.met ? 0.03 : -0.06) - 0.06 * fallSum + rnd(-0.02, 0.02) + S.yr.stock;
+  dStock = clamp(dStock, -0.4, 0.4);
+  const stock0 = S.stock; S.stock = Math.max(1, S.stock * (1 + dStock));
+  const boardD = [];
+  boardD.push([R.met ? 'Target met' : 'Missed the target', R.met ? 4 : -18]);
+  if (sc.length) boardD.push([sc.length === 1 ? 'A scandal' : sc.length + ' scandals', -Math.round(15 * fallSum)]);
+  boardD.push([`Stock ${dStock >= 0 ? 'up' : 'down'} ${Math.abs(Math.round(dStock * 100))}%`, Math.round(30 * dStock)]);
+  boardD.push(['The board wants more every year', -3]);
+  const step = ratingIdx(S.ratingLast) - ratingIdx(rt);
+  if (step) boardD.push([`ESG rating ${step > 0 ? 'upgraded' : 'downgraded'} to ${rt}`, step * 3]);
+  if (S.yr.needA) boardD.push(['Pension fund promise', ratingIdx(rt) <= ratingIdx('A') ? 8 : -8]);
+  const bd = boardD.reduce((s, x) => s + x[1], 0);
+  const board0 = S.board; S.board = clamp(S.board + bd, 0, 100);
+  if (rt === 'AAA') award('aaa');
+  if (S.press.n >= 3 && !sc.length) award('clean');
+  if (R.cred >= 0.4) award('real');
+  const rec = { year:S.year, prod:R.prod, real:R.real, rep:R.rep, net:R.net, target:R.target, world:R.world, s3:R.s3, off:R.off, esg, rating:rt, stock:S.stock, board:S.board, scandals:sc.length, met:R.met, design:Object.assign({}, S.design), name:byId(NAMES, S.design.name).n };
+  S.history.push(rec);
+  const result = { R, esg, rating:rt, ratingLast:S.ratingLast, dStock, stock0, stock:S.stock, board0, board:S.board, boardD, scandals:sc.length, year:S.year };
+  S.lastResult = result;
+  S.esgLast = esg; S.ratingLast = rt;
+  S.contro = (S.contro + 12 * fallSum) * 0.5;
+  S.scandalsLast = sc.length; S.scandalYears.push(sc.length);
+  S.press = null;
+  if (S.board <= 0) { gameOver('fired'); return result; }
+  if (S.year >= END_YEAR) {
+    const last3 = S.scandalYears.slice(-3).reduce((a, b) => a + b, 0);
+    if (R.net <= 1e-9) { award('netzero'); if (!last3) award('realzero'); }
+    gameOver('end'); return result;
+  }
+  nextYear();
+  return result;
+}
+function nextYear() {
+  const carry = Math.max(0, S.cash);
+  S.year++;
+  S.g *= 1 + GROWTH + S.growthAdd;
+  S.cash = Math.round(carry + budgetBase());
+  S.yr = { esg:0, inv:0, stock:0, exp:{}, needA:0, restate:{} };
+  const pool = EVENTS.filter(e => !S.evDone[e.id] && (!e.cond || e.cond(S)));
+  S.event = pool.length ? pick(pool).id : null;
+  S.phase = 'brief';
+  if (!S.event) S.phase = 'build';
+}
+function gameOver(why) { if (S.over) return; S.over = why; S.phase = 'over'; S.pending.push({ type:'over', why }); }
+function log(t) { hear(t); S.log.unshift({ year:S.year, t }); if (S.log.length > 80) S.log.length = 80; }
+function award(id) { if (S.ach[id]) return; S.ach[id] = S.year; S.pending.push({ type:'ach', id }); }
+function tip(id) { if (S.tips[id]) return; S.tips[id] = 1; S.pending.push({ type:'tip', id }); }
+function checkAch() { const R = compute(); if (R.cred >= 0.4) award('real'); }
+// =====================================================================
+// SUSTAINABILITY REPORT — COVER ART + CHARTS (inline SVG)
+// =====================================================================
+const ART = {
+  // cover illustration, 200×150 viewBox, drawn in the report's palette
+  cover(id, P, uid) {
+    const g = `g${uid}`;
+    const defs = `<defs><linearGradient id="${g}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.b}"/><stop offset="1" stop-color="${P.d}"/></linearGradient>
+      <linearGradient id="${g}t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6b26b"/><stop offset=".6" stop-color="#f9d9a8"/><stop offset="1" stop-color="${P.d}"/></linearGradient></defs>`;
+    let body = '';
+    if (id === 'leaf') body = `<rect width="200" height="150" fill="url(#${g}s)"/>
+      <path d="M40 125 C 40 60, 110 22, 172 20 C 168 82, 122 132, 52 130 Z" fill="${P.a}"/>
+      <path d="M48 124 C 85 95, 120 62, 165 26" stroke="${P.d}" stroke-width="2.4" fill="none" opacity=".75"/>
+      ${[0.25, 0.42, 0.6, 0.76].map(t => { const x = 48 + 117 * t, y = 124 - 98 * t; return `<path d="M${x} ${y} q ${10 - t * 4} ${-18 + t * 4} ${24 - t * 10} ${-24 + t * 6}" stroke="${P.d}" stroke-width="1.4" fill="none" opacity=".6"/><path d="M${x} ${y} q ${14 - t * 6} ${8} ${22 - t * 8} ${4}" stroke="${P.d}" stroke-width="1.4" fill="none" opacity=".6"/>`; }).join('')}
+      <circle cx="122" cy="72" r="7" fill="#ffffff" opacity=".85"/><circle cx="120" cy="70" r="2.2" fill="#ffffff"/>`;
+    else if (id === 'turbine') body = `<rect width="200" height="150" fill="url(#${g}t)"/><circle cx="150" cy="104" r="22" fill="#f7a25b" opacity=".8"/>
+      <path d="M0 122 Q 50 106 100 116 T 200 110 V150 H0 Z" fill="${P.a}" opacity=".85"/>
+      ${[[52, 120, 1], [108, 116, 0.8], [160, 112, 0.6]].map(([x, y, s]) => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-1.6" y="-70" width="3.2" height="70" fill="#ffffff"/><g transform="translate(0 -70)"><g class="spin"><path d="M0 0 L -2 -34 L 2 -34 Z" fill="#fff"/><path d="M0 0 L -2 -34 L 2 -34 Z" fill="#fff" transform="rotate(120)"/><path d="M0 0 L -2 -34 L 2 -34 Z" fill="#fff" transform="rotate(240)"/><circle r="3" fill="#fff"/></g></g></g>`).join('')}`;
+    else if (id === 'child') body = `<rect width="200" height="150" fill="url(#${g}s)"/><circle cx="160" cy="34" r="16" fill="#ffe08a" opacity=".9"/>
+      <path d="M0 118 Q 100 92 200 118 V150 H0 Z" fill="${P.a}"/>
+      <g fill="${P.c}"><circle cx="92" cy="66" r="8"/><path d="M84 76 h16 l4 26 h-6 l-2 22 h-4 l-1-18 h-2 l-1 18 h-4 l-2 -22 h-6 Z"/></g>
+      <g transform="translate(110 92)"><rect x="-1" y="-24" width="2" height="24" fill="#6b4f2a"/><ellipse cx="-6" cy="-24" rx="7" ry="4" fill="${P.a}" transform="rotate(-25 -6 -24)"/><ellipse cx="6" cy="-28" rx="7" ry="4" fill="${P.a}" transform="rotate(25 6 -28)"/><ellipse cx="0" cy="-34" rx="5" ry="3.4" fill="${P.a}"/></g>
+      <path d="M100 84 l10 4" stroke="${P.c}" stroke-width="4" stroke-linecap="round"/>`;
+    else if (id === 'bear') body = `<rect width="200" height="150" fill="url(#${g}s)"/><rect y="100" width="200" height="50" fill="${P.a}" opacity=".55"/>
+      <path d="M50 104 L 64 92 H 140 L 156 104 Z" fill="#ffffff"/><path d="M50 104 H156 L150 112 H58 Z" fill="#dfe9ef"/>
+      <g fill="#fbfbf7"><ellipse cx="102" cy="80" rx="26" ry="13"/><ellipse cx="128" cy="72" rx="9" ry="7.5"/><circle cx="131" cy="65" r="2.5"/>
+      <rect x="82" y="84" width="7" height="12" rx="3"/><rect x="94" y="86" width="7" height="10" rx="3"/><rect x="108" y="86" width="7" height="10" rx="3"/><rect x="118" y="83" width="7" height="13" rx="3"/></g>
+      <circle cx="134" cy="72" r="1.3" fill="#222"/><circle cx="137" cy="74" r="1.5" fill="#222"/>
+      ${[20, 70, 130, 175].map((x, i) => `<path d="M${x} ${118 + i % 2 * 10} q 8 -4 16 0" stroke="#ffffff" stroke-width="1.5" fill="none" opacity=".6"/>`).join('')}`;
+    else if (id === 'solar') body = `<rect width="200" height="150" fill="url(#${g}s)"/><circle cx="40" cy="30" r="14" fill="#ffe08a"/>
+      <path d="M0 150 V100 L 100 70 L 200 100 V150 Z" fill="${P.c}" opacity=".85"/>
+      <g transform="translate(58 78) skewY(-8)">${Array.from({ length:12 }, (_, i) => `<rect x="${(i % 6) * 14}" y="${Math.floor(i / 6) * 12}" width="12.5" height="10.5" fill="#24426b" stroke="#9cc3ea" stroke-width=".8"/>`).join('')}</g>
+      <text x="100" y="140" text-anchor="middle" font-size="7" fill="#ffffff" opacity=".7" font-family="sans-serif">HALVERSON HQ · 0.001 Mt/yr</text>`;
+    else if (id === 'globe') body = `<rect width="200" height="150" fill="url(#${g}s)"/>
+      <circle cx="100" cy="66" r="38" fill="#6fb6e3"/><path d="M78 46 q 12 -10 24 0 q 6 10 -6 16 q -14 4 -18 -16 Z M108 76 q 14 -6 18 6 q -2 14 -14 10 Z M74 82 q 8 -4 10 6 q -4 8 -10 -6Z" fill="${P.a}"/>
+      <path d="M44 120 Q 52 92 74 96 L 92 106 Q 96 112 88 114 L 70 112 Q 62 122 44 130 Z" fill="#e8b48f"/>
+      <path d="M156 120 Q 148 92 126 96 L 108 106 Q 104 112 112 114 L 130 112 Q 138 122 156 130 Z" fill="#c68a56"/>`;
+    else if (id === 'rig') body = `<rect width="200" height="150" fill="#9aa5ad"/><rect y="104" width="200" height="46" fill="#3d4a55"/>
+      <g fill="#20262c"><rect x="70" y="70" width="70" height="8"/><rect x="74" y="78" width="6" height="34"/><rect x="130" y="78" width="6" height="34"/><rect x="102" y="78" width="6" height="34"/>
+      <path d="M86 70 L 96 22 H 100 L 110 70 Z" fill="none" stroke="#20262c" stroke-width="3"/><path d="M89 56 H 107 M92 40 H 104" stroke="#20262c" stroke-width="2"/></g>
+      <path d="M140 66 q 6 -10 2 -20 q 10 8 6 20 Z" fill="#f08a24"/><path d="M144 46 q 18 -18 50 -20" stroke="#5b636b" stroke-width="5" fill="none" opacity=".6"/>`;
+    return `<svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(byId(COVERS, id).name)}">${defs}${body}</svg>`;
+  },
+  // emissions chart for the report page
+  chart(style, series, P, intensity) {
+    // series: [{year, v}] of the reported metric
+    const W = 220, H = 100, L = 22, B = 16, T = 7, R = 6;
+    if (style === 'pie') {
+      return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="3D pie chart"><ellipse cx="110" cy="62" rx="70" ry="26" fill="${P.c}"/><rect x="40" y="46" width="140" height="16" fill="${P.c}"/>
+        <ellipse cx="110" cy="46" rx="70" ry="26" fill="${P.a}"/><path d="M110 46 L 180 46 A 70 26 0 0 0 170 33 Z" fill="${P.b}" transform="translate(6 -4)"/>
+        <text x="110" y="50" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">COMMITMENT</text><text x="196" y="28" text-anchor="end" font-size="7" fill="${P.c}">Other 3%</text>
+        <text x="110" y="94" text-anchor="middle" font-size="7" fill="${P.c}">Our values, by share</text></svg>`;
+    }
+    if (!series.length) return '';
+    const vals = series.map(s => s.v), max = Math.max(...vals, 0.0001), minv = Math.min(...vals);
+    const lo = style === 'trunc' ? Math.max(0, Math.floor(minv * 0.92)) : 0, hi = style === 'trunc' ? Math.max(lo + 0.5, Math.ceil(max * 1.01)) : max * 1.08;
+    const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo || 1));
+    const n = series.length, bw = (W - L - R) / n;
+    let marks = '';
+    if (style === 'intensity') {
+      const pts = series.map((s, i) => `${(L + bw * i + bw / 2).toFixed(1)},${y(s.v).toFixed(1)}`).join(' ');
+      marks = `<polyline points="${pts}" fill="none" stroke="${P.a}" stroke-width="2.4" stroke-linejoin="round"/>` + series.map((s, i) => `<circle cx="${(L + bw * i + bw / 2).toFixed(1)}" cy="${y(s.v).toFixed(1)}" r="2.6" fill="${P.a}"/>`).join('');
+    } else {
+      marks = series.map((s, i) => { const x = L + bw * i + bw * 0.18, w = bw * 0.64, top = y(Math.max(lo, s.v)), h = Math.max(0.5, y(lo) - top);
+        return style === 'leaf' ? `<path d="M${(x + w / 2).toFixed(1)} ${(top).toFixed(1)} q ${(w / 2).toFixed(1)} ${(h / 2).toFixed(1)} 0 ${h.toFixed(1)} q ${(-w / 2).toFixed(1)} ${(-h / 2).toFixed(1)} 0 ${(-h).toFixed(1)} Z" fill="${P.a}" opacity="${i === n - 1 ? 1 : 0.65}"/>`
+          : `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${P.a}" opacity="${i === n - 1 ? 1 : 0.6}" rx="1"/>`; }).join('');
+    }
+    const step = n > 8 ? Math.ceil(n / 6) : 1;
+    const xl = series.map((s, i) => (i % step === 0 || i === n - 1) ? `<text x="${(L + bw * i + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="7" fill="${P.c}" opacity=".75">${String(s.year).slice(2)}</text>` : '').join('');
+    const yl = `<text x="${L - 3}" y="${y(hi) + 7}" text-anchor="end" font-size="7" fill="${P.c}" opacity=".7">${fmtAxis(hi)}</text><text x="${L - 3}" y="${y(lo) + 1}" text-anchor="end" font-size="7" fill="${P.c}" opacity=".7">${fmtAxis(lo)}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Reported ${intensity ? 'carbon intensity' : 'emissions'} by year"><line x1="${L}" x2="${W - R}" y1="${y(lo)}" y2="${y(lo)}" stroke="${P.c}" stroke-width=".8" opacity=".5"/>${marks}${xl}${yl}</svg>`;
+  },
+  // ending chart: real vs reported vs world, in the dark UI
+  history(H) {
+    if (H.length < 2) return '';
+    const W = 560, Ht = 220, L = 40, B = 26, T = 12, R = 12;
+    const max = Math.max(...H.map(h => Math.max(h.world, h.real, h.rep))) * 1.08, min = Math.min(0, ...H.map(h => h.net));
+    const x = i => L + (W - L - R) * i / (H.length - 1), y = v => T + (Ht - T - B) * (1 - (v - min) / (max - min));
+    const line = (k, c, dash) => `<polyline points="${H.map((h, i) => x(i).toFixed(1) + ',' + y(h[k]).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="2.4" ${dash ? 'stroke-dasharray="5 4"' : ''}/>`;
+    const tgt = `<polyline points="${H.map((h, i) => x(i).toFixed(1) + ',' + y(h.target).toFixed(1)).join(' ')}" fill="none" stroke="#9a8f7c" stroke-width="1.2" stroke-dasharray="2 3"/>`;
+    const ticks = [0, max / 2, max].map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#3a322a" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#b9ab94">${Math.round(v)}</text>`).join('');
+    const yrs = H.map((h, i) => (i % 2 === 0 || i === H.length - 1) ? `<text x="${x(i)}" y="${Ht - 8}" text-anchor="middle" font-size="11" fill="#b9ab94">${h.year}</text>` : '').join('');
+    return `<svg viewBox="0 0 ${W} ${Ht}" class="histc" role="img" aria-label="Real, reported and world emissions by year">${ticks}${tgt}${line('world', '#d98c5f', 1)}${line('real', '#e8d6b0')}${line('net', '#7fc48d')}${yrs}</svg>`;
+  }
+};
+const fmtAxis = v => v >= 10 ? Math.round(v) : v.toFixed(1);
+// =====================================================================
+// SUSTAINABILITY REPORT — UI
+// =====================================================================
+const $ = id => document.getElementById(id);
+const SAVE_KEY = 'susrep_save_v1';
+let TAB = 'accounting', MODAL = null, DEC_Q = '', UID = 0;
+const MQ = [];
+
+function jz(text) { hear(text); return esc(text).replace(J.all, m => { const i = J.which(m); return i < 0 ? m : `<mark class="jg" tabindex="0" data-j="${i}">${m}</mark>`; }); }
+const pct = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(Math.round(v * 100)) + '%';
+const signed = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(Math.round(v));
+
+// ---------------------------------------------------------------------
+// TOASTS + TOOLTIP
+// ---------------------------------------------------------------------
+function toast(html, ms = 3200, cls = '') { const el = document.createElement('div'); el.className = 'toast ' + cls; el.innerHTML = html; $('toasts').appendChild(el); while ($('toasts').children.length > 4) $('toasts').firstChild.remove(); setTimeout(() => el.remove(), ms); }
+let TIP_EL = null;
+function showTip(el) {
+  const i = +el.dataset.j; if (!JARGON[i]) return; TIP_EL = el;
+  const tip = $('jtip'); tip.innerHTML = `<b>${esc(JARGON[i][0])}</b>${esc(JARGON[i][1])}`; tip.hidden = false;
+  const r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = Math.min(innerWidth - tw - 8, Math.max(8, r.left + r.width / 2 - tw / 2)), y = r.top - th - 8; if (y < 8) y = r.bottom + 8;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideTip() { $('jtip').hidden = true; TIP_EL = null; }
+
+// ---------------------------------------------------------------------
+// THE REPORT (public side)
+// ---------------------------------------------------------------------
+function pageVars(d) { const P = byId(PALETTES, d.palette), F = byId(FONTS, d.font); return `--pa:${P.a};--pb:${P.b};--pc:${P.c};--pd:${P.d};--pf:${F.css.replace(/"/g, "'")};--pw:${F.w}`; }
+function coverHTML(d, year, name, mini) {
+  const P = byId(PALETTES, d.palette), title = byId(TITLES, d.title).t;
+  return `<div class="page pf-${d.font} ${mini ? 'mini-pg' : ''}" style="${pageVars(d)}">
+    <div class="cv-top"><div class="cv-co">${esc(name)}</div><div class="cv-yr">Sustainability<br>Report ${year}</div></div>
+    <div class="cv-art">${ART.cover(d.cover, P, ++UID)}</div>
+    <div class="cv-title">${mini ? esc(title) : jz(title)}</div>
+    <div class="cv-foot"><span>${PAGES[d.pages].n} pages</span><span>${S.legal.assurance ? 'Limited assurance*' : ''}</span></div>
+    <div class="cv-band"></div></div>`;
+}
+function spreadHTML(R) {
+  const d = S.design, P = byId(PALETTES, d.palette);
+  const intensity = d.chart === 'intensity';
+  const series = S.history.map(h => ({ year:h.year, v:Math.max(0, intensity ? h.net / (h.prod || 1) : h.net) }));
+  series.push({ year:S.year, v:Math.max(0, intensity ? R.net / R.prod : R.net) });
+  const base = R.base, now = intensity ? R.net / R.prod : R.net, ch = (now - base) / base;
+  const since = on('rebase') ? '2019, restated' : '2025';
+  const nz = S.year === END_YEAR && R.net <= 1e-9;
+  const stat = nz ? `<b class="nz">NET ZERO*</b><span>${jz('Operational emissions, net of offsets and our robust methodology.')}</span>`
+    : `<b>${ch <= 0 ? '−' : '+'}${Math.abs(Math.round(ch * 100))}%*</b><span>${jz(intensity ? `carbon intensity per barrel since ${since}` : `net operational emissions since ${since}`)}</span>`;
+  const pl = activePledges().slice(0, 3).map(p => `<li>${jz(p.name)}</li>`).join('') || '<li>Net zero by 2040</li>';
+  const hi = [];
+  if (R.off > 0) hi.push(`${fmtAxis(R.off)} Mt of high-quality credits retired`);
+  for (const p of PROJECTS) if (lvl(p.id)) hi.push(p.brand);
+  if (S.legal.assurance) hi.push('Third-party verified (limited assurance)');
+  if (!hi.length) hi.push('Committed to stakeholder engagement');
+  const fns = footnotes();
+  return `<div class="page pf-${d.font}" style="${pageVars(d)}"><div class="sp">
+    <div class="sp-h"><b>${S.year} highlights</b><span>Net zero by 2040</span></div>
+    <div class="sp-stat">${stat}</div>
+    <div class="sp-chart"><div class="cap">${intensity ? 'Carbon intensity (per barrel)' : d.chart === 'pie' ? 'What drives us' : 'Net operational emissions (Mt CO2e)'}</div>${ART.chart(d.chart, series, P, intensity)}</div>
+    <div class="sp-cols"><div><h4>Our commitments</h4><ul>${pl}</ul></div><div><h4>Highlights</h4><ul>${hi.slice(0, 3).map(x => `<li>${jz(x)}</li>`).join('')}</ul></div></div>
+    <div class="sp-fn">${fns.map((f, i) => `<i>${i < 3 ? '*'.repeat(i + 1) : '(' + (i + 1) + ')'} ${jz(f)}</i>`).join('')}</div>
+  </div></div>`;
+}
+function renderPages() { const R = compute(); $('pages').innerHTML = coverHTML(S.design, S.year, byId(NAMES, S.design.name).n) + spreadHTML(R); }
+function renderShelf() {
+  if (!S.history.length) { $('shelf').innerHTML = ''; return; }
+  $('shelf').innerHTML = `<div class="sh-l">Published reports</div>` + S.history.map((h, i) => `<button type="button" class="thumb ${h.scandals ? 'sc' : ''}" data-arch="${i}" title="${h.year}: ESG ${h.rating}${h.scandals ? ', ' + h.scandals + ' scandal' + (h.scandals > 1 ? 's' : '') : ''}">${coverHTML(h.design, h.year, h.name, 1)}<small>${h.year} · ${h.rating}</small></button>`).join('');
+}
+
+// ---------------------------------------------------------------------
+// THE FILE (internal side)
+// ---------------------------------------------------------------------
+function renderHeader() {
+  $('coName').textContent = byId(NAMES, S.design.name).n;
+  $('hYear').textContent = S.year;
+  $('hBoard').textContent = Math.round(S.board); $('hBoard').className = S.board < 25 ? 'bad' : '';
+  $('hBoardBar').style.width = clamp(S.board, 0, 100) + '%';
+  $('hStock').textContent = '$' + S.stock.toFixed(2);
+  $('hRating').textContent = S.ratingLast;
+}
+function renderNum() {
+  const R = compute(), esg = esgScore(R), sk = skeletons(), expT = sk.reduce((s, k) => s + k.e, 0), n = invCount(esg);
+  const scale = Math.max(R.net, R.target, 1) * 1.15;
+  const why = R.avail < 0 ? `Over budget by ${fmtM(-R.avail)}. Cut offsets, footnotes, pages or legal costs, or sell something.` : '';
+  $('num').innerHTML = `<div class="n-main"><div class="n-k">Reported net emissions, ${S.year}</div>
+      <div class="n-big"><b class="${R.met ? 'ok' : 'bad'}">${fmtMt(R.net)}</b><span>target ${fmtMt(R.target)} · ${R.met ? 'on track' : 'over by ' + fmtMt(R.net - R.target)}</span></div>
+      <div class="n-bar" aria-hidden="true"><i class="${R.met ? '' : 'bad'}" style="width:${clamp(Math.max(0, R.net) / scale * 100, 0, 100)}%"></i><u style="left:${clamp(R.target / scale * 100, 0, 100)}%"></u></div>
+      <div class="n-rows">
+        <div><span>Real emissions</span><b>${fmtMt(R.real)}</b></div>
+        <div><span>Budget left</span><b class="${R.avail < 0 ? 'bad' : ''}">${fmtM(R.avail)}</b></div>
+        <div><span>Incl. sold fields</span><b>${fmtMt(R.world)}</b></div>
+        <div><span>Annual costs</span><b>${fmtM(R.annual)}</b></div>
+        <div><span>Scope 3 (unreported)</span><b>${fmtMt(R.s3)}</b></div>
+        <div><span>Exposure · probes</span><b class="${expT >= 10 ? 'bad' : ''}">${expT.toFixed(1)} · ${n}</b></div>
+      </div></div>
+    <div class="n-side"><div class="esgb" title="Projected ESG rating"><small>ESG forecast</small><b>${rating(esg)}</b><span>${esg} / 100</span></div>
+      <button type="button" class="pubbtn" id="bPub" ${R.avail < -1e-6 || S.phase !== 'build' ? 'disabled' : ''}>Publish the ${S.year} report</button></div>
+    ${why ? `<p class="n-why">${esc(why)}</p>` : ''}`;
+}
+const TABS = [['real', 'Real fixes'], ['accounting', 'Accounting'], ['offsets', 'Offsets'], ['pledges', 'Pledges'], ['design', 'Design'], ['risk', 'Risk'], ['decoder', 'Decoder'], ['file', 'File']];
+function renderTabs() {
+  const h = TABS.map(([id, l]) => `<button type="button" data-tab="${id}" class="${TAB === id ? 'on' : ''}">${l}${id === 'decoder' ? `<small>${Object.keys(S.heard).length}</small>` : ''}</button>`).join('');
+  if ($('tabs').innerHTML !== h) $('tabs').innerHTML = h;
+}
+function renderPane() {
+  const pane = $('pane'), st = pane.scrollTop;
+  const act = document.activeElement, fk = act && pane.contains(act) ? act.dataset.k : null;
+  pane.innerHTML = ({ real:paneReal, accounting:paneAcc, offsets:paneOffsets, pledges:panePledges, design:paneDesign, risk:paneRisk, decoder:paneDecoder, file:paneFile })[TAB]();
+  pane.scrollTop = st;
+  if (fk) { const el = pane.querySelector(`[data-k="${fk}"]`); if (el) try { el.focus({ preventScroll:true }); } catch (e) {} }
+}
+const lock = () => S.phase !== 'build' ? 'disabled' : '';
+function fnBtn(id) { return `<button type="button" class="fnb ${S.fn[id] ? 'on' : ''}" data-fn="${id}" data-k="fn-${id}" ${lock()} title="Footnotes halve the chance a finding becomes a scandal. $${FOOTNOTE_COST}M a year each.">${S.fn[id] ? '* footnoted' : '+ footnote'}</button>`; }
+function skE(id) { const k = skeletons().find(x => x.id === id); return k ? k.e : 0; }
+
+function paneReal() {
+  const R = compute();
+  let h = `<div class="ph"><h2>Real fixes</h2><span>Real cut so far: ${Math.round(R.cred * 100)}%</span></div>
+    <p class="note">${jz('These projects reduce absolute emissions for real. Each one is permanent. Real reductions also make every journalist\'s finding less likely to stick: credibility is the best footnote.')}</p>`;
+  for (const p of PROJECTS) {
+    const l = lvl(p.id), max = p.levels.length, nx = p.levels[l];
+    let eff = '';
+    if (p.scope === 1 && nx) eff = `−${Math.round(nx[1] * 100)}% real Scope 1 at this level`;
+    if (p.scope === 2 && nx) eff = `real Scope 2 −${Math.round(nx[1] * 100)}% total`;
+    if (p.id === 'ccs') eff = 'buries 4 Mt a year';
+    h += `<div class="row ${l ? 'on' : ''}"><h3>${jz(p.brand)}<small>${esc(p.name)}${max > 1 ? ` · level ${l} of ${max}` : ''}</small></h3>
+      <div class="ctl">${max > 1 ? `<span class="dots">${p.levels.map((_, i) => `<i class="${i < l ? 'on' : ''}"></i>`).join('')}</span>` : ''}${nx ? `<button type="button" class="btn" data-proj="${p.id}" data-k="pj-${p.id}" ${S.cash >= nx[0] && S.phase === 'build' ? '' : 'disabled'}>${fmtM(nx[0])}</button>` : '<span class="tag g">Done</span>'}</div>
+      <p>${jz(p.desc)}</p>${eff ? `<div class="tags"><span class="tag g">${esc(eff)}</span></div>` : ''}</div>`;
+  }
+  return h;
+}
+function paneAcc() {
+  const R = compute();
+  let h = `<div class="ph"><h2>Accounting</h2><span>Reported ${fmtMt(R.rep)} before offsets</span></div>
+    <p class="note">${jz('Each choice makes the reported number smaller without changing the atmosphere. Each one is something a journalist can find. Footnotes disclose it in very small type.')}</p>`;
+  for (const t of TRICKS) {
+    const o = on(t.id), need = t.needs && !lvl(t.needs), locked = S.locked[t.id];
+    const e = o ? skE(t.id) : t.exp;
+    h += `<div class="row ${o ? 'on' : ''} ${need || locked ? 'off' : ''}"><h3>${jz(t.brand)}<small>${esc(t.name)}</small></h3>
+      <div class="ctl">${o ? fnBtn(t.id) : ''}<button type="button" class="sw ${o ? 'on' : ''}" role="switch" aria-checked="${o}" aria-label="${esc(t.name)}" data-trick="${t.id}" data-k="tr-${t.id}" ${need || locked || S.phase !== 'build' || (!o && S.cash < t.cost) ? 'disabled' : ''}></button></div>
+      <p>${jz(t.desc)}</p><div class="tags"><span class="tag r">exposure ${e.toFixed(1)}</span>${t.cost ? `<span class="tag">${fmtM(t.cost)} once</span>` : ''}${t.costPerMt ? `<span class="tag">${fmtM(R.s2 * t.costPerMt)} a year</span>` : ''}${need ? '<span class="tag y">Needs: Announce a CCS hub (Real fixes)</span>' : ''}${locked ? '<span class="tag y">Banned by regulation</span>' : ''}</div></div>`;
+  }
+  h += `<div class="sec">Divestment<small>Sell a field to private equity. Its emissions leave our books, not the sky.</small></div>`;
+  for (const f of FIELDS) {
+    const d = S.divested[f.id];
+    h += `<div class="row ${d ? 'on' : ''}"><h3>${esc(f.name)}<small>${Math.round(f.prod * 100)}% of production, ${Math.round(f.em * 100)}% of emissions</small></h3>
+      <div class="ctl">${d ? fnBtn('div_' + f.id) + `<span class="tag">Sold ${d}</span>` : `<button type="button" class="btn" data-divest="${f.id}" data-k="dv-${f.id}" ${lock()}>Sell for ${fmtM(f.cash)}</button>`}</div>
+      <div class="tags"><span class="tag g">reported −${Math.round(f.em * 100)}%</span><span class="tag g">+${fmtM(f.cash)} budget</span><span class="tag r">exposure ${f.exp}</span><span class="tag y">board −6 (less oil)</span></div></div>`;
+  }
+  return h;
+}
+function paneOffsets() {
+  const R = compute();
+  let h = `<div class="ph"><h2>Offsets</h2><span>${fmtMt(R.off)} · ${fmtM(R.cost.offsets)} this year</span></div>
+    <p class="note">${jz('Offsets are bought fresh every year. The cheap ones are cheap for a reason: weak additionality and permanence. Journalists know the registry better than we do.')}</p>`;
+  for (const o of OFFSETS) {
+    const mt = S.offsets[o.id] || 0;
+    h += `<div class="row ${mt ? 'on' : ''}"><h3>${jz(o.brand)}<small>${esc(o.name)} · $${o.price}M per Mt</small></h3><div class="ctl">${mt && o.exp ? fnBtn(o.id) : ''}</div>
+      <p>${jz(o.desc)}</p>
+      <div class="off-row"><input type="range" min="0" max="${o.max}" step="0.5" value="${mt}" data-off="${o.id}" data-k="or-${o.id}" aria-label="${esc(o.name)} megatonnes" ${lock()}><input type="number" min="0" max="${o.max}" step="0.5" value="${mt}" data-offn="${o.id}" data-k="on-${o.id}" aria-label="${esc(o.name)} megatonnes" ${lock()}><b>${fmtM(mt * o.price)}</b></div>
+      <div class="tags"><span class="tag">${mt} Mt</span>${o.exp ? `<span class="tag r">exposure ${(mt * o.exp).toFixed(1)}</span>` : '<span class="tag g">no exposure</span>'}</div></div>`;
+  }
+  const gap = R.net - R.target;
+  h += `<div class="row"><h3>Fill the gap<small>${gap > 0 ? `Need ${fmtMt(gap)} more to hit the target.` : `You are ${fmtMt(-gap)} under target.`}</small></h3><div class="ctl">${OFFSETS.filter(o => o.id !== 'dac').map(o => `<button type="button" class="btn alt" data-fill="${o.id}" ${gap > 0 && S.phase === 'build' ? '' : 'disabled'}>${esc(o.id === 'forest' ? 'Forest' : o.id === 'stove' ? 'Stoves' : 'Trees')}</button>`).join('')}</div></div>`;
+  h += `<p class="note">Tree credits bought so far: ${S.treesCum} Mt${S.pledges.trees ? ' (the billion-trees pledge needs 12 Mt by 2032)' : ''}.</p>`;
+  return h;
+}
+function panePledges() {
+  let h = `<div class="ph"><h2>Pledges</h2><span>${activePledges().length} active</span></div>
+    <p class="note">${jz('Pledges raise the ESG rating now. Each one has a check year when journalists see whether it happened. Retiring a pledge early costs 6 ESG points and invites an extra investigation.')}</p>
+    <div class="row on"><h3>${jz('Net Zero by 2040 (Scopes 1 & 2)')}<small>Made by the CEO at Davos, 2025</small></h3><div class="ctl"><span class="tag">Permanent</span></div><p>${jz('Every year the reported number must be under a straight line from the baseline to zero in 2040. Scope 3 is not included, which is the whole idea.')}</p></div>`;
+  for (const p of PLEDGES) {
+    const a = S.pledges[p.id], done = S.pledgeDone[p.id], late = p.check && S.year > p.check && !a;
+    let ctl;
+    if (done === 1) ctl = '<span class="tag g">Kept</span>';
+    else if (done === -1) ctl = '<span class="tag r">Broken or retired</span>';
+    else if (a) ctl = `<button type="button" class="btn alt" data-unpledge="${p.id}" ${lock()}>Retire</button>`;
+    else if (p.check && S.year >= p.check) ctl = '<span class="tag">Too late</span>';
+    else ctl = `<button type="button" class="btn" data-pledge="${p.id}" data-k="pl-${p.id}" ${lock()}>Pledge</button>`;
+    const met = a && p.check ? pledgeMet(p, compute()) : null;
+    h += `<div class="row ${a ? 'on' : ''} ${late ? 'off' : ''}"><h3>${jz(p.name)}<small>${p.check ? 'Checked in ' + p.check : 'Never checked'}${a ? ' · pledged ' + a : ''}</small></h3><div class="ctl">${ctl}</div>
+      <p>${jz(p.need)}</p><div class="tags"><span class="tag g">ESG +${p.esg}</span>${met === true ? '<span class="tag g">On track</span>' : met === false ? '<span class="tag r">Not on track</span>' : ''}${p.upkeep ? `<span class="tag">${fmtM(p.upkeep)} a year</span>` : ''}</div></div>`;
+  }
+  return h;
+}
+function chipRow(k, L, cur, label) {
+  return `<div class="row"><h3>${esc(label)}</h3><span></span><div class="chips">${L.map(x => {
+    const dis = (x.needs && !(lvl(x.needs) || S.pledges[x.needs])) || (x.unlock && !S.titles[x.id]);
+    const txt = x.t || x.name || x.n;
+    return `<button type="button" data-des="${k}" data-v="${x.id}" class="${cur === x.id ? 'on' : ''}" ${dis || S.phase !== 'build' ? 'disabled' : ''} title="${dis ? 'Locked' : ''}">${esc(txt)}<small>${x.esg > 0 ? '+' : ''}${x.esg}${x.exp ? ' · risk' : ''}${x.cost && !S.names[x.id] ? ' · ' + fmtM(x.cost) : ''}</small></button>`; }).join('')}</div></div>`;
+}
+function paneDesign() {
+  const R = compute(), parts = esgParts(R), tot = esgScore(R);
+  return `<div class="ph"><h2>Design</h2><span>ESG forecast ${tot} (${rating(tot)})</span></div>
+    <p class="note">${jz('ESG raters mostly score what you disclose and how it looks. Numbers in small type after each option show its ESG effect. "Risk" means a journalist can call it misleading.')}</p>
+    ${chipRow('cover', COVERS, S.design.cover, 'Cover photo')}
+    ${chipRow('title', TITLES.filter(t => !t.unlock || S.titles[t.id]), S.design.title, 'Title')}
+    ${chipRow('font', FONTS, S.design.font, 'Typeface')}
+    ${chipRow('palette', PALETTES, S.design.palette, 'Colors')}
+    ${chipRow('chart', CHARTS, S.design.chart, 'Emissions chart')}
+    <div class="row"><h3>Length</h3><span></span><div class="chips">${PAGES.map((p, i) => `<button type="button" data-des="pages" data-v="${i}" class="${S.design.pages === i ? 'on' : ''}" ${lock()}>${p.n} pages<small>+${p.esg} · ${fmtM(p.cost)}/yr</small></button>`).join('')}</div></div>
+    ${chipRow('name', NAMES.map(n => Object.assign({ name:n.n }, n)), S.design.name, 'Company name')}
+    <div class="sec">ESG forecast<small>what the rating agencies will add up</small></div>
+    <div class="esg-l">${parts.map(([l, v]) => `<span>${esc(l)}</span><b>${v > 0 ? '+' : ''}${v}</b>`).join('')}<span class="t">Total (0–100)</span><b class="t">${tot} · ${rating(tot)}</b></div>`;
+}
+function paneRisk() {
+  const R = compute(), sk = skeletons().sort((a, b) => b.e - a.e), esg = esgScore(R), n = invCount(esg);
+  const maxE = Math.max(10, ...sk.map(k => k.e));
+  let h = `<div class="ph"><h2>Risk</h2><span>${n} investigation${n === 1 ? '' : 's'} expected</span></div>
+    <p class="note">${jz('Each investigation picks one of these, usually the juiciest. The chance shows how likely it becomes a scandal if picked. Higher ESG ratings, more pledges and last year\'s scandals all attract more journalists.')}</p>`;
+  if (!sk.length) h += `<p class="note"><b>Nothing to find.</b> Journalists will be bored.</p>`;
+  else h += `<div class="risk"><span class="h">What they could find</span><span class="h">Exposure</span><span class="h ch">If picked</span><span class="h"></span>${sk.map(k => `<span class="nm">${esc(k.name)}<div class="ebar"><i style="width:${k.e / maxE * 100}%"></i></div></span><span class="e">${k.e.toFixed(1)}</span><span class="e ch">${Math.round(scandalChance(k, R.cred) * 100)}%</span>${fnBtn(k.id)}`).join('')}</div>`;
+  h += `<div class="sec">Legal &amp; assurance</div>`;
+  for (const l of LEGAL) {
+    const o = S.legal[l.id];
+    h += `<div class="row ${o ? 'on' : ''}"><h3>${jz(l.brand)}<small>${esc(l.name)}</small></h3><div class="ctl">${l.once ? (o ? '<span class="tag g">Owned</span>' : `<button type="button" class="btn" data-legal="${l.id}" ${S.cash >= l.cost && S.phase === 'build' ? '' : 'disabled'}>${fmtM(l.cost)}</button>`) : `<button type="button" class="sw ${o ? 'on' : ''}" role="switch" aria-checked="${!!o}" aria-label="${esc(l.name)}" data-legal="${l.id}" ${lock()}></button>`}</div><p>${jz(l.desc)}</p></div>`;
+  }
+  return h;
+}
+function paneDecoder() {
+  const n = Object.keys(S.heard).length, q = DEC_Q.trim().toLowerCase();
+  const list = JARGON.map(([p, m], i) => ({ p, m, got:!!S.heard[i] })).filter(x => !q || (x.got && (x.p.toLowerCase().includes(q) || x.m.toLowerCase().includes(q)))).sort((a, b) => b.got - a.got || a.p.localeCompare(b.p));
+  return `<div class="ph"><h2>ESG–English Decoder</h2><span>${n} of ${JARGON.length}</span></div>
+    <p class="note">Phrases are decoded the first time they appear on screen. Hover or tap any dotted phrase.</p>
+    <input class="srch" id="decQ" type="search" placeholder="Search decoded phrases" value="${esc(DEC_Q)}" aria-label="Search decoded phrases">
+    <div class="dec-l">${list.map(x => x.got ? `<div class="dec"><b>${esc(x.p)}</b>${esc(x.m)}</div>` : `<div class="dec no"><b>${'▒'.repeat(Math.min(14, x.p.length))}</b>Not heard yet</div>`).join('')}</div>`;
+}
+function paneFile() {
+  return `<div class="ph"><h2>Your file</h2><span>${Object.keys(S.ach).length} of ${ACHIEVEMENTS.length} achievements</span></div>
+    <div class="ach">${ACHIEVEMENTS.map(a => `<div class="${S.ach[a.id] ? 'got' : ''}"><b>${esc(a.name)}</b>${esc(a.d)}</div>`).join('')}</div>
+    <div class="sec">Log</div><div class="logl">${S.log.slice(0, 40).map(l => `<div><span>${l.year}</span><p style="margin:0">${jz(l.t)}</p></div>`).join('') || '<p class="note">Nothing yet.</p>'}</div>`;
+}
+function renderAll() { if (!S) return; renderHeader(); renderPages(); renderShelf(); renderNum(); renderTabs(); renderPane(); flushPending(); }
+
+// ---------------------------------------------------------------------
+// MODALS
+// ---------------------------------------------------------------------
+function openModal(html, opts = {}) {
+  closeModal(true);
+  const ov = document.createElement('div'); ov.className = 'ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+  ov.innerHTML = `<div class="mo ${opts.wide ? 'wide' : ''}">${html}</div>`;
+  $('ovWrap').appendChild(ov); MODAL = { ov, kind:opts.kind || '', closable:!!opts.closable }; hideTip();
+  const f = ov.querySelector('.choice:not(:disabled), .btn:not(:disabled)'); if (f) setTimeout(() => { try { f.focus({ preventScroll:true }); } catch (e) {} }, 30);
+  return ov;
+}
+function setModal(html) { if (!MODAL) return; MODAL.ov.querySelector('.mo').innerHTML = html; hideTip(); const f = MODAL.ov.querySelector('.choice:not(:disabled), .btn:not(:disabled)'); if (f) try { f.focus({ preventScroll:true }); } catch (e) {} }
+function closeModal(silent) { if (!MODAL) return; MODAL.ov.remove(); MODAL = null; if (!silent) { renderAll(); setTimeout(nextModal, 0); } }
+function queueModal(fn) { MQ.push(fn); if (!MODAL) nextModal(); }
+function nextModal() { if (MODAL) return; const fn = MQ.shift(); if (fn) fn(); else route(); }
+// decide which modal the current phase needs
+function route() {
+  if (!S || MODAL) return;
+  if (S.over) return endModal();
+  if (S.showResult && S.lastResult) return resultModal();
+  if (S.phase === 'press') return pressModal();
+  if (S.phase === 'brief') return briefModal();
+}
+
+function titleModal() {
+  let has = null; try { const d = JSON.parse(localStorage.getItem(SAVE_KEY)); if (d && d.v === 1 && !d.over) has = d; } catch (e) {}
+  openModal(`<div class="kicker">Halverson Petroleum · Human Resources</div><h2>Sustainability Report</h2>
+    <p>Congratulations on your appointment as <b>Chief Sustainability Officer</b>. Your predecessor published an honest report and was let go.</p>
+    <ul>
+      <li>Every year from ${START_YEAR} to ${END_YEAR}, you publish one sustainability report.</li>
+      <li>The CEO promised <b>net zero by 2040</b>. Each year the reported number must fall under a straight line to zero.</li>
+      <li>Production grows every year, so real emissions grow too. You decide how the report gets the number down: real projects, creative accounting, offsets, divestments.</li>
+      <li>Design matters. The ESG raters grade the brochure. The stock follows the rating.</li>
+      <li>Journalists investigate every report. Scandals cost board confidence. If it hits zero, you're out.</li>
+    </ul>
+    <div class="acts">${has ? `<button type="button" class="btn alt" id="tNew">New career</button><button type="button" class="btn" id="tCont">Continue · ${has.year}</button>` : `<button type="button" class="btn" id="tNew">Accept the position</button>`}</div>`, { kind:'title' });
+  $('tNew').onclick = () => startNew();
+  if (has) $('tCont').onclick = () => { if (load()) { closeModal(); } else startNew(); };
+}
+function startNew() { newGame(); TAB = 'accounting'; save(); if (MODAL) closeModal(); else { renderAll(); nextModal(); } }
+function helpModal() {
+  openModal(`<div class="kicker">How it works</div><h2>Making the numbers green</h2>
+    <ul>
+      <li><b>The number</b> (top of the file) is reported net emissions: real emissions, shrunk by your accounting choices, minus offsets. Keep it under the target line.</li>
+      <li><b>Real fixes</b> cut real emissions permanently and make scandals less likely. They're expensive.</li>
+      <li><b>Accounting</b> shrinks the number on paper. Each choice adds exposure. <b>Divesting</b> a field gives you cash and moves its emissions to someone else's books.</li>
+      <li><b>Offsets</b> are bought every year. Cheap credits carry the most exposure.</li>
+      <li><b>Footnotes</b> ($${FOOTNOTE_COST}M each per year) halve the chance a finding turns into a scandal. They also appear at the bottom of your report.</li>
+      <li><b>Design</b>, length and <b>pledges</b> set your ESG rating. A higher rating lifts the stock, but attracts more journalists. Pledges are checked in their due year.</li>
+      <li><b>Budget</b>: you get a sustainability budget each year. Unspent money carries over. Annual costs (offsets, footnotes, pages, legal) are paid when you publish.</li>
+      <li><b>The board</b> gains confidence when you hit the target and the stock rises, and loses it for misses and scandals. It also expects more each year. At zero, you're fired.</li>
+      <li>Reach ${END_YEAR} still employed. Report net zero for the full ending.</li>
+    </ul>
+    <div class="acts"><button type="button" class="btn" id="mOk">Back to work</button></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal();
+}
+function menuModal() {
+  openModal(`<div class="kicker">Menu</div><h2>Halverson, ${S.year}</h2>
+    <div class="stats"><div>Board confidence<b>${Math.round(S.board)}</b></div><div>Reports published<b>${S.history.length}</b></div><div>Scandals<b>${S.stats.scandals}</b></div></div>
+    <div class="acts"><button type="button" class="btn alt" id="mNew">New career</button><button type="button" class="btn alt" id="mHelp">How to play</button><button type="button" class="btn" id="mOk">Back to work</button></div>
+    <div id="mConfirm" hidden><div class="res bad">Start over? This career will be lost.</div><div class="acts" style="margin-top:8px"><button type="button" class="btn alt" id="mNo">Keep going</button><button type="button" class="btn red" id="mYes">Start over</button></div></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal(); $('mHelp').onclick = () => helpModal();
+  $('mNew').onclick = () => { $('mConfirm').hidden = false; $('mYes').focus(); };
+  $('mNo').onclick = () => { $('mConfirm').hidden = true; };
+  $('mYes').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} MQ.length = 0; closeModal(true); newGame(); renderAll(); titleModal(); };
+}
+function briefModal() {
+  if (!S.event) {
+    openModal(`<div class="kicker">Memo · ${S.year}</div><h2>From the desk of the CEO</h2>
+      <div class="memo"><div class="mh">TO: Chief Sustainability Officer<br>FROM: Richard Halverson III, CEO<br>RE: The pledge</div>
+      <p>${jz('Welcome aboard. Last year at Davos I pledged that Halverson will be net zero by 2040. It got a standing ovation.')}</p>
+      <p>${jz('Production will grow 3% a year. That is not negotiable; it\'s our fiduciary duty. You have $160M a year to make the report say we\'re on the pathway anyway.')}</p>
+      <p>${jz('Your predecessor\'s report is on your desk. It said "We Sell Oil." Please fix that.')}</p>
+      <p>— R.H.</p></div>
+      <div class="acts"><button type="button" class="btn" id="mOk">Open the ${S.year} report</button></div>`, { kind:'brief' });
+    $('mOk').onclick = () => { answerEvent(0); toast(esc(TIPS.welcome), 9000, 'tip'); save(); closeModal(); };
+    return;
+  }
+  const e = byId(EVENTS, S.event);
+  openModal(`<div class="kicker">${S.year} · new business</div><h2>${jz(e.title)}</h2><div class="from">From: ${esc(e.from)}</div><p>${jz(e.body)}</p>
+    <div style="display:flex;flex-direction:column;gap:6px">${e.choices.map((c, i) => { const cost = c.fx.budget < 0 ? -c.fx.budget : 0; return `<button type="button" class="choice" data-ch="${i}"><span>${jz(c.label)}</span>${cost && !c.label.includes('$') ? `<small>${fmtM(cost)}</small>` : ''}</button>`; }).join('')}</div>`, { kind:'brief' });
+  MODAL.ov.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => {
+    const r = answerEvent(+b.dataset.ch); if (!r) return;
+    setModal(`<div class="kicker">${S.year} · decided</div><h2>${jz(e.title)}</h2><div class="res">${jz(r.t)}</div>
+      <div class="acts"><button type="button" class="btn" id="mOk">Open the ${S.year} report</button></div>`);
+    $('mOk').onclick = () => { save(); closeModal(); };
+  });
+}
+function doPublish() {
+  if (MODAL || !S || S.phase !== 'build') return;
+  const r = publish();
+  if (r.err) { toast(esc(r.err), 3500); flushPending(); return; }
+  save(); renderAll(); pressModal();
+}
+function pressModal() {
+  const P = S.press; if (!P) return;
+  const draw = () => {
+    const items = P.items, open = items.filter(x => x.found && !x.resp).length;
+    const R0 = P.R0;
+    let h = `<div class="kicker">Press day · the ${S.year} report is out</div><h2>${P.n === 0 && !items.length ? 'Nobody is looking' : items.some(x => x.found) ? 'The press has questions' : 'The coverage is in'}</h2>
+      <p>The report claims <b>${fmtMt(R0.net)}</b> against a target of <b>${fmtMt(R0.target)}</b>. Rating agencies preview it at <b>${rating(P.esgPrev)}</b>. ${P.n} journalist${P.n === 1 ? ' is' : 's are'} digging.</p>`;
+    items.forEach((it, i) => {
+      const who = `${esc(it.who[0])} · ${esc(it.who[1])}`;
+      if (it.kind === 'pledge' && it.kept) h += `<div class="clip kept" style="animation-delay:${i * 120}ms"><div class="who">${who}</div><div class="hl">${jz('Halverson kept its pledge: ' + it.name)}</div><div class="meta">Pledge check · delivered</div></div>`;
+      else if (!it.found) h += `<div class="clip none" style="animation-delay:${i * 120}ms"><div class="who">${who}</div><div class="hl">${it.kind === 'none' ? 'Looked for anything at all' : 'Looked into: ' + jz(it.name)}</div><div class="meta">${jz(it.note || '')}${it.p !== undefined ? ` · chance was ${Math.round(it.p * 100)}%${it.fn ? ', footnoted' : ''}` : ''}</div></div>`;
+      else {
+        h += `<div class="clip found" style="animation-delay:${i * 120}ms"><div class="who">${who}${it.kind === 'pledge' ? ' · pledge check' : ''}</div><div class="hl">${jz(it.headline)}</div>`;
+        if (!it.resp) h += `<div class="resp">${RESPONSES.map(r => { const lbl = it.kind === 'pledge' && r.id === 'restate' ? 'Withdraw the pledge' : r.label; const dis = r.cost && S.cash < r.cost; return `<button type="button" class="choice" data-resp="${i}" data-r="${r.id}" ${dis ? 'disabled' : ''}><span>${jz(lbl)}</span><small>${esc(r.id === 'restate' && it.kind === 'pledge' ? 'Fallout cut 60%. The pledge is gone.' : r.t)}</small></button>`; }).join('')}</div>`;
+        else h += `<div class="done">Response: ${jz(byId(RESPONSES, it.resp).label)}</div>`;
+        h += `</div>`;
+      }
+    });
+    if (!items.length) h += `<div class="clip none"><div class="hl">Not a single journalist read past the cover.</div></div>`;
+    h += `<div class="acts"><button type="button" class="btn" id="mFin" ${open ? 'disabled' : ''}>${open ? `Respond to ${open} stor${open === 1 ? 'y' : 'ies'}` : 'Hear from the board'}</button></div>`;
+    if (MODAL && MODAL.kind === 'press') setModal(h); else openModal(h, { kind:'press', wide:true });
+    MODAL.ov.querySelectorAll('[data-resp]').forEach(b => b.onclick = () => { if (respond(+b.dataset.resp, b.dataset.r)) { save(); draw(); renderAll(); } else toast('Not enough budget for that response.'); });
+    $('mFin').onclick = () => { const res = finalize(); if (!res) return; S.showResult = 1; save(); resultModal(); renderAll(); };
+  };
+  draw();
+}
+function resultModal() {
+  const r = S.lastResult; if (!r) { S.showResult = 0; return route(); }
+  const up = ratingIdx(r.rating) < ratingIdx(r.ratingLast), down = ratingIdx(r.rating) > ratingIdx(r.ratingLast);
+  const html = `<div class="kicker">${r.year} · board verdict</div><h2>${r.R.met ? 'Target met' : 'Target missed'}${r.scandals ? `, ${r.scandals} scandal${r.scandals > 1 ? 's' : ''}` : ''}</h2>
+    ${r.R.met ? '' : '<div class="stamp">Missed</div>'}
+    <div class="bigrate"><b>${r.rating}</b><div><div class="n-k">ESG rating</div>${up ? 'Upgraded from ' + r.ratingLast : down ? 'Downgraded from ' + r.ratingLast : 'Unchanged'} · ${r.esg}/100</div></div>
+    <div class="stats"><div>Reported net<b>${fmtMt(r.R.net)}</b></div><div>Target<b>${fmtMt(r.R.target)}</b></div><div>Real emissions<b>${fmtMt(r.R.real)}</b></div>
+      <div>Stock<b>$${r.stock.toFixed(2)} (${pct(r.dStock)})</b></div><div>Budget carried over<b>${fmtM(Math.max(0, S.over ? S.cash : S.cash - budgetBase()))}</b></div><div>Board confidence<b>${Math.round(r.board)}</b></div></div>
+    <div class="res"><p style="margin:0 0 6px"><b>From the CEO's letter:</b> “${jz(CEO_LINES[(r.year - START_YEAR) % CEO_LINES.length])}”</p><p style="margin:0">${jz(ANALYST_LINES[(r.year - START_YEAR + 3) % ANALYST_LINES.length])}</p></div>
+    <div class="sec">Board confidence ${Math.round(r.board0)} → ${Math.round(r.board)}</div>
+    <div class="bd">${r.boardD.map(([l, v]) => `<span>${esc(l)}</span><b class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${signed(v)}</b>`).join('')}</div>
+    <div class="acts"><button type="button" class="btn" id="mOk">${S.over ? 'Continue' : 'On to ' + S.year}</button></div>`;
+  openModal(html, { kind:'result' });
+  $('mOk').onclick = () => { S.showResult = 0; save(); closeModal(); };
+}
+function endModal() {
+  const H = S.history, last = H[H.length - 1] || {};
+  const fired = S.over === 'fired', nz = !fired && last.net <= 1e-9;
+  const title = fired ? 'The board thanks you for your service' : nz ? 'Net Zero*' : 'Net zero, rescheduled to 2050';
+  const body = fired
+    ? `After ${H.length} report${H.length === 1 ? '' : 's'}, the board concludes it needs "a fresh perspective on sustainability." Your successor's first report is titled "${pick(['Our Journey Continues', 'A New Chapter', 'Progress, Not Perfection'])}."`
+    : nz ? `Halverson's ${END_YEAR} report declares net zero, on the cover, in ${byId(FONTS, last.design.font).name.toLowerCase()} type. Real operational emissions are ${fmtMt(last.real)}. Including the fields we sold, ${fmtMt(last.world)}. Customers burned another ${fmtMt(last.s3)} of our product this year, which is Scope 3 and therefore in the appendix.`
+    : `The ${END_YEAR} report misses net zero by ${fmtMt(last.net)}. The CEO announces an exciting new ambition: net zero by 2050.`;
+  openModal(`<div class="kicker">${fired ? 'Career over' : END_YEAR + ' · the final report'}</div><h2>${esc(title)}</h2><p>${jz(body)}</p>
+    ${H.length >= 2 ? `<div class="histbox">${ART.history(H.map(h => Object.assign({}, h)))}<div class="legend"><span><i style="background:#7fc48d"></i>Reported net</span><span><i style="background:#e8d6b0"></i>Real (our books)</span><span><i style="background:#d98c5f"></i>Real (incl. sold fields)</span><span><i style="background:#9a8f7c"></i>Target</span></div></div>` : ''}
+    <div class="stats"><div>Reports<b>${H.length}</b></div><div>Final ESG<b>${S.ratingLast}</b></div><div>Stock<b>$${S.stock.toFixed(2)}</b></div>
+      <div>Scandals<b>${S.stats.scandals}</b></div><div>Offsets bought<b>${fmtMt(S.stats.offsetsBought)}</b></div><div>Spent on real fixes<b>${fmtM(S.stats.spentReal)}</b></div>
+      <div>Jargon decoded<b>${Object.keys(S.heard).length}/${JARGON.length}</b></div><div>Achievements<b>${Object.keys(S.ach).length}/${ACHIEVEMENTS.length}</b></div><div>Footnotes, final report<b>${last.design ? footnotes().length : 0}</b></div></div>
+    <div class="covers">${H.map(h => `<div class="thumb">${coverHTML(h.design, h.year, h.name, 1)}<small>${h.year}</small></div>`).join('')}</div>
+    <div class="acts"><button type="button" class="btn" id="mNew">New career</button></div>`, { kind:'end', wide:true });
+  $('mNew').onclick = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} closeModal(true); startNew(); };
+}
+function archiveModal(i) {
+  const h = S.history[i]; if (!h) return;
+  openModal(`<div class="kicker">Archive · ${h.year}</div><h2>${esc(byId(TITLES, h.design.title).t)}</h2>
+    <div style="max-width:220px">${coverHTML(h.design, h.year, h.name, 1)}</div>
+    <div class="stats"><div>Reported net<b>${fmtMt(h.net)}</b></div><div>Target<b>${fmtMt(h.target)}</b></div><div>Real<b>${fmtMt(h.real)}</b></div><div>ESG<b>${h.rating}</b></div><div>Scandals<b>${h.scandals}</b></div><div>Board<b>${Math.round(h.board)}</b></div></div>
+    <div class="acts"><button type="button" class="btn" id="mOk">Close</button></div>`, { closable:true });
+  $('mOk').onclick = () => closeModal();
+}
+
+// ---------------------------------------------------------------------
+// ENGINE NOTIFICATIONS
+// ---------------------------------------------------------------------
+let LAST_DEC = 0, DEC_N = 0;
+function flushPending() {
+  if (!S) return;
+  const L = S.pending; S.pending = [];
+  for (const p of L) {
+    if (p.type === 'tip') toast(esc(TIPS[p.id]), 8000, 'tip');
+    else if (p.type === 'ach') { const a = byId(ACHIEVEMENTS, p.id); if (a) toast(`Achievement: <b>${esc(a.name)}</b><br>${esc(a.d)}`, 4500); }
+  }
+  if (S.newHeard) { DEC_N += S.newHeard; S.newHeard = 0; }
+  const now = performance.now();
+  if (DEC_N && now - LAST_DEC > 2500) { toast(`Decoded <b>${DEC_N}</b> new phrase${DEC_N > 1 ? 's' : ''}. Hover dotted text to translate.`, 2400); DEC_N = 0; LAST_DEC = now; if (Object.keys(S.heard).length >= 80) award('decoder'); }
+}
+
+// ---------------------------------------------------------------------
+// SAVE / LOAD
+// ---------------------------------------------------------------------
+function save() { if (!S) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function load(raw) { try { const d = JSON.parse(raw || localStorage.getItem(SAVE_KEY)); if (!d || d.v !== 1 || !d.design) return false; S = d; return true; } catch (e) { return false; } }
+
+// ---------------------------------------------------------------------
+// INPUT
+// ---------------------------------------------------------------------
+function act(ok) { if (ok) { save(); renderAll(); } }
+document.addEventListener('click', e => {
+  const mk = e.target.closest && e.target.closest('mark.jg');
+  if (mk) { if (TIP_EL === mk) hideTip(); else showTip(mk); e.stopPropagation(); e.preventDefault(); return; }
+  if (!S) return;
+  const t = e.target.closest('[data-tab],[data-proj],[data-trick],[data-divest],[data-fn],[data-fill],[data-pledge],[data-unpledge],[data-des],[data-legal],[data-arch],#bPub'); if (!t) return;
+  if (MODAL && !MODAL.ov.contains(t)) return;
+  if (t.id === 'bPub') return doPublish();
+  if (t.dataset.tab) { TAB = t.dataset.tab; renderTabs(); renderPane(); $('pane').scrollTop = 0; return; }
+  if (t.dataset.arch !== undefined) return archiveModal(+t.dataset.arch);
+  if (t.dataset.proj) return act(buyProject(t.dataset.proj));
+  if (t.dataset.trick) return act(toggleTrick(t.dataset.trick));
+  if (t.dataset.divest) return act(divest(t.dataset.divest));
+  if (t.dataset.fn) return act(toggleFootnote(t.dataset.fn));
+  if (t.dataset.pledge) return act(makePledge(t.dataset.pledge));
+  if (t.dataset.unpledge) return act(withdrawPledge(t.dataset.unpledge));
+  if (t.dataset.des) return act(setDesign(t.dataset.des, t.dataset.v));
+  if (t.dataset.legal) return act(toggleLegal(t.dataset.legal));
+  if (t.dataset.fill) { const R = compute(), o = byId(OFFSETS, t.dataset.fill), gap = Math.ceil((R.net - R.target) * 2) / 2; if (gap > 0) act(setOffset(o.id, (S.offsets[o.id] || 0) + gap)); return; }
+});
+let OFF_T = null;
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'decQ') { DEC_Q = t.value; renderPane(); const el = $('decQ'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } return; }
+  if (t.dataset.off || t.dataset.offn) {
+    const id = t.dataset.off || t.dataset.offn, v = parseFloat(t.value); if (isNaN(v)) return;
+    setOffset(id, v);
+    // update this row and the summary without rebuilding the slider being dragged
+    const row = t.closest('.row'); if (row) { const o = byId(OFFSETS, id), mt = S.offsets[id]; row.querySelector('.off-row b').textContent = fmtM(mt * o.price); const other = row.querySelector(t.dataset.off ? '[data-offn]' : '[data-off]'); if (other) other.value = mt; }
+    renderNum(); renderPages();
+    clearTimeout(OFF_T); OFF_T = setTimeout(() => { save(); }, 300);
+  }
+});
+document.addEventListener('change', e => { if (e.target.dataset.off || e.target.dataset.offn) { save(); renderAll(); } });
+document.addEventListener('mouseover', e => { const m = e.target.closest && e.target.closest('mark.jg'); if (m) showTip(m); else if (TIP_EL) hideTip(); });
+document.addEventListener('focusin', e => { const m = e.target.closest && e.target.closest('mark.jg'); if (m) showTip(m); });
+document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('mark.jg')) hideTip(); });
+addEventListener('scroll', () => { if (TIP_EL) hideTip(); }, true);
+addEventListener('keydown', e => { if (e.key === 'Escape' && MODAL && MODAL.closable) closeModal(); });
+$('bHelp').onclick = () => { if (!MODAL && S) helpModal(); };
+$('bMenu').onclick = () => { if (!MODAL && S) menuModal(); };
+setInterval(() => { if (S) flushPending(); }, 700);
+
+// ---------------------------------------------------------------------
+// BOOT
+// ---------------------------------------------------------------------
+function start(data) {
+  if (data && data.save && load(data.save)) { renderAll(); route(); return; }
+  newGame(); renderAll(); titleModal();
+}
+addEventListener('beforeunload', () => save());
+try { window.claude?.hot?.snapshot?.(() => ({ save:S ? JSON.stringify(S) : null })); } catch (e) {}
+(window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {}));
+</script>
+
+</body></html>
