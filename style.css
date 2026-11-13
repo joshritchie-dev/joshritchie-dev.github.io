@@ -72,3 +72,7 @@ nav a.here{color:var(--ink);font-weight:600}
 .door-art{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:-8px -8px 18px}
 .door-art img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;display:block}
 .card.planned{border-style:dashed;background:transparent}
+
+.econ-thumb{background:#1c2a38;display:flex;flex-direction:column;justify-content:center;padding:18px 22px;gap:10px}
+.econ-thumb span{color:#e8ecf1;font-weight:800;letter-spacing:.06em;font-size:1.05rem}
+.econ-thumb svg{width:100%;height:60px}
