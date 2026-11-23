@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-22T15:07:24+00:00",
+ "generated_at": "2026-11-23T15:29:18+00:00",
  "metrics": [
   {
    "id": "cpi",
@@ -981,10 +981,10 @@
    "decimals": 2,
    "value": 4.0,
    "display": "3.75% to 4.00%",
-   "date": "2026-11-22",
-   "period": "Nov 22, 2026",
+   "date": "2026-11-23",
+   "period": "Nov 23, 2026",
    "change": 0.0,
-   "summary": "The Federal Reserve's target rate is 3.75% to 4.00% as of Nov 22, 2026, unchanged from Oct 31, 2026.",
+   "summary": "The Federal Reserve's target rate is 3.75% to 4.00% as of Nov 23, 2026, unchanged from Oct 31, 2026.",
    "source": "Federal Reserve, via FRED",
    "source_url": "https://fred.stlouisfed.org/series/DFEDTARU",
    "history": [
@@ -1129,7 +1129,7 @@
      4.0
     ],
     [
-     "2026-11-22",
+     "2026-11-23",
      4.0
     ]
    ],
