@@ -12,6 +12,7 @@ import datetime as dt
 import json
 import os
 import pathlib
+import re
 import sys
 
 import requests
@@ -65,6 +66,15 @@ FRED_METRICS = [
 
 
 # --- helpers --------------------------------------------------------------
+def redact(msg):
+    """Remove API keys from error text: request URLs carry the key, and errors are saved publicly."""
+    msg = re.sub(r"(api_key|registrationkey)=[^&\s'\")]+", r"\1=***", str(msg))
+    for k in (os.environ.get("BLS_API_KEY", "").strip(), os.environ.get("FRED_API_KEY", "").strip()):
+        if k:
+            msg = msg.replace(k, "***")
+    return msg
+
+
 def num(s):
     try:
         return float(str(s).replace(",", ""))
@@ -303,18 +313,18 @@ def main():
     if not final:
         print("No data at all; leaving the existing file untouched.", file=sys.stderr)
         for e in errors:
-            print("  " + e, file=sys.stderr)
+            print("  " + redact(e), file=sys.stderr)
         return 1
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "generated_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "metrics": final,
-        "errors": errors,
+        "errors": [redact(e) for e in errors],
     }, indent=1))
     print(f"Wrote {len(final)} metrics to {OUT.relative_to(ROOT)}")
     for e in errors:
-        print("  warning: " + e)
+        print("  warning: " + redact(e))
     return 0
 
 
