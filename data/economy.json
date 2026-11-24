@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T15:29:18+00:00",
+ "generated_at": "2026-11-24T15:24:49+00:00",
  "metrics": [
   {
    "id": "cpi",
@@ -981,10 +981,10 @@
    "decimals": 2,
    "value": 4.0,
    "display": "3.75% to 4.00%",
-   "date": "2026-11-23",
-   "period": "Nov 23, 2026",
+   "date": "2026-11-24",
+   "period": "Nov 24, 2026",
    "change": 0.0,
-   "summary": "The Federal Reserve's target rate is 3.75% to 4.00% as of Nov 23, 2026, unchanged from Oct 31, 2026.",
+   "summary": "The Federal Reserve's target rate is 3.75% to 4.00% as of Nov 24, 2026, unchanged from Oct 31, 2026.",
    "source": "Federal Reserve, via FRED",
    "source_url": "https://fred.stlouisfed.org/series/DFEDTARU",
    "history": [
@@ -1129,7 +1129,7 @@
      4.0
     ],
     [
-     "2026-11-23",
+     "2026-11-24",
      4.0
     ]
    ],
@@ -1141,12 +1141,12 @@
    "unit": "%",
    "kind": "level",
    "decimals": 2,
-   "value": 5.04,
-   "display": "5.04%",
-   "date": "2026-11-19",
-   "period": "Nov 19, 2026",
-   "change": 0.1,
-   "summary": "The 10-year Treasury yield was 5.04% as of Nov 19, 2026, up from 4.94%. It sits 0.28 points above the 2-year yield.",
+   "value": 4.92,
+   "display": "4.92%",
+   "date": "2026-11-20",
+   "period": "Nov 20, 2026",
+   "change": -0.02,
+   "summary": "The 10-year Treasury yield was 4.92% as of Nov 20, 2026, down from 4.94%. It sits 0.29 points above the 2-year yield.",
    "source": "U.S. Treasury, via FRED",
    "source_url": "https://fred.stlouisfed.org/series/DGS10",
    "history": [
@@ -1291,8 +1291,8 @@
      4.94
     ],
     [
-     "2026-11-19",
-     5.04
+     "2026-11-20",
+     4.92
     ]
    ],
    "stale": false
