@@ -1,0 +1,13 @@
+crash_type,crashes
+Single vehicle,106866
+Rear-end,62093
+Angle,44233
+"Sideswipe, same way",39662
+"Head-on, left turn",7298
+Backing,6732
+"Sideswipe, opposite",5442
+Head-on,3113
+"Rear-end, left turn",1772
+"Rear-end, right turn",1686
+Other,9313
+Unknown,2011

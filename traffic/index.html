@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Michigan Traffic by the Numbers | Josh Ritchie</title>
+<meta name="description" content="Michigan's 290,000 yearly traffic crashes, county by county: crash rates, deer crashes, and when and how crashes happen. Built with SQL on public Michigan State Police data.">
+<link rel="stylesheet" href="../style.css">
+<style>
+/* chart colors: light */
+:root{
+  --surface:#ffffff;--grid:#e9e6df;--band:#e6e1d6;
+  --seq-1:#86b6ef;--seq-2:#5598e7;--seq-3:#2a78d6;--seq-4:#1c5cab;--seq-5:#0d366b;
+  --div-n2:#1c5cab;--div-n1:#86b6ef;--div-0:#f0efec;--div-p1:#f19a92;--div-p2:#c43b3a;
+  --s-all:#2a78d6;--s-deer:#eb6834;--code-bg:#f7f5f0;
+}
+/* chart colors: dark (its own steps, not a flip) */
+@media (prefers-color-scheme:dark){:root{
+  --surface:#1a2029;--grid:#2a323e;--band:#2c3440;
+  --seq-1:#184f95;--seq-2:#256abf;--seq-3:#3987e5;--seq-4:#6da7ec;--seq-5:#b7d3f6;
+  --div-n2:#6da7ec;--div-n1:#184f95;--div-0:#383835;--div-p1:#8f2e2e;--div-p2:#e66767;
+  --s-all:#3987e5;--s-deer:#d95926;--code-bg:#141920;
+}}
+.wrap.wide{max-width:1120px}
+.status{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.9rem;margin:-6px 0 22px}
+.status .ok{color:var(--accent);font-weight:700}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:26px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile .k{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tile .v{font-size:1.6rem;font-weight:700;line-height:1.2;margin:4px 0 2px}
+.tile .s{font-size:.82rem;color:var(--muted)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.chip{font:inherit;font-size:.86rem;font-weight:600;padding:6px 13px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.board{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.board{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.panel h2{margin:0 0 4px;font-size:1.15rem}
+.panel h3{margin:0 0 4px;font-size:1.02rem}
+.panel .sub{color:var(--muted);font-size:.86rem;margin:0 0 12px}
+
+.map svg{width:100%;height:auto;display:block;max-height:720px}
+.map path{stroke:var(--surface);stroke-width:1.4;stroke-linejoin:round;cursor:pointer;outline:none}
+.map path:hover,.map path:focus-visible{stroke:var(--ink);stroke-width:2.4}
+.map path.sel{stroke:var(--accent);stroke-width:3.4}
+.mapfoot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px;border:1px solid var(--line)}
+select{font:inherit;font-size:.9rem;padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+
+.tip{position:fixed;z-index:20;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.82rem;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.18);display:none;max-width:250px}
+.tip b{display:block}
+
+.kv{display:grid;grid-template-columns:1fr auto;font-size:.9rem;margin-bottom:6px}
+.kv div{padding:6px 0;border-top:1px solid var(--line)}
+.kv .lab{color:var(--muted)}
+.kv .val{text-align:right;padding-left:12px;font-weight:600;white-space:nowrap}
+.kv .val small{display:block;font-weight:400;color:var(--muted);font-size:.76rem}
+.flag{background:var(--tag);border-radius:8px;padding:8px 10px;font-size:.84rem;margin:10px 0 0}
+.roads{margin-top:14px}
+.roads h3{font-size:.9rem;margin:0 0 6px}
+.rrow{display:grid;grid-template-columns:96px 1fr 64px;align-items:center;gap:8px;font-size:.82rem;margin:4px 0}
+.rrow .bar{height:10px;background:var(--grid);border-radius:0 4px 4px 0;overflow:hidden}
+.rrow .bar i{display:block;height:100%;background:var(--seq-3);border-radius:0 4px 4px 0}
+.rrow .n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.rank-wrap{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table.rank{width:100%;border-collapse:collapse;font-size:.88rem}
+table.rank th{position:sticky;top:0;background:var(--card);text-align:left;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line);font-size:.8rem;white-space:nowrap}
+table.rank th button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;font-weight:600}
+table.rank th button[aria-sort]{color:var(--accent)}
+table.rank td{padding:7px 12px;border-bottom:1px solid var(--line)}
+table.rank td.n,table.rank th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.rank tr{cursor:pointer}
+table.rank tbody tr:hover td{background:var(--tag)}
+table.rank tr.sel td{background:var(--tag);font-weight:600}
+
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px;margin-top:20px}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font-size:11.5px;fill:var(--muted)}
+.chart text.val{fill:var(--ink);font-weight:600}
+.chart .gl{stroke:var(--grid)}
+.keys{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--muted);margin:0 0 6px}
+.keys i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.insight{font-size:.9rem;margin:10px 0 0}
+.hit{fill:transparent;cursor:default}
+
+.sql{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+.sql>*{min-width:0}
+@media (max-width:760px){.sql{grid-template-columns:minmax(0,1fr)}}
+.qlist{display:flex;flex-direction:column;gap:6px}
+@media (max-width:760px){.qlist{flex-direction:row;flex-wrap:wrap}}
+.qbtn{font:inherit;font-size:.86rem;text-align:left;padding:8px 11px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.qbtn small{display:block;color:var(--muted);font-size:.76rem}
+.qbtn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+pre.code{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;max-height:460px;tab-size:2}
+pre.code .kw{color:var(--accent);font-weight:700}
+pre.code .cm{color:var(--muted);font-style:italic}
+pre.code .st{color:var(--s-deer)}
+.qdesc{font-size:.9rem;color:var(--muted);margin:0 0 10px}
+.checks{list-style:none;padding:0;margin:8px 0 0;font-size:.9rem}
+.checks li{padding:6px 0;border-top:1px solid var(--line);display:flex;gap:10px}
+.checks .mark{font-weight:700;color:var(--accent);width:1.2em;flex:none}
+.checks .mark.bad{color:var(--div-p2)}
+.checks small{color:var(--muted);margin-left:auto;white-space:nowrap;padding-left:10px}
+.state{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:28px;color:var(--muted)}
+.how ol{padding-left:1.2em}.how li{margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="wrap wide">
+<header class="site">
+  <a class="name" href="../">Josh Ritchie</a>
+  <nav><a href="../">Home</a><a href="../business.html" class="here">Business</a><a href="../personal.html">Personal</a></nav>
+</header>
+
+<section class="hero small">
+  <p style="margin:0 0 10px"><a href="../business.html">&larr; Back to business projects</a></p>
+  <span class="kicker">Live project</span>
+  <h1>Michigan Traffic by the Numbers</h1>
+  <p>Michigan drivers log nearly 100 billion miles a year and have about 290,000 reported crashes. This dashboard breaks them down by county, by time of day, and by type, including Michigan's one-in-five crashes with a deer. Every number comes from SQL queries over the state's published crash reports.</p>
+</section>
+
+<div class="status" id="status"><span>Loading the data&hellip;</span></div>
+<div id="app"></div>
+
+<section class="how">
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>The source is the state's own reports.</strong> Michigan State Police and Michigan Traffic Crash Facts (run with the University of Michigan) publish crash tables every year. The tables this dashboard uses are saved as CSV files in the repository, each with its source listed.</li>
+    <li><strong>A Python script loads them into a SQLite database</strong> with a defined schema: one table per report, keyed by year and county.</li>
+    <li><strong>Data checks run first.</strong> County totals have to add up to the statewide totals, severity and road-type counts have to add up to each county's total, and every county has to match across all four county tables. If any check fails, the build stops and nothing is published.</li>
+    <li><strong>SQL does the analysis:</strong> joins across years and tables, rates per 1,000 residents, rankings with window functions, five-year averages, and a calendar built with a recursive query to get crashes per day by weekday.</li>
+    <li><strong>The results go into one JSON file,</strong> and this page draws the map, charts and tables from it in the browser. New data arrives once a year (each August), so updating means adding that year's tables and running the script again.</li>
+  </ol>
+  <p><a class="btn ghost" href="https://github.com/joshritchie-dev/joshritchie-dev.github.io/blob/main/scripts/build_traffic.py">View the script</a><a class="btn ghost" href="https://github.com/joshritchie-dev/joshritchie-dev.github.io/tree/main/scripts/sql">View the SQL</a><a class="btn ghost" href="../data/traffic/traffic.db" download>Download the database</a></p>
+  <p style="color:var(--muted);font-size:.9rem">Counts are police-reported crashes on public roads in Michigan. County rates use July 2024 Census population estimates, so counties with lots of visitors (Mackinac, for example) show high rates relative to the people who live there. The 2025 county figures are from the Michigan State Police year-end county report; 2024 county and deer figures are from Michigan Traffic Crash Facts.</p>
+</section>
+
+<footer>Data: Michigan State Police Criminal Justice Information Center; Michigan Traffic Crash Facts (Michigan Office of Highway Safety Planning and the University of Michigan Transportation Research Institute); U.S. Census Bureau population estimates via the Michigan Senate Fiscal Agency. County boundaries: U.S. Census Bureau. This page is an independent project and is not affiliated with any of these organizations.</footer>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+  var SOURCE = "../data/traffic.json";
+  var NS = "http://www.w3.org/2000/svg";
+
+  var METRICS = [
+    {id:"per_1k", label:"Crashes per 1,000 residents", short:"Per 1,000 residents", kind:"seq", fmt:"rate",
+     desc:"Reported crashes for every 1,000 people living in the county."},
+    {id:"total", label:"Total crashes", short:"Total crashes", kind:"seq", fmt:"count",
+     desc:"All reported crashes in the county."},
+    {id:"deer", label:"Deer crashes", short:"Deer crashes", kind:"seq", fmt:"count",
+     desc:"Crashes where a deer was involved."},
+    {id:"deer_share", label:"Share of crashes involving a deer", short:"Deer share", kind:"seq", fmt:"pct",
+     desc:"Deer-involved crashes as a percentage of all crashes in the county."},
+    {id:"change_pct", label:"Change in crashes from last year", short:"Change from last year", kind:"div", fmt:"pctchg",
+     desc:"How the county's crash count compares with the year before."}
+  ];
+  var byId = {}; METRICS.forEach(function (m) { byId[m.id] = m; });
+  var QUERY_INFO = {
+    "01_checks.sql": ["Data checks", "Runs before anything else. Each row compares an expected total with what the tables actually add up to; the build stops if any don't match."],
+    "02_counties.sql": ["County summary", "Joins this year's and last year's county tables with deer crashes and population, then ranks every county with window functions."],
+    "03_trend.sql": ["Statewide trend", "Year-over-year change with LAG(), plus crash rates per 100 million miles driven and per 1,000 registered vehicles."],
+    "04_time_of_day.sql": ["Time of day", "Each time window's share of the day's crashes, for all crashes and deer crashes, with a five-year average."],
+    "05_day_of_week.sql": ["Day of week", "Builds a calendar with a recursive query to count how many of each weekday the year had, then divides to get crashes per day."],
+    "06_month.sql": ["Month", "Each month of the latest year against the low, high and average of the four years before it."],
+    "07_crash_types.sql": ["Crash types", "Ranks crash types and computes each one's share with SUM() OVER ()."],
+    "08_flags.sql": ["Outlier flags", "Lists counties whose count moved more than 40% in a year, so the page can flag them as possible reporting changes."]
+  };
+
+  var state = {metric:"per_1k", sel:"Kalamazoo", sort:"rank", query:"02_counties.sql"};
+  try { var saved = JSON.parse(localStorage.getItem("traffic-view") || "{}");
+        if (byId[saved.metric]) state.metric = saved.metric;
+        if (typeof saved.sel === "string") state.sel = saved.sel; } catch (e) {}
+  function remember() { try { localStorage.setItem("traffic-view", JSON.stringify({metric:state.metric, sel:state.sel})); } catch (e) {} }
+
+  var D, app = document.getElementById("app"), tip = document.getElementById("tip");
+  var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function n0(v) { return Math.round(v).toLocaleString("en-US"); }
+  function fmt(v, f) {
+    if (v === null || v === undefined || isNaN(v)) return "No data";
+    if (f === "count") return n0(v);
+    if (f === "rate") return v.toFixed(1);
+    if (f === "pct") return v.toFixed(1) + "%";
+    if (f === "pctchg") return (v > 0.04 ? "+" : "") + v.toFixed(1) + "%";
+    return String(v);
+  }
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, attrs) {
+    var t = el("text", Object.assign({x:x, y:y}, attrs || {}), parent); t.textContent = s; return t;
+  }
+  function niceMax(x) {
+    var p = Math.pow(10, Math.floor(Math.log10(x))), n = x / p;
+    return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+  }
+  // bar with rounded data end, square at the baseline
+  function vbar(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h);
+    return "M" + x + "," + (y + h) + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y +
+           "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h) + "Z";
+  }
+  function hbar(x, y, w, h, r) {
+    r = Math.min(r, h / 2, w);
+    return "M" + x + "," + y + "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) +
+           "V" + (y + h - r) + "Q" + (x + w) + "," + (y + h) + " " + (x + w - r) + "," + (y + h) + "H" + x + "Z";
+  }
+
+  /* ---------- tooltip ---------- */
+  function showTip(html, ev) {
+    tip.innerHTML = html; tip.style.display = "block";
+    var x = ev.clientX + 14, y = ev.clientY + 14, r = tip.getBoundingClientRect();
+    if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+    if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+    tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() { tip.style.display = "none"; }
+  function tipFor(node, html) {
+    node.addEventListener("pointermove", function (ev) { showTip(typeof html === "function" ? html() : html, ev); });
+    node.addEventListener("pointerleave", hideTip);
+  }
+
+  /* ---------- color scales ---------- */
+  function scaleFor(m) {
+    var vals = Object.keys(D.counties).map(function (k) { return D.counties[k][m.id]; }).sort(function (a, b) { return a - b; });
+    if (m.kind === "div") {
+      var br = [-10, -2.5, 2.5, 10];
+      var cols = ["--div-n2", "--div-n1", "--div-0", "--div-p1", "--div-p2"].map(css);
+      return {color: function (v) { var i = 0; while (i < br.length && v >= br[i]) i++; return cols[i]; },
+              legend: [["Down 10% or more", cols[0]], ["Down 2.5-10%", cols[1]], ["Within 2.5%", cols[2]],
+                       ["Up 2.5-10%", cols[3]], ["Up 10% or more", cols[4]]]};
+    }
+    var seq = ["--seq-1", "--seq-2", "--seq-3", "--seq-4", "--seq-5"].map(css);
+    var q = [0.2, 0.4, 0.6, 0.8].map(function (p) { var i = (vals.length - 1) * p, lo = Math.floor(i); return vals[lo] + (vals[Math.ceil(i)] - vals[lo]) * (i - lo); });
+    var lab = function (v) { return m.fmt === "count" ? n0(v) : m.fmt === "pct" ? v.toFixed(0) + "%" : v.toFixed(0); };
+    var edges = [vals[0]].concat(q, [vals[vals.length - 1]]);
+    return {color: function (v) { var i = 0; while (i < q.length && v >= q[i]) i++; return seq[i]; },
+            legend: seq.map(function (c, i) { return [lab(edges[i]) + "-" + lab(edges[i + 1]), c]; })};
+  }
+
+  /* ---------- page ---------- */
+  function build() {
+    var h = D.headline, y = D.year, passed = D.checks.filter(function (c) { return c.passed; }).length;
+    if (!D.counties[state.sel]) state.sel = "Kalamazoo";
+    document.getElementById("status").innerHTML =
+      "<span>" + y + " crash data, the latest full year</span>" +
+      "<span><span class=\"ok\">&#10003;</span> " + passed + " of " + D.checks.length + " data checks passed</span>" +
+      "<span>Built " + new Date(D.generated_at).toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric"}) + "</span>";
+    var chg = 100 * (h.crashes - h.crashes_prev) / h.crashes_prev;
+    app.innerHTML =
+      '<div class="tiles">' +
+        tile("Crashes in " + y, n0(h.crashes), (chg >= 0 ? "Up " : "Down ") + Math.abs(chg).toFixed(1) + "% from " + (y - 1)) +
+        tile("Crashes a day", n0(h.per_day), "About one every " + Math.round(1440 / h.per_day * 60) + " seconds") +
+        tile("Involving a deer", "1 in " + Math.round(100 / h.deer_share), n0(h.deer) + " crashes (" + h.deer_share + "%)") +
+        tile("Miles driven per crash", n0(Math.round(h.miles_per_crash / 1000) * 1000), (h.miles_driven / 1e9).toFixed(1) + " billion miles in all") +
+        tile("Licensed drivers", (h.licensed_drivers / 1e6).toFixed(2) + "M", (h.registrations / 1e6).toFixed(1) + "M registered vehicles") +
+      '</div>' +
+      '<div class="chips" role="group" aria-label="Map measure">' + METRICS.map(function (m) {
+        return '<button class="chip" data-m="' + m.id + '" aria-pressed="' + (m.id === state.metric) + '">' + m.short + '</button>'; }).join("") + '</div>' +
+      '<div class="board">' +
+        '<div class="panel"><h2 id="mtitle"></h2><p class="sub" id="mdesc"></p><div class="map" id="map"></div>' +
+          '<div class="mapfoot"><div class="legend" id="legend"></div>' +
+          '<label><span class="sr" style="position:absolute;left:-9999px">County</span><select id="pick" aria-label="Choose a county"></select></label></div></div>' +
+        '<div class="panel" id="detail"></div>' +
+      '</div>' +
+      '<h2>Every county, ranked</h2>' +
+      '<div class="rank-wrap"><table class="rank" id="rank"></table></div>' +
+      '<h2>When crashes happen</h2>' +
+      '<div class="panel chart" id="tod"></div>' +
+      '<div class="two"><div class="panel chart" id="dow"></div><div class="panel chart" id="mon"></div></div>' +
+      '<h2>How crashes happen</h2>' +
+      '<div class="two"><div class="panel chart" id="types"></div><div class="panel chart" id="trend"></div></div>' +
+      '<h2>The SQL behind it</h2>' +
+      '<p style="color:var(--muted);margin-top:-6px">These are the actual queries that produced this page, loaded from the same build. Pick one to read it.</p>' +
+      '<div class="sql"><div class="qlist" id="qlist"></div><div><p class="qdesc" id="qdesc"></p><pre class="code" id="qcode"></pre></div></div>' +
+      '<div class="two"><div class="panel"><h3>Data checks</h3><p class="sub">Run on every build. One failure stops the build.</p><ul class="checks" id="checks"></ul></div>' +
+      '<div class="panel"><h3>Flagged for review</h3><p class="sub">Counties whose crash count changed more than 40% in a year. Swings like these usually come from changes in how crashes were reported, so treat them with care.</p><ul class="checks" id="flags"></ul></div></div>';
+
+    app.querySelectorAll(".chip").forEach(function (b) {
+      b.addEventListener("click", function () { state.metric = b.dataset.m; remember(); app.querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", c === b); }); drawMap(); drawRank(); });
+    });
+    var pick = document.getElementById("pick");
+    pick.innerHTML = Object.keys(D.counties).sort().map(function (k) { return '<option>' + esc(k) + '</option>'; }).join("");
+    pick.addEventListener("change", function () { select(pick.value); });
+
+    drawMap(); drawDetail(); drawRank(); drawCharts(); drawSql();
+  }
+  function tile(k, v, s) { return '<div class="tile"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + '</div></div>'; }
+
+  function select(name) {
+    state.sel = name; remember();
+    document.querySelectorAll("#map path").forEach(function (p) { p.classList.toggle("sel", p.dataset.c === name); });
+    var sp = document.querySelector('#map path[data-c="' + CSS.escape(name) + '"]'); if (sp) sp.parentNode.appendChild(sp);
+    document.querySelectorAll("#rank tbody tr").forEach(function (r) { r.classList.toggle("sel", r.dataset.c === name); });
+    document.getElementById("pick").value = name;
+    drawDetail();
+  }
+
+  function drawMap() {
+    var m = byId[state.metric], sc = scaleFor(m), sh = D.shapes, box = document.getElementById("map");
+    document.getElementById("mtitle").textContent = m.label + ", " + D.year;
+    document.getElementById("mdesc").textContent = m.desc + " Hover or tap a county for details.";
+    box.innerHTML = "";
+    var svg = el("svg", {viewBox:"0 0 " + sh.width + " " + sh.height, role:"img", "aria-label":"Map of Michigan counties colored by " + m.label.toLowerCase()}, box);
+    Object.keys(sh.counties).forEach(function (name) {
+      var c = D.counties[name], v = c[m.id];
+      var p = el("path", {d:sh.counties[name].d, fill:sc.color(v), tabindex:0, "data-c":name, "aria-label":name + " County: " + fmt(v, m.fmt)}, svg);
+      if (name === state.sel) p.classList.add("sel");
+      tipFor(p, function () { return "<b>" + esc(name) + " County</b>" + m.short + ": " + fmt(v, m.fmt) + "<br>" + n0(c.total) + " crashes, " + n0(c.deer) + " with a deer"; });
+      p.addEventListener("click", function () { select(name); });
+      p.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(name); } });
+    });
+    var sp = svg.querySelector("path.sel"); if (sp) svg.appendChild(sp);
+    document.getElementById("legend").innerHTML = sc.legend.map(function (l) { return '<span><i style="background:' + l[1] + '"></i>' + l[0] + '</span>'; }).join("");
+    document.getElementById("pick").value = state.sel;
+  }
+
+  function drawDetail() {
+    var c = D.counties[state.sel], N = Object.keys(D.counties).length, y = D.year;
+    var flag = D.flags.filter(function (f) { return f.county === state.sel; })[0];
+    var roads = [["Local streets", c.local_street], ["State routes", c.state_route], ["U.S. routes", c.us_route], ["Interstates", c.interstate]];
+    var other = c.total - roads.reduce(function (a, r) { return a + r[1]; }, 0);
+    if (other > 0) roads.push(["Not recorded", other]);
+    var mx = Math.max.apply(null, roads.map(function (r) { return r[1]; }));
+    document.getElementById("detail").innerHTML =
+      '<h2>' + esc(state.sel) + ' County</h2><p class="sub">' + y + ' &middot; population ' + n0(c.population) + '</p>' +
+      '<div class="kv">' +
+        kv("Crashes", n0(c.total), "#" + c.rank_total + " of " + N + " counties") +
+        kv("Per 1,000 residents", c.per_1k.toFixed(1), "#" + c.rank_per_1k + " of " + N + " (state: " + statePer1k().toFixed(1) + ")") +
+        kv("Change from " + (y - 1), fmt(c.change_pct, "pctchg"), n0(c.total_prev) + " crashes in " + (y - 1)) +
+        kv("Deer crashes", n0(c.deer), "#" + c.rank_deer + " of " + N + " &middot; " + n0(c.deer_prev) + " in " + (y - 1)) +
+        kv("Share involving a deer", c.deer_share.toFixed(1) + "%", "#" + c.rank_deer_share + " of " + N + " (state: " + D.headline.deer_share + "%)") +
+      '</div>' +
+      (flag ? '<p class="flag">Flagged: crashes ' + (flag.change_pct < 0 ? 'fell ' : 'rose ') + Math.abs(flag.change_pct).toFixed(1) + '% from ' + (y - 1) + ', which may reflect a change in reporting rather than in driving.</p>' : '') +
+      '<div class="roads"><h3>Where crashes happened</h3>' + roads.map(function (r) {
+        return '<div class="rrow"><span>' + r[0] + '</span><span class="bar"><i style="width:' + (100 * r[1] / mx).toFixed(1) + '%"></i></span><span class="n">' + n0(r[1]) + '</span></div>'; }).join("") + '</div>';
+  }
+  function statePer1k() {
+    var t = 0, p = 0; Object.keys(D.counties).forEach(function (k) { t += D.counties[k].total; p += D.counties[k].population; });
+    return 1000 * t / p;
+  }
+  function kv(l, v, s) { return '<div class="lab">' + l + '</div><div class="val">' + v + (s ? '<small>' + s + '</small>' : '') + '</div>'; }
+
+  function drawRank() {
+    var m = byId[state.metric], sc = scaleFor(m);
+    var rows = Object.keys(D.counties).map(function (k) { return D.counties[k]; });
+    var cols = [["county", "County", false], ["total", "Crashes", true], ["per_1k", "Per 1,000", true], ["deer", "Deer crashes", true], ["deer_share", "Deer share", true], ["change_pct", "Change", true]];
+    var key = state.sort === "rank" ? state.metric : state.sort;
+    rows.sort(function (a, b) { return key === "county" ? a.county.localeCompare(b.county) : b[key] - a[key]; });
+    var t = document.getElementById("rank");
+    t.innerHTML = '<thead><tr><th class="n">#</th>' + cols.map(function (c) {
+      return '<th' + (c[2] ? ' class="n"' : '') + '><button data-k="' + c[0] + '"' + (c[0] === key ? ' aria-sort="' + (c[0] === "county" ? "ascending" : "descending") + '"' : '') + '>' + c[1] + '</button></th>'; }).join("") + '</tr></thead><tbody>' +
+      rows.map(function (r, i) {
+        return '<tr data-c="' + esc(r.county) + '"' + (r.county === state.sel ? ' class="sel"' : '') + '><td class="n">' + (i + 1) + '</td><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;background:' + sc.color(r[m.id]) + '"></span>' + esc(r.county) + '</td>' +
+          '<td class="n">' + n0(r.total) + '</td><td class="n">' + r.per_1k.toFixed(1) + '</td><td class="n">' + n0(r.deer) + '</td><td class="n">' + r.deer_share.toFixed(1) + '%</td><td class="n">' + fmt(r.change_pct, "pctchg") + '</td></tr>'; }).join("") + '</tbody>';
+    t.querySelectorAll("th button").forEach(function (b) { b.addEventListener("click", function () { state.sort = b.dataset.k; drawRank(); }); });
+    t.querySelectorAll("tbody tr").forEach(function (r) { r.addEventListener("click", function () { select(r.dataset.c); }); });
+  }
+
+  /* ---------- charts ---------- */
+  function drawCharts() { drawTod(); drawDow(); drawMonth(); drawTypes(); drawTrend(); }
+
+  function frame(id, title, cap, keys) {
+    var box = document.getElementById(id);
+    box.innerHTML = '<h3>' + title + '</h3><p class="sub">' + cap + '</p>' +
+      (keys ? '<div class="keys">' + keys.map(function (k) { return '<span><i style="background:' + k[1] + '"></i>' + k[0] + '</span>'; }).join("") + '</div>' : '');
+    var W = Math.max(280, box.clientWidth - 36);
+    return {box:box, W:W};
+  }
+
+  function drawTod() {
+    var rows = D.time_of_day, all = css("--s-all"), deer = css("--s-deer");
+    var f = frame("tod", "Deer crashes happen at dawn and dusk; other crashes follow rush hour",
+      "Share of each group's " + D.year + " crashes in each three-hour window.", [["All crashes", all], ["Deer crashes", deer]]);
+    var W = f.W, H = 250, L = 34, B = 40, T = 22, iw = W - L - 6, ih = H - T - B;
+    var svg = el("svg", {viewBox:"0 0 " + W + " " + H, height:H, role:"img", "aria-label":"Grouped bar chart of crash share by time of day"}, f.box);
+    var ymax = niceMax(Math.max.apply(null, rows.map(function (r) { return Math.max(r.all_share, r.deer_share); })));
+    for (var g = 0; g <= ymax; g += ymax / 5) {
+      var gy = T + ih - g / ymax * ih;
+      el("line", {x1:L, x2:W - 6, y1:gy, y2:gy, "class":"gl"}, svg);
+      txt(svg, L - 6, gy + 4, g + "%", {"text-anchor":"end"});
+    }
+    var gw = iw / rows.length, bw = Math.min(26, (gw - 10) / 2);
+    rows.forEach(function (r, i) {
+      var cx = L + gw * i + gw / 2;
+      [[r.all_share, all, -1], [r.deer_share, deer, 1]].forEach(function (s) {
+        var h = s[0] / ymax * ih, x = s[2] < 0 ? cx - bw - 1 : cx + 1;
+        el("path", {d:vbar(x, T + ih - h, bw, h, 4), fill:s[1]}, svg);
+      });
+      var lab = r.label.replace("Midnight", "12 AM").replace("Noon", "12 PM");
+      var parts = lab.split("-");
+      if (gw < 70) {
+        var st = parts[0].replace(" AM", "").replace(" PM", "");
+        txt(svg, cx, H - B + 16, st, {"text-anchor":"middle"});
+        txt(svg, cx, H - B + 30, /AM/.test(parts[0]) || (parts[0].indexOf("PM") < 0 && /AM/.test(parts[1])) ? "am" : "pm", {"text-anchor":"middle"});
+      } else {
+        txt(svg, cx, H - B + 16, parts[0] + "-", {"text-anchor":"middle"});
+        txt(svg, cx, H - B + 30, parts[1], {"text-anchor":"middle"});
+      }
+      if (r.deer_share >= 20) txt(svg, cx + 1 + bw / 2, T + ih - r.deer_share / ymax * ih - 6, Math.round(r.deer_share) + "%", {"text-anchor":"middle", "class":"val"});
+      if (r.all_share >= 20) txt(svg, cx - 1 - bw / 2, T + ih - r.all_share / ymax * ih - 6, Math.round(r.all_share) + "%", {"text-anchor":"middle", "class":"val"});
+      var hit = el("rect", {x:L + gw * i, y:T, width:gw, height:ih, "class":"hit"}, svg);
+      tipFor(hit, "<b>" + esc(r.label) + "</b>All crashes: " + n0(r.all_crashes) + " (" + r.all_share + "%)<br>Deer crashes: " + n0(r.deer_crashes) + " (" + r.deer_share + "%)<br><span style='color:var(--muted)'>5-year average: " + r.all_share_5yr + "% / " + r.deer_share_5yr + "%</span>");
+    });
+    var dawn = rows[2], dusk = rows[6], pm = rows[5];
+    var p = document.createElement("p"); p.className = "insight";
+    p.innerHTML = "Nearly half of deer crashes (" + Math.round(dawn.deer_share + dusk.deer_share) + "%) happen between 6 and 9 in the morning or evening, when deer are most active. All crashes peak from 3 to 6 PM, at " + Math.round(pm.all_share) + "% of the day's total. The pattern has held steady for five years.";
+    f.box.appendChild(p);
+  }
+
+  function drawDow() {
+    var rows = D.day_of_week, c = css("--seq-3");
+    var f = frame("dow", "Fridays are busiest, Sundays quietest", "Average crashes per day in " + D.year + ".");
+    var W = f.W, H = 220, B = 26, T = 22, ih = H - T - B;
+    var svg = el("svg", {viewBox:"0 0 " + W + " " + H, height:H, role:"img", "aria-label":"Bar chart of average crashes per day by weekday"}, f.box);
+    var mx = Math.max.apply(null, rows.map(function (r) { return r.per_day; })), gw = W / 7, bw = Math.min(40, gw - 12);
+    el("line", {x1:0, x2:W, y1:T + ih, y2:T + ih, "class":"gl"}, svg);
+    rows.forEach(function (r, i) {
+      var h = r.per_day / mx * ih, x = gw * i + (gw - bw) / 2;
+      el("path", {d:vbar(x, T + ih - h, bw, h, 4), fill:c}, svg);
+      txt(svg, x + bw / 2, T + ih - h - 6, n0(r.per_day), {"text-anchor":"middle", "class":"val"});
+      txt(svg, x + bw / 2, H - 8, r.day.slice(0, 3), {"text-anchor":"middle"});
+      tipFor(el("rect", {x:gw * i, y:T, width:gw, height:ih, "class":"hit"}, svg),
+        "<b>" + r.day + "</b>" + n0(r.per_day) + " crashes a day on average<br>" + n0(r.crashes) + " across " + r.days + " " + r.day + "s");
+    });
+    var wk = rows.slice(0, 5), we = rows.slice(5);
+    var avg = function (a) { return a.reduce(function (t, r) { return t + r.crashes; }, 0) / a.reduce(function (t, r) { return t + r.days; }, 0); };
+    var p = document.createElement("p"); p.className = "insight";
+    p.innerHTML = "Weekdays average " + n0(avg(wk)) + " crashes a day and weekends " + n0(avg(we)) + ", lining up with weekday commuting.";
+    f.box.appendChild(p);
+  }
+
+  function drawMonth() {
+    var rows = D.month, c = css("--seq-3"), band = css("--band");
+    var MN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var f = frame("mon", "Crashes jump in fall and winter", D.year + " crashes by month, against the range of the four years before.",
+      [[String(D.year), c], [(D.year - 4) + "-" + (D.year - 1) + " range", band]]);
+    var W = f.W, H = 220, L = 40, B = 26, T = 10, iw = W - L, ih = H - T - B;
+    var svg = el("svg", {viewBox:"0 0 " + W + " " + H, height:H, role:"img", "aria-label":"Bar chart of crashes by month with prior-year range"}, f.box);
+    var ymax = Math.ceil(Math.max.apply(null, rows.map(function (r) { return Math.max(r.crashes, r.prior_max); })) / 10000) * 10000;
+    var Y = function (v) { return T + ih - v / ymax * ih; };
+    for (var g = 0; g <= ymax; g += 10000) { el("line", {x1:L, x2:W, y1:Y(g), y2:Y(g), "class":"gl"}, svg); txt(svg, L - 6, Y(g) + 4, g / 1000 + "k", {"text-anchor":"end"}); }
+    var gw = iw / 12, bw = Math.min(16, gw - 12);
+    rows.forEach(function (r, i) {
+      var x = L + gw * i + (gw - bw) / 2;
+      el("rect", {x:L + gw * i + 2, y:Y(r.prior_max), width:gw - 4, height:Math.max(2, Y(r.prior_min) - Y(r.prior_max)), rx:3, fill:band}, svg);
+      el("path", {d:vbar(x, Y(r.crashes), bw, T + ih - Y(r.crashes), 4), fill:c, stroke:css("--surface"), "stroke-width":2}, svg);
+      txt(svg, x + bw / 2, H - 8, MN[i].charAt(0), {"text-anchor":"middle"});
+      tipFor(el("rect", {x:L + gw * i, y:T, width:gw, height:ih, "class":"hit"}, svg),
+        "<b>" + MN[i] + " " + D.year + "</b>" + n0(r.crashes) + " crashes<br>" + (D.year - 4) + "-" + (D.year - 1) + ": " + n0(r.prior_min) + " to " + n0(r.prior_max));
+    });
+    var s = rows.slice(9).reduce(function (a, r) { return a + r.crashes; }, 0), tot = rows.reduce(function (a, r) { return a + r.crashes; }, 0);
+    var p = document.createElement("p"); p.className = "insight";
+    p.innerHTML = "October through December had " + Math.round(100 * s / tot) + "% of the year's crashes in a quarter of the year: deer season, then snow and ice.";
+    f.box.appendChild(p);
+  }
+
+  function drawTypes() {
+    var rows = D.crash_types, c = css("--seq-3");
+    var f = frame("types", "Single-vehicle crashes lead", "Share of " + D.year + " crashes by type. Many single-vehicle crashes are deer strikes.");
+    var rowH = 26, L = Math.min(170, f.W * 0.42), H = rows.length * rowH + 4, iw = f.W - L - 60;
+    var svg = el("svg", {viewBox:"0 0 " + f.W + " " + H, height:H, role:"img", "aria-label":"Bar chart of crash types"}, f.box);
+    var mx = rows[0].share;
+    rows.forEach(function (r, i) {
+      var y = i * rowH + 4, w = Math.max(2, r.share / mx * iw);
+      txt(svg, L - 8, y + 13, r.crash_type, {"text-anchor":"end"});
+      el("path", {d:hbar(L, y + 2, w, 15, 4), fill:c}, svg);
+      txt(svg, L + w + 6, y + 14, r.share.toFixed(1) + "%", {"class":"val"});
+      tipFor(el("rect", {x:0, y:y, width:f.W, height:rowH, "class":"hit"}, svg), "<b>" + esc(r.crash_type) + "</b>" + n0(r.crashes) + " crashes (" + r.share + "%)");
+    });
+  }
+
+  function drawTrend() {
+    var rows = D.trend, c = css("--seq-3");
+    var drop = Math.round(100 * (1 - rows[rows.length - 1].crashes / rows[0].crashes));
+    var f = frame("trend", "Crashes are down " + drop + "% since " + rows[0].year, "Statewide crashes per year. Hover for the rate per 100 million miles driven, where available.");
+    var W = f.W, H = 240, L = 40, R = 14, B = 26, T = 14, iw = W - L - R, ih = H - T - B;
+    var svg = el("svg", {viewBox:"0 0 " + W + " " + H, height:H, role:"img", "aria-label":"Line chart of statewide crashes per year"}, f.box);
+    var ymax = 400000, X = function (i) { return L + i / (rows.length - 1) * iw; }, Y = function (v) { return T + ih - v / ymax * ih; };
+    for (var g = 0; g <= ymax; g += 100000) { el("line", {x1:L, x2:W - R, y1:Y(g), y2:Y(g), "class":"gl"}, svg); txt(svg, L - 6, Y(g) + 4, g / 1000 + "k", {"text-anchor":"end"}); }
+    el("polyline", {points:rows.map(function (r, i) { return X(i) + "," + Y(r.crashes); }).join(" "), fill:"none", stroke:c, "stroke-width":2, "stroke-linejoin":"round"}, svg);
+    rows.forEach(function (r, i) { var edge = i === 0 || i === rows.length - 1; if (edge || (r.year % 5 === 0 && i > 2 && i < rows.length - 3)) txt(svg, X(i), H - 8, r.year, {"text-anchor":i === 0 ? "start" : i === rows.length - 1 ? "end" : "middle"}); });
+    var first = rows[0], last = rows[rows.length - 1], dip = rows.filter(function (r) { return r.year === 2020; })[0];
+    [[0, first], [rows.length - 1, last]].forEach(function (p) {
+      el("circle", {cx:X(p[0]), cy:Y(p[1].crashes), r:4, fill:c, stroke:css("--surface"), "stroke-width":2}, svg);
+      txt(svg, X(p[0]), Y(p[1].crashes) - 10, n0(p[1].crashes), {"text-anchor":p[0] === 0 ? "start" : "end", "class":"val"});
+    });
+    if (dip) txt(svg, X(rows.indexOf(dip)), Y(dip.crashes) + 18, "2020: pandemic low", {"text-anchor":"middle"});
+    var dot = el("circle", {r:4.5, fill:c, stroke:css("--surface"), "stroke-width":2, visibility:"hidden"}, svg);
+    var vline = el("line", {y1:T, y2:T + ih, stroke:css("--muted"), "stroke-dasharray":"3 3", visibility:"hidden"}, svg);
+    var hit = el("rect", {x:L, y:T, width:iw, height:ih, "class":"hit"}, svg);
+    hit.addEventListener("pointermove", function (ev) {
+      var b = svg.getBoundingClientRect(), x = (ev.clientX - b.left) * (W / b.width);
+      var i = Math.max(0, Math.min(rows.length - 1, Math.round((x - L) / iw * (rows.length - 1)))), r = rows[i];
+      dot.setAttribute("cx", X(i)); dot.setAttribute("cy", Y(r.crashes)); dot.setAttribute("visibility", "visible");
+      vline.setAttribute("x1", X(i)); vline.setAttribute("x2", X(i)); vline.setAttribute("visibility", "visible");
+      showTip("<b>" + r.year + "</b>" + n0(r.crashes) + " crashes" + (r.change_pct !== null ? " (" + fmt(r.change_pct, "pctchg") + ")" : "") +
+        (r.per_100m_miles ? "<br>" + r.per_100m_miles + " per 100 million miles" : ""), ev);
+    });
+    hit.addEventListener("pointerleave", function () { hideTip(); dot.setAttribute("visibility", "hidden"); vline.setAttribute("visibility", "hidden"); });
+    var withRate = rows.filter(function (r) { return r.per_100m_miles; }), r0 = withRate[0], r1 = withRate[withRate.length - 1];
+    var p = document.createElement("p"); p.className = "insight";
+    p.innerHTML = "Crashes fell from " + n0(first.crashes) + " in " + first.year + " to " + n0(last.crashes) + " in " + last.year + ". Measured per mile driven, the crash rate went from " + r0.per_100m_miles.toFixed(1) + " per 100 million miles in " + r0.year + " to " + r1.per_100m_miles.toFixed(1) + " in " + r1.year + ".";
+    f.box.appendChild(p);
+  }
+
+  /* ---------- SQL viewer ---------- */
+  var KW = /\b(WITH|RECURSIVE|SELECT|FROM|JOIN|USING|ON|WHERE|AND|OR|NOT|IN|AS|GROUP BY|ORDER BY|PARTITION BY|OVER|UNION ALL|CASE|WHEN|THEN|ELSE|END|SUM|COUNT|AVG|MIN|MAX|ROUND|RANK|LAG|ABS|CAST|INTEGER|BETWEEN|DESC|ASC|date|strftime)\b/g;
+  function highlight(sql) {
+    return sql.split("\n").map(function (line) {
+      var i = line.indexOf("--"), code = i >= 0 ? line.slice(0, i) : line, cm = i >= 0 ? line.slice(i) : "";
+      var out = esc(code).replace(/('[^']*')/g, '<span class="st">$1</span>').replace(KW, function (k) { return '<span class="kw">' + k + '</span>'; });
+      return out + (cm ? '<span class="cm">' + esc(cm) + '</span>' : '');
+    }).join("\n");
+  }
+  function drawSql() {
+    var list = document.getElementById("qlist");
+    list.innerHTML = Object.keys(D.queries).sort().map(function (k) {
+      var info = QUERY_INFO[k] || [k, ""];
+      return '<button class="qbtn" data-q="' + k + '" aria-pressed="' + (k === state.query) + '">' + info[0] + '<small>' + k + '</small></button>'; }).join("");
+    list.querySelectorAll(".qbtn").forEach(function (b) { b.addEventListener("click", function () { state.query = b.dataset.q; drawSql(); }); });
+    var info = QUERY_INFO[state.query] || ["", ""];
+    document.getElementById("qdesc").textContent = info[1];
+    document.getElementById("qcode").innerHTML = highlight(D.queries[state.query].trim());
+    document.getElementById("checks").innerHTML = D.checks.map(function (c) {
+      return '<li><span class="mark' + (c.passed ? '' : ' bad') + '">' + (c.passed ? "&#10003;" : "&#10007;") + '</span><span>' + esc(c.check_name) + '</span><small>' +
+        (c.expected === 0 ? (c.actual === 0 ? "0 problems" : n0(c.actual) + " problems") : n0(c.actual) + " of " + n0(c.expected)) + '</small></li>'; }).join("");
+    document.getElementById("flags").innerHTML = D.flags.length ? D.flags.map(function (f) {
+      return '<li><span class="mark">!</span><span>' + esc(f.county) + ' County</span><small>' + n0(f.total_prev) + ' &rarr; ' + n0(f.total) + ' (' + fmt(f.change_pct, "pctchg") + ')</small></li>'; }).join("") : '<li>No counties flagged this year.</li>';
+  }
+
+  var lastW = 0, rt;
+  addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { if (D && Math.abs(innerWidth - lastW) > 30) { lastW = innerWidth; drawCharts(); } }, 150); });
+  if (matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { if (D) { drawMap(); drawRank(); drawCharts(); } });
+
+  fetch(SOURCE, {cache:"no-cache"}).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) { D = d; lastW = innerWidth; build(); })
+    .catch(function () {
+      document.getElementById("status").innerHTML = "";
+      app.innerHTML = '<div class="state">The data file couldn\'t be loaded right now. Try refreshing the page in a minute.</div>';
+    });
+})();
+</script>
+</body>
+</html>
