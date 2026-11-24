@@ -423,17 +423,16 @@ table.rank i{display:inline-block;width:10px;height:10px;border-radius:2px;margi
         var g = mk("g", {"class": "box" + (ab === state.sel ? " sel" : "")});
         mk("rect", {x: small ? 884 : 846, y: boxY, width: bw, height: bh, rx: 5, fill: has ? col : "url(#nd)"}, g);
         var t = mk("text", {x: (small ? 884 : 846) + bw / 2, y: boxY + bh / 2 + (small ? 9 : 6), "font-size": small ? fs : 16, fill: has ? inkOn(col) : css("--muted")}, g); t.textContent = ab;
-        if (!small) { var tv = mk("text", {x: 893, y: boxY + 22, "font-size": 16, "class": "boxlab"}, g); tv.textContent = has ? tileFmt(v, m) : "—"; }
+
         targets.push(g);
       } else {
         var c = sh.c, n = NUDGE[ab] || [0, 0], big = sh.a > 5200 && !small, out = small ? null : OUTSIDE[ab];
         var lx = c[0] + n[0] + (out ? out[0] : 0), ly = c[1] + n[1] + (out ? out[1] : 0);
         var ink = out ? css("--ink") : has ? inkOn(col) : css("--muted");
         var tight = sh.a < 3000, f1 = small ? fs : big ? 19 : tight ? 12.5 : 14, f2 = big ? 15 : tight ? 11 : 12.5;
-        var t1 = (small && sh.a < 7000) ? null : mk("text", {"data-ab": ab, x: lx, y: ly + (small ? fs / 3 : big ? -2 : -1), "font-size": f1, fill: ink}, labels);
+        var t1 = (small && sh.a < 7000) ? null : mk("text", {"data-ab": ab, x: lx, y: ly + (small ? fs / 3 : f1 / 3), "font-size": f1, fill: ink}, labels);
         if (t1) t1.textContent = ab;
-        if (!small && has) { var t2 = mk("text", {"data-ab": ab, x: lx, y: ly + (big ? 17 : tight ? 11.5 : 13), "font-size": f2, "font-weight": 500, fill: ink}, labels); t2.textContent = tileFmt(v, m); }
-        if (t1 && !out && path) fitLabel(path, [t1, t2].filter(Boolean));
+        if (t1 && !out && path) fitLabel(path, [t1]);
       }
       targets.forEach(function (el, i) {
         if (i === targets.length - 1) { el.setAttribute("tabindex", "0"); el.setAttribute("role", "button"); el.setAttribute("aria-label", label); el.setAttribute("aria-pressed", ab === state.sel); }
