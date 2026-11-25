@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-24T15:24:49+00:00",
+ "generated_at": "2026-11-25T15:26:36+00:00",
  "metrics": [
   {
    "id": "cpi",
@@ -981,10 +981,10 @@
    "decimals": 2,
    "value": 4.0,
    "display": "3.75% to 4.00%",
-   "date": "2026-11-24",
-   "period": "Nov 24, 2026",
+   "date": "2026-11-25",
+   "period": "Nov 25, 2026",
    "change": 0.0,
-   "summary": "The Federal Reserve's target rate is 3.75% to 4.00% as of Nov 24, 2026, unchanged from Oct 31, 2026.",
+   "summary": "The Federal Reserve's target rate is 3.75% to 4.00% as of Nov 25, 2026, unchanged from Oct 31, 2026.",
    "source": "Federal Reserve, via FRED",
    "source_url": "https://fred.stlouisfed.org/series/DFEDTARU",
    "history": [
@@ -1129,7 +1129,7 @@
      4.0
     ],
     [
-     "2026-11-24",
+     "2026-11-25",
      4.0
     ]
    ],
@@ -1143,10 +1143,10 @@
    "decimals": 2,
    "value": 4.92,
    "display": "4.92%",
-   "date": "2026-11-20",
-   "period": "Nov 20, 2026",
+   "date": "2026-11-23",
+   "period": "Nov 23, 2026",
    "change": -0.02,
-   "summary": "The 10-year Treasury yield was 4.92% as of Nov 20, 2026, down from 4.94%. It sits 0.29 points above the 2-year yield.",
+   "summary": "The 10-year Treasury yield was 4.92% as of Nov 23, 2026, down from 4.94%. It sits 0.29 points above the 2-year yield.",
    "source": "U.S. Treasury, via FRED",
    "source_url": "https://fred.stlouisfed.org/series/DGS10",
    "history": [
@@ -1291,7 +1291,7 @@
      4.94
     ],
     [
-     "2026-11-20",
+     "2026-11-23",
      4.92
     ]
    ],
@@ -1465,12 +1465,12 @@
    "unit": "%",
    "kind": "level",
    "decimals": 1,
-   "value": 3.4,
-   "display": "3.4%",
+   "value": 4.3,
+   "display": "4.3%",
    "date": "2026-07-01",
    "period": "Q3 2026",
-   "change": 1.2,
-   "summary": "The economy grew at a 3.4% annual rate in Q3 2026, up from 2.2%.",
+   "change": 2.1,
+   "summary": "The economy grew at a 4.3% annual rate in Q3 2026, up from 2.2%.",
    "source": "BEA, via FRED",
    "source_url": "https://fred.stlouisfed.org/series/A191RL1Q225SBEA",
    "history": [
@@ -1616,7 +1616,7 @@
     ],
     [
      "2026-07-01",
-     3.4
+     4.3
     ]
    ],
    "stale": false
